@@ -41,3 +41,11 @@ Each entry is an ADR-style confirmed decision. Open product/commercial choices r
 ## D-010 Imported documents may be unclassified
 
 **Context:** the confirmed Organization -> Case -> Document hierarchy must not block import when classification is unavailable or uncertain. **Decision:** Document organization/case links are optional until confirmation, with `unclassified`, `suggested`, and `confirmed` classification states. AI suggestions remain non-confirmed provenance until the user accepts or corrects them. **Rationale:** documents are safely retained and analyzable even when extraction/classification fails. **Consequences:** no automatic misleading “Unknown” cases; confirmed browsing retains the hierarchy. **Alternative:** mandatory hierarchy creation at import was rejected.
+
+## D-011 Phase 1 Flutter package, dependencies, and schema v1
+
+**Context:** Phase 1 needs a runnable local-first foundation without prematurely building product integrations. **Decision:** use the finalized Doxary product identity with Dart package `doxary` and Android/iOS application identity `de.habeero.doxary`; use Riverpod, GoRouter, Drift/SQLite, path/path_provider, UUID, and Flutter localization. Schema v1 is normalized and includes local organizations, cases, documents, files, analyses, action facts, tasks, and non-sensitive settings. **Rationale:** each dependency directly enables an approved Phase 1 boundary; UUID v7 provides stable client-origin IDs. **Consequences:** Drift mappings are generated code and migration upgrades must be explicit/forward-only. **Alternative:** picker, notification, AI, billing, cloud, and analytics packages were intentionally not added.
+
+## D-012 Explicit unavailable platform capabilities
+
+**Context:** camera/file permissions and notifications require platform integration choices that are outside the foundation scope. **Decision:** expose typed `DocumentImportGateway` and `ReminderScheduler` ports with adapters that return or expose unavailable capability state. **Rationale:** UI can be honest and domain code remains independent of platform libraries. **Consequences:** no fake imports or reminder scheduling occur in Phase 1; native adapters can be introduced later without changing use cases. **Alternative:** silent no-op success and picker coupling in presentation were rejected.

@@ -1,0 +1,159 @@
+import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:doxary/app/app.dart';
+import 'package:doxary/app/localization/app_localizations.dart';
+import 'package:doxary/app/providers.dart';
+import 'package:doxary/core/database/app_database.dart' hide DocumentFile;
+import 'package:doxary/features/documents/data/repositories/local_document_repository.dart';
+import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
+import 'package:doxary/features/documents/domain/repositories/document_repository.dart';
+import 'package:doxary/features/documents/presentation/documents_page.dart';
+import 'package:doxary/features/document_import/domain/document_import.dart';
+import 'package:doxary/core/errors/result.dart';
+import 'package:doxary/features/home/presentation/home_page.dart';
+import 'package:doxary/features/tasks/application/task_timeframes.dart';
+import 'package:doxary/features/tasks/domain/repositories/task_repository.dart';
+
+void main() {
+  test('an imported document is valid before classification', () {
+    final document = LocalDocument(
+      clientDocumentId: 'client-1',
+      classificationState: ClassificationState.unclassified,
+      status: DocumentStatus.imported,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    expect(document.organizationId, isNull);
+    expect(document.caseId, isNull);
+    expect(document.isUnclassified, isTrue);
+  });
+
+  test(
+    'schema v1 persists an unclassified document and its local file',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      final repository = LocalDocumentRepository(database);
+      final now = DateTime(2026, 1, 1);
+      await repository.saveImportedDocument(
+        LocalDocument(
+          clientDocumentId: 'client-1',
+          classificationState: ClassificationState.unclassified,
+          status: DocumentStatus.imported,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        DocumentFile(
+          id: 'file-1',
+          clientDocumentId: 'client-1',
+          localUri: Uri.parse('file:///private/document.pdf'),
+          mediaType: 'application/pdf',
+          importedAt: now,
+        ),
+      );
+      expect(await repository.watchRecent().first, hasLength(1));
+      await database.close();
+    },
+  );
+
+  test('task buckets separate today, upcoming, and completed', () {
+    final now = DateTime(2026, 1, 10, 9);
+    LocalTask task(String id, TaskStatus status, DateTime? dueAt) => LocalTask(
+      id: id,
+      title: id,
+      status: status,
+      provenance: TaskProvenance.user,
+      createdAt: now,
+      updatedAt: now,
+      dueAt: dueAt,
+    );
+    final buckets = bucketTasks(
+      open: [
+        task('today', TaskStatus.open, DateTime(2026, 1, 10, 18)),
+        task('later', TaskStatus.open, DateTime(2026, 1, 11)),
+      ],
+      completed: [task('done', TaskStatus.completed, null)],
+      now: now,
+    );
+    expect(buckets.today.single.id, 'today');
+    expect(buckets.upcoming.single.id, 'later');
+    expect(buckets.completed.single.id, 'done');
+  });
+
+  test('unavailable import is an explicit typed capability failure', () async {
+    final result = await UnavailableDocumentImportGateway().pick(
+      ImportSource.pdfFile,
+    );
+    expect(result, isA<Failure<DocumentImportCandidate>>());
+  });
+
+  testWidgets('empty home is localized and switches to RTL in Arabic', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
+          taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+        ],
+        child: const ProjectApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Noch keine Dokumente'), findsOneWidget);
+    await tester.tap(find.text('Dokumente').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(DocumentsPage), findsOneWidget);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
+          taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('ar'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: const HomePage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      Directionality.of(tester.element(find.byType(HomePage))),
+      TextDirection.rtl,
+    );
+  });
+}
+
+class _EmptyDocuments implements DocumentRepository {
+  @override
+  Future<void> saveImportedDocument(
+    LocalDocument document,
+    DocumentFile file,
+  ) async {}
+  @override
+  Stream<List<LocalDocument>> watchRecent({int limit = 5}) => Stream.value([]);
+}
+
+class _EmptyTasks implements TaskRepository {
+  @override
+  Future<void> save(LocalTask task) async {}
+  @override
+  Future<void> updateStatus(
+    String taskId,
+    TaskStatus status,
+    DateTime updatedAt,
+  ) async {}
+  @override
+  Stream<List<LocalTask>> watchCompleted() => Stream.value([]);
+  @override
+  Stream<List<LocalTask>> watchOpen() => Stream.value([]);
+}

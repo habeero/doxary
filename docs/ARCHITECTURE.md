@@ -34,3 +34,9 @@ No bidirectional sync protocol is defined yet. If introduced, local entities nee
 Client: capture/import, encrypted-at-rest evaluation, local storage, offline views, local reminders, rendering localized content, classification acceptance/correction, and construction of minimum assistant context. Backend: provider credentials, upload/request-context validation and temporary lifecycle, AI routing/prompts/schema validation, quotas, abuse controls, normalized errors, cost records, remote config, and future account/sync/billing. Flutter receives product operations, never provider credentials or provider/model names.
 
 Infrastructure and repository implementations are replaceable via ports. Hosting is deliberately unspecified.
+
+## Phase 1 implementation
+
+The Flutter foundation is implemented under `lib/`: `app/` owns bootstrap, localization, routing, theme, and Riverpod composition; `core/` owns typed errors, Drift database, reminder capability, and IDs; `features/` owns domain contracts, local data adapters, application task bucketing, and presentation pages; `shared/design_system/` provides small reusable UI primitives. Drift mapping code is generated beside `core/database/app_database.dart` and is not used outside data adapters.
+
+The implemented remote contracts are product-oriented `DocumentAnalysisRemoteDataSource` and `AssistantRemoteDataSource` interfaces only. They have no HTTP adapter and no provider-specific type. Document import uses a `DocumentImportGateway`; the Phase 1 adapter explicitly returns an unavailable-capability result until picker/permission work is separately approved. Reminders likewise use an explicit unavailable scheduler rather than reporting a false successful schedule.

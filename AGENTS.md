@@ -1,4 +1,4 @@
-# Project D agent guidance
+# Doxary agent guidance
 
 ## Before changing anything
 
@@ -21,3 +21,9 @@
 - Treat document data as privacy-sensitive. Follow `docs/SECURITY_PRIVACY.md` for retention, deletion, and telemetry.
 - Use forward database migrations only. Never reset or delete a production database to solve migration problems.
 - Add tests for business rules and regression fixes.
+
+## Application identity
+
+- Doxary uses `de.habeero.doxary` for Android and iOS application identity.
+- Do not introduce alternative package, bundle, or application IDs without an explicit documented decision.
+- Temporary project/product names must not silently become external identifiers.

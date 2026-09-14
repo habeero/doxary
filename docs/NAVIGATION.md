@@ -16,3 +16,7 @@ flowchart LR
 ```
 
 The result starts with sender, what it is, plain explanation, action requirement, due date, and next action. Original German text is accessible but secondary. Multiple practical states can appear together. Offline views show local information and a clear pending-analysis state; never imply that analysis completed offline.
+
+## Phase 1 implementation
+
+GoRouter uses a stateful indexed shell for Home, Documents, New Document, Tasks, and Profile, preserving each tab branch where practical. Central route constants define the five paths and reserve nested document, case/task, import-review, and analysis paths. Home renders its real local repository streams with empty/loading/error states; it does not inject sample document data. The import screen offers camera, image, and PDF intent choices but truthfully reports the unavailable picker capability instead of simulating an import.

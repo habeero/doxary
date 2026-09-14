@@ -33,3 +33,9 @@ Dates retain precision (`date` versus timestamp), source wording, inferred timez
 ## Future sync
 
 Maintain local deletion tombstones and `revision`/server-version fields only when sync is introduced. A future sync mapping may attach `server_resource_id` to a local `client_document_id`, without replacing the local identity or requiring server originals. Original file upload/storage needs separate, opt-in consent and lifecycle metadata; it is not implied by syncing analysis metadata.
+
+## Phase 1 schema v1
+
+Drift/SQLite schema v1 implements normalized tables for organizations, cases, documents, document files, analyses, tasks, deadlines, appointments, amounts, required documents, and non-sensitive user settings. `documents.client_document_id` is the primary local identity; organization/case foreign keys are nullable. Analysis structured fields will be expanded into typed columns as the Phase 3 validated output contract is implemented; Phase 1 stores only schema/version, language, summary/explanation, state, and timestamps.
+
+Schema versions are never reset or treated as disposable. The current migration hook creates v1; any later version must add an explicit forward migration and accompanying tests.
