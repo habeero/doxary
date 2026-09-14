@@ -1,0 +1,43 @@
+# Architecture decisions
+
+Each entry is an ADR-style confirmed decision. Open product/commercial choices remain open unless stated.
+
+## D-001 Flutter, Riverpod, GoRouter, and feature-first Clean Architecture
+
+**Context:** Mobile-first Android delivery must remain iOS-ready and maintainable. **Decision:** Flutter is the client framework; Riverpod provides state/DI, GoRouter navigation, and feature-first Clean Architecture is the boundary model. **Rationale:** shared UI with testable domain/application layers and explicit feature ownership. **Consequences:** UI contains no business logic; domain has no Flutter dependency. **Alternative:** prototype-layer architecture rejected because it would force a major refactor.
+
+## D-002 Drift/SQLite and local-first ownership
+
+**Context:** Documents are sensitive and users need access around unreliable connectivity. **Decision:** use Drift/SQLite locally and retain original files locally by default. **Rationale:** local usability and data minimization. **Consequences:** future sync needs explicit IDs/revisions/conflict policy. **Alternative:** cloud-first storage is deferred.
+
+## D-003 Flask, PostgreSQL, and `/api/v1`
+
+**Context:** Server concerns need a conventional, replaceable API/service boundary. **Decision:** later backend uses Flask, SQLAlchemy/Alembic, PostgreSQL, and versioned REST beginning `/api/v1`. **Rationale:** clear Python ecosystem fit and compatibility management. **Consequences:** no backend implementation or migrations in Phase 0. **Alternative:** hosting/framework changes require a documented ADR.
+
+## D-004 Backend-mediated provider abstraction and structured AI
+
+**Context:** credentials, safety, cost, and provider portability cannot live in Flutter. **Decision:** Flutter never calls providers directly; backend owns provider adapters, routing, prompts, validation, and versioned structured schemas. **Rationale:** security and reliable actionable UX. **Consequences:** model names do not enter domain/client contracts; uncertain facts are explicit. **Alternative:** free-form direct client chat rejected.
+
+## D-005 Organization -> Case -> Document
+
+**Context:** administrative correspondence forms continuing relationships. **Decision:** model Organization -> Case -> Document, with derived action items sourced to documents. **Rationale:** natural browsing and lifecycle context without forcing manual setup. **Consequences:** classifier suggestions are editable; categories are configuration/display labels. **Alternative:** flat document list is insufficient.
+
+## D-006 Language-independent domain, Arabic RTL first
+
+**Context:** German source material needs Arabic explanation now and other languages later. **Decision:** separate source language, target language, and localized labels; support RTL from foundation. **Rationale:** adding Tigrinya or other targets does not alter business logic. **Consequences:** localization is tested as a core concern. **Alternative:** Arabic-only domain values rejected.
+
+## D-007 Entitlement abstraction
+
+**Context:** monetization is undecided but should not contaminate UI/business rules. **Decision:** central EntitlementService/FeatureAccess/UsageQuota concepts. **Rationale:** future pricing/store choices stay replaceable. **Consequences:** no final price or paid feature is implied. **Alternative:** scattered premium booleans rejected.
+
+## D-008 Hosting neutrality
+
+**Context:** deployment is not decided. **Decision:** no hosting/vendor assumptions in architecture. **Rationale:** preserve deployment choice. **Consequences:** deployment provider is an open decision; mobile-domain contracts remain independent.
+
+## D-009 Local-context assistant operations and identifier vocabulary
+
+**Context:** path-based assistant routes implied that a local Document already existed as a permanent backend resource, conflicting with local-first ownership. **Decision:** MVP assistant operations accept a minimum temporary context envelope and use `client_document_id` only to correlate to the local Document. `operation_id` identifies temporary asynchronous work; `request_id` correlates one API request; `server_resource_id` is reserved for future synchronized resources. **Rationale:** questions and reply drafting work without accounts, cloud sync, or permanent server originals. **Consequences:** MVP contracts use explicit local versus server identifier names; future sync can add server resources compatibly. **Alternative:** server-side document lookup for every assistant request was rejected.
+
+## D-010 Imported documents may be unclassified
+
+**Context:** the confirmed Organization -> Case -> Document hierarchy must not block import when classification is unavailable or uncertain. **Decision:** Document organization/case links are optional until confirmation, with `unclassified`, `suggested`, and `confirmed` classification states. AI suggestions remain non-confirmed provenance until the user accepts or corrects them. **Rationale:** documents are safely retained and analyzable even when extraction/classification fails. **Consequences:** no automatic misleading “Unknown” cases; confirmed browsing retains the hierarchy. **Alternative:** mandatory hierarchy creation at import was rejected.
