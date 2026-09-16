@@ -21,6 +21,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   DocumentImportSelection? _selection;
   String? _message;
   bool _busy = false;
+  String? _idempotencyKey;
 
   Future<void> _select(ImportSource source) async {
     final result = await ref.read(importGatewayProvider).pickSelection(source);
@@ -28,11 +29,12 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     result.when(
       success: (selection) => setState(() {
         _selection = selection;
+        _idempotencyKey = null;
         _message = null;
       }),
       failure: (error) {
         if (error is! ImportCancelledError) {
-          setState(() => _message = error.message);
+          setState(() => _message = context.l10n.importError);
         }
       },
     );
@@ -94,7 +96,9 @@ class _ImportPageState extends ConsumerState<ImportPage> {
               style: arabic
                   ? ExplanationStyle.standard
                   : ExplanationStyle.simple,
-              idempotencyKey: ref.read(idGeneratorProvider).newId(),
+              idempotencyKey: _idempotencyKey ??= ref
+                  .read(idGeneratorProvider)
+                  .newId(),
             ),
           );
       if (mounted) setState(() => _message = context.l10n.analysisStarted);
@@ -111,8 +115,10 @@ class _ImportPageState extends ConsumerState<ImportPage> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _message = error is AppError
-              ? error.message
+          _message = error is RemoteApiError && error.retryable
+              ? context.l10n.operationRetryableError
+              : error is AppError
+              ? context.l10n.operationFailedError
               : context.l10n.analysisFailed;
         });
       }

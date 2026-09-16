@@ -16,11 +16,11 @@ void main() {
     tester,
   ) async {
     await _pump(tester, _complete(), const Locale('de'));
-    expect(find.text('Complete'), findsOneWidget);
+    expect(find.text('Vollständig'), findsOneWidget);
     expect(find.text('A clear summary'), findsOneWidget);
     expect(find.text('Reply: 2026-10-01'), findsOneWidget);
-    expect(find.text('Required documents'), findsOneWidget);
-    expect(find.text('Output style: Simple'), findsOneWidget);
+    expect(find.text('Benötigte Dokumente'), findsOneWidget);
+    expect(find.text('Ausgabestil: Einfach'), findsOneWidget);
   });
 
   testWidgets('partial result is presented as a valid outcome', (tester) async {
@@ -29,7 +29,7 @@ void main() {
       _complete(status: AnalysisStatus.partial),
       const Locale('de'),
     );
-    expect(find.textContaining('Partial'), findsOneWidget);
+    expect(find.textContaining('Teilweise'), findsOneWidget);
     expect(find.text('The saved analysis could not be read.'), findsNothing);
   });
 
@@ -39,9 +39,9 @@ void main() {
       _complete(status: AnalysisStatus.unavailable),
       const Locale('de'),
     );
-    expect(find.text('Analysis unavailable.'), findsOneWidget);
-    expect(find.text('Document quality'), findsOneWidget);
-    expect(find.text('The image may be blurry.'), findsOneWidget);
+    expect(find.text('Analyse nicht verfügbar.'), findsOneWidget);
+    expect(find.text('Dokumentenqualität'), findsOneWidget);
+    expect(find.text('Das Bild ist möglicherweise unscharf.'), findsOneWidget);
   });
 
   testWidgets('absent optional sections are omitted', (tester) async {
@@ -123,7 +123,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Persisted summary'), findsOneWidget);
-      expect(find.text('Output style: Simple'), findsOneWidget);
+      expect(find.text('Ausgabestil: Einfach'), findsOneWidget);
     },
   );
 

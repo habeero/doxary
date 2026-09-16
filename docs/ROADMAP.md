@@ -12,6 +12,8 @@ Phases are outcome-oriented, have no promised dates, and require revisiting priv
 
 ## Phase 2 delivery sequence
 
+Backend staging is verified through the current Phase 2.7a scope; Flutter-to-staging end-to-end validation remains pending.
+
 - **Phase 2.6 â€” Flutter integration:** typed API client, multipart submission, idempotency, bounded operation polling, backend-result mapping, local Drift persistence, and opt-in local end-to-end validation. Staging deployment begins only after the local flow upload -> operation -> poll -> local result -> UI is proven.
 - **Phase 2.7 â€” Staging deployment (deferred):** production-like PostgreSQL, web/API and worker processes, HTTPS, runtime secrets, shared temporary storage strategy, migrations, logging/health/readiness, rollback, and deployment documentation.
 - **Phase 2.8 â€” Real-device and beta testing (deferred):** 2.8a developer/self testing on a real phone against staging; 2.8b 2-3 informed trusted testers using real documents with quality/cost/latency/failure evidence; 2.8c broader closed beta when stable.

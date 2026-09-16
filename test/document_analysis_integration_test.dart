@@ -16,6 +16,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
+  test('API config normalizes bare host and preserves versioned base path', () {
+    expect(
+      DoxaryApiConfig(baseUri: Uri.parse('https://dox-api.habeero.de'))
+          .resolve('document-analyses')
+          .toString(),
+      'https://dox-api.habeero.de/api/v1/document-analyses',
+    );
+    expect(
+      DoxaryApiConfig(baseUri: Uri.parse('https://example.test/api/v1/'))
+          .resolve('operations/op-1')
+          .toString(),
+      'https://example.test/api/v1/operations/op-1',
+    );
+  });
+
   test(
     'maps a complete Arabic result with typed facts and quality outcomes',
     () {
@@ -148,6 +163,25 @@ void main() {
       );
     },
   );
+
+  test('unknown operation status is a safe malformed-response error', () async {
+    final source = DoxaryDocumentAnalysisRemoteDataSource(
+      DoxaryApiClient(
+        DoxaryApiConfig(baseUri: Uri.parse('http://example.test')),
+        client: _RecordingClient(
+          _jsonResponse({
+            'operation_id': 'op',
+            'status': 'mystery',
+            'request_id': 'r',
+          }, 200),
+        ),
+      ),
+    );
+    await expectLater(
+      source.getOperation('op'),
+      throwsA(isA<MalformedRemoteResponseError>()),
+    );
+  });
 }
 
 DocumentFile _file(String id, File file, String mediaType, int pageOrder) =>

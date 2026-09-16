@@ -60,11 +60,10 @@ RemoteApiError toRemoteApiError(int statusCode, Map<String, dynamic> body) {
   final error = body['error'];
   if (error is Map<String, dynamic>) {
     final code = error['code'];
-    final message = error['message'];
     final retryable = error['retryable'];
     return RemoteApiError(
-      message is String
-          ? message
+      retryable == true
+          ? 'The service is temporarily unavailable.'
           : 'The analysis request could not be completed.',
       statusCode: statusCode,
       code: code is String ? code : 'unknown_error',

@@ -108,7 +108,7 @@ class DoxaryDocumentAnalysisRemoteDataSource
         'The operation response was invalid.',
       );
     }
-    final status = BackendOperationStatus.values.byName(statusText);
+    final status = _parseStatus(statusText);
     final result = body['result'];
     if (status == BackendOperationStatus.succeeded &&
         result is! Map<String, dynamic>) {
@@ -121,10 +121,46 @@ class DoxaryDocumentAnalysisRemoteDataSource
       status: status,
       requestId: requestId,
       result: result is Map<String, dynamic>
-          ? mapAnalysisResult(result, id: operationId, createdAt: _clock())
+          ? _mapResult(result, operationId, _clock())
           : null,
       failureCode:
           (body['failure'] as Map<String, dynamic>?)?['code'] as String?,
+    );
+  }
+}
+
+DocumentAnalysis _mapResult(
+  Map<String, dynamic> json,
+  String operationId,
+  DateTime createdAt,
+) {
+  try {
+    return mapAnalysisResult(json, id: operationId, createdAt: createdAt);
+  } on FormatException catch (error) {
+    throw MalformedRemoteResponseError(
+      'The completed operation had an invalid result.',
+      cause: error,
+    );
+  } on TypeError catch (error) {
+    throw MalformedRemoteResponseError(
+      'The completed operation had an invalid result.',
+      cause: error,
+    );
+  } on ArgumentError catch (error) {
+    throw MalformedRemoteResponseError(
+      'The completed operation had an invalid result.',
+      cause: error,
+    );
+  }
+}
+
+BackendOperationStatus _parseStatus(String value) {
+  try {
+    return BackendOperationStatus.values.byName(value);
+  } on ArgumentError catch (error) {
+    throw MalformedRemoteResponseError(
+      'The operation response was invalid.',
+      cause: error,
     );
   }
 }

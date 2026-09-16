@@ -17,9 +17,13 @@ class DoxaryApiConfig {
   final Uri baseUri;
 
   Uri resolve(String path) {
-    final normalized = baseUri.path.endsWith('/')
-        ? baseUri
-        : baseUri.replace(path: '${baseUri.path}/');
+    final configuredPath = baseUri.path.replaceFirst(RegExp(r'/+$'), '');
+    final apiPath = configuredPath.isEmpty || configuredPath == '/'
+        ? '/api/v1'
+        : configuredPath.endsWith('/api/v1')
+        ? configuredPath
+        : '$configuredPath/api/v1';
+    final normalized = baseUri.replace(path: '$apiPath/');
     return normalized.resolve(path);
   }
 }
