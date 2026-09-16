@@ -148,6 +148,19 @@ class DocumentAnalysis {
     this.explanationStyle = ExplanationStyle.standard,
     this.qualityReasons = const [],
     this.sourceReferences = const [],
+    this.detectedLanguage = 'undetermined',
+    this.actionRequired = ActionRequirement.uncertain,
+    this.urgency = AnalysisUrgency.uncertain,
+    this.confidence,
+    this.practicalStates = const [],
+    this.uncertainties = const [],
+    this.classification,
+    this.deadlines = const [],
+    this.appointments = const [],
+    this.amounts = const [],
+    this.requiredDocuments = const [],
+    this.suggestedTasks = const [],
+    this.nextActions = const [],
   });
   final String id;
   final String clientDocumentId;
@@ -160,6 +173,124 @@ class DocumentAnalysis {
   final ExplanationStyle explanationStyle;
   final List<DocumentQualityReason> qualityReasons;
   final List<SourceReference> sourceReferences;
+  final String detectedLanguage;
+  final ActionRequirement actionRequired;
+  final AnalysisUrgency urgency;
+  final double? confidence;
+  final List<PracticalState> practicalStates;
+  final List<String> uncertainties;
+  final ClassificationSuggestion? classification;
+  final List<AnalysisDeadline> deadlines;
+  final List<AnalysisAppointment> appointments;
+  final List<AnalysisAmount> amounts;
+  final List<AnalysisRequiredDocument> requiredDocuments;
+  final List<AnalysisSuggestedTask> suggestedTasks;
+  final List<String> nextActions;
+}
+
+enum ActionRequirement { yes, no, uncertain }
+
+enum AnalysisUrgency { low, normal, high, critical, uncertain }
+
+enum PracticalState {
+  informational,
+  actionRequired,
+  appointment,
+  payment,
+  documentsRequired,
+}
+
+class ClassificationSuggestion {
+  const ClassificationSuggestion({this.organizationName, this.documentType});
+  final String? organizationName;
+  final String? documentType;
+}
+
+class AnalysisDeadline {
+  const AnalysisDeadline({
+    required this.label,
+    required this.dateOrRange,
+    required this.confidence,
+    this.time,
+    this.timezone,
+    this.consequence,
+    this.sourceReference,
+  });
+  final String label;
+  final String dateOrRange;
+  final double confidence;
+  final String? time;
+  final String? timezone;
+  final String? consequence;
+  final String? sourceReference;
+}
+
+class AnalysisAppointment {
+  const AnalysisAppointment({
+    required this.label,
+    required this.startOrDate,
+    required this.confidence,
+    this.end,
+    this.location,
+    this.preparation,
+    this.sourceReference,
+  });
+  final String label;
+  final String startOrDate;
+  final double confidence;
+  final String? end;
+  final String? location;
+  final String? preparation;
+  final String? sourceReference;
+}
+
+class AnalysisAmount {
+  const AnalysisAmount({
+    required this.value,
+    required this.currency,
+    required this.direction,
+    required this.confidence,
+    this.dueDate,
+    this.purpose,
+    this.sourceReference,
+  });
+  final String value;
+  final String currency;
+  final AmountDirection direction;
+  final double confidence;
+  final String? dueDate;
+  final String? purpose;
+  final String? sourceReference;
+}
+
+class AnalysisRequiredDocument {
+  const AnalysisRequiredDocument({
+    required this.description,
+    required this.confidence,
+    this.dueDate,
+    this.submissionMethod,
+    this.sourceReference,
+  });
+  final String description;
+  final double confidence;
+  final String? dueDate;
+  final String? submissionMethod;
+  final String? sourceReference;
+}
+
+class AnalysisSuggestedTask {
+  const AnalysisSuggestedTask({
+    required this.title,
+    required this.confidence,
+    this.dueDate,
+    this.instructions,
+    this.sourceReference,
+  });
+  final String title;
+  final double confidence;
+  final String? dueDate;
+  final String? instructions;
+  final String? sourceReference;
 }
 
 class Deadline {

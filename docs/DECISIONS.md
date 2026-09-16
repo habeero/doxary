@@ -53,3 +53,11 @@ Each entry is an ADR-style confirmed decision. Open product/commercial choices r
 ## D-013 Document-first vision analysis and bounded follow-up context
 
 **Decision:** Analysis starts from an imported document before assistant use. Vision-capable backend processing is the MVP path; on-device OCR is optional. Results separate extracted facts from explanation, include output language/style, typed quality outcomes/reasons, and typed evidence. Multiple versioned analyses remain possible per local document. A backend follow-up context, if used, is short-lived, deletable, and limited to structured analysis, summary, evidence, version, and lifecycle timestamps; it never stores original files or creates a permanent Document resource.
+
+## D-014 Phase 2.6 backend integration boundary
+
+**Decision:** Flutter submits one logical local Document to `POST /api/v1/document-analyses`, assigns a high-entropy idempotency key per submission attempt, and polls the backend operation resource using bounded client-side polling. The operation ID is persisted only as pending local metadata and is removed after result persistence; it never replaces `client_document_id`. **Consequences:** transient upload retry can reuse the in-memory key, polling retry never resubmits, expiry is explicit/recoverable, and an app restart resumes only known accepted/processing operations. Provider APIs and raw result JSON remain outside Flutter domain/presentation.
+
+## D-015 Local persisted-result read path
+
+**Decision:** A document result route reads the latest typed `DocumentAnalysis` through `AnalysisRepository` and Drift. It does not re-submit or poll solely to display an existing result. Optional sections are omitted, while `complete`, `partial`, and `unavailable` remain explicit product outcomes. Classification suggestions and evidence remain non-confirming metadata.

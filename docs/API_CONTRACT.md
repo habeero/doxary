@@ -1,4 +1,4 @@
-# API contract (planned)
+# API contract
 
 Base path is `/api/v1`; additive changes remain backward compatible within v1. JSON uses lower_snake_case, ISO-8601 dates/timestamps, opaque IDs, and explicit schema versions. Authentication is initially an implementation assumption: anonymous/device-scoped access may be used only with abuse controls; future account tokens use `Authorization: Bearer`. No client receives AI provider credentials. MVP assistant requests are operation-scoped: they do not require an account, cloud sync, or a permanent server-side document resource.
 
@@ -11,14 +11,14 @@ Base path is `/api/v1`; additive changes remain backward compatible within v1. J
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /documents/analyze` | Receive a validated temporary upload and return/queue analysis correlated to a local document. |
+| `POST /document-analyses` | Receive a validated temporary upload and return/queue analysis correlated to a local document. |
 | `GET /operations/{operation_id}` | Poll an asynchronous analysis operation when needed. |
 | `POST /assistant/questions` | Answer from a client-supplied, minimum scoped context envelope. |
 | `POST /assistant/draft-reply` | Generate a German reply draft from a client-supplied, minimum scoped context envelope. |
 | `GET /config` | Fetch non-sensitive remote flags/configuration. |
 | `GET /health` | Service health without sensitive diagnostics. |
 
-`POST /documents/analyze` uses multipart upload plus required `client_document_id`, `target_language`, and `Idempotency-Key`; it validates MIME, size, page/image limits, checksum, and malware-scanning strategy before temporary storage. Response is either `202 {operation_id,status,request_id}` or `200 {analysis: DocumentAnalysis, request_id}`. The returned analysis carries the same `client_document_id`. The service deletes the original temporary upload under the retention policy and does not create a permanent server Document.
+The implemented client contract is `POST /api/v1/document-analyses`, using repeated `files` parts plus `client_document_id`, `output_language` (`ar|de`), `output_style` (`standard|simple`, with `simple` limited to German), `input_kind` (`pdf|images`), and `Idempotency-Key`. Image submissions include one repeated `page_indexes` field per file, contiguous from zero; a PDF has exactly one file and no page indexes. The response is `202 {operation_id,status:accepted,request_id}`. `GET /api/v1/operations/{operation_id}` exposes only `accepted|processing|succeeded|failed`; success carries a validated `AnalysisResult v1`, expiry returns `410 operation_expired`, and other failures use the common safe error envelope.
 
 Assistant requests carry a `context` envelope rather than a server document path. Both require `{client_document_id, target_language, analysis?, source_evidence?, conversation_context?}`; the question route additionally requires `question`, and the draft route accepts `purpose?` and `user_instructions?`. `analysis` must be a validated structured analysis available locally; `source_evidence` and `conversation_context` are limited to the excerpts/turns needed for the requested operation. This context is processed temporarily and deleted under the retention policy. Responses use schemas in `AI_OUTPUT_SCHEMAS.md` and include `request_id`.
 

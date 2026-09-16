@@ -2,11 +2,19 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/database/app_database.dart';
+import '../core/config/doxary_api_config.dart';
+import '../core/network/doxary_api_client.dart';
 import '../core/notifications/reminder_scheduler.dart';
 import '../core/utils/id_generator.dart';
 import '../features/cases/data/repositories/local_case_repository.dart';
 import '../features/cases/domain/repositories/case_repository.dart';
 import '../features/document_import/domain/document_import.dart';
+import '../features/document_import/data/file_picker_document_import_gateway.dart';
+import '../features/document_analysis/application/analysis_workflow.dart';
+import '../features/document_analysis/data/doxary_document_analysis_remote_data_source.dart';
+import '../features/document_analysis/data/local_analysis_repository.dart';
+import '../features/document_analysis/domain/analysis_repository.dart';
+import '../features/document_analysis/domain/analysis_submission.dart';
 import '../features/documents/data/repositories/local_document_repository.dart';
 import '../features/documents/domain/entities/domain_entities.dart';
 import '../features/documents/domain/repositories/document_repository.dart';
@@ -29,6 +37,32 @@ final idGeneratorProvider = Provider<IdGenerator>(
 final documentRepositoryProvider = Provider<DocumentRepository>(
   (ref) => LocalDocumentRepository(ref.watch(databaseProvider)),
 );
+final apiConfigProvider = Provider<DoxaryApiConfig>(
+  (ref) => DoxaryApiConfig.fromEnvironment(),
+);
+final apiClientProvider = Provider<DoxaryApiClient>((ref) {
+  final client = DoxaryApiClient(ref.watch(apiConfigProvider));
+  ref.onDispose(client.close);
+  return client;
+});
+final analysisRemoteDataSourceProvider =
+    Provider<DocumentAnalysisRemoteDataSource>(
+      (ref) =>
+          DoxaryDocumentAnalysisRemoteDataSource(ref.watch(apiClientProvider)),
+    );
+final analysisRepositoryProvider = Provider<AnalysisRepository>(
+  (ref) => LocalAnalysisRepository(ref.watch(databaseProvider)),
+);
+final latestAnalysisProvider = FutureProvider.family<DocumentAnalysis?, String>(
+  (ref, clientDocumentId) =>
+      ref.watch(analysisRepositoryProvider).getLatest(clientDocumentId),
+);
+final analysisWorkflowProvider = Provider<AnalysisWorkflow>(
+  (ref) => AnalysisWorkflow(
+    ref.watch(analysisRemoteDataSourceProvider),
+    ref.watch(analysisRepositoryProvider),
+  ),
+);
 final organizationRepositoryProvider = Provider<OrganizationRepository>(
   (ref) => LocalOrganizationRepository(ref.watch(databaseProvider)),
 );
@@ -42,7 +76,7 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
   (ref) => LocalSettingsRepository(ref.watch(databaseProvider)),
 );
 final importGatewayProvider = Provider<DocumentImportGateway>(
-  (ref) => UnavailableDocumentImportGateway(),
+  (ref) => FilePickerDocumentImportGateway(),
 );
 final reminderSchedulerProvider = Provider<ReminderScheduler>(
   (ref) => UnavailableReminderScheduler(),

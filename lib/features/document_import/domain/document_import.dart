@@ -22,8 +22,16 @@ class DocumentImportCandidate {
   final DateTime importedAt;
 }
 
+class DocumentImportSelection {
+  const DocumentImportSelection(this.files);
+  final List<DocumentImportCandidate> files;
+  bool get isPdf =>
+      files.length == 1 && files.single.mediaType == ImportedMediaType.pdf;
+}
+
 abstract interface class DocumentImportGateway {
   Future<Result<DocumentImportCandidate>> pick(ImportSource source);
+  Future<Result<DocumentImportSelection>> pickSelection(ImportSource source);
 }
 
 class UnavailableDocumentImportGateway implements DocumentImportGateway {
@@ -34,4 +42,13 @@ class UnavailableDocumentImportGateway implements DocumentImportGateway {
           'Document import is not configured on this device.',
         ),
       );
+
+  @override
+  Future<Result<DocumentImportSelection>> pickSelection(
+    ImportSource source,
+  ) async => const Failure(
+    CapabilityUnavailableError(
+      'Document import is not configured on this device.',
+    ),
+  );
 }

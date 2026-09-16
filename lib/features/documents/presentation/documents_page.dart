@@ -5,6 +5,7 @@ import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../shared/design_system/app_widgets.dart';
+import '../../document_analysis/presentation/analysis_result_page.dart';
 
 class DocumentsPage extends ConsumerWidget {
   const DocumentsPage({super.key});
@@ -30,6 +31,13 @@ class DocumentsPage extends ConsumerWidget {
                           const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (_, index) => AppSectionCard(
                         child: ListTile(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => AnalysisResultPage(
+                                clientDocumentId: items[index].clientDocumentId,
+                              ),
+                            ),
+                          ),
                           title: Text(items[index].clientDocumentId),
                           subtitle: Text(items[index].classificationState.name),
                           leading: const Icon(Icons.description_outlined),

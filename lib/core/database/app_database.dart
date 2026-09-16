@@ -153,6 +153,20 @@ class RequiredDocuments extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Durable client-owned metadata for a pending backend operation. It is not a
+/// server document identity and permits polling to resume after app restart.
+class AnalysisOperations extends Table {
+  TextColumn get operationId => text()();
+  TextColumn get clientDocumentId =>
+      text().references(Documents, #clientDocumentId)();
+  TextColumn get state => text()();
+  TextColumn get lastFailureCode => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {operationId};
+}
+
 class UserSettings extends Table {
   TextColumn get key => text()();
   TextColumn get value => text()();
@@ -175,6 +189,7 @@ class UserSettings extends Table {
     Appointments,
     Amounts,
     RequiredDocuments,
+    AnalysisOperations,
     UserSettings,
   ],
 )
@@ -182,7 +197,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -195,6 +210,9 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(analyses, analyses.explanationStyle);
         await m.createTable(analysisQualityReasons);
         await m.createTable(sourceReferences);
+      }
+      if (from < 3) {
+        await m.createTable(analysisOperations);
       }
     },
   );

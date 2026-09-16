@@ -15,7 +15,9 @@ flowchart LR
  Result --> Reply[Draft German reply]
 ```
 
-The result starts with sender, what it is, plain explanation, action requirement, due date, and next action. Original German text is accessible but secondary. Multiple practical states can appear together. Offline views show local information and a clear pending-analysis state; never imply that analysis completed offline.
+The result starts with sender suggestion, document type, plain explanation, action requirement, deadlines, appointments, amounts, requested documents, next actions, and quality/uncertainty guidance. Suggestions remain suggestions until a user confirms them. Pending analysis states are uploading, accepted, and processing; terminal technical failure and an `unavailable` AnalysisResult are distinct. Offline views show locally persisted results and a clear pending-analysis state; never imply that analysis completed offline.
+
+An analyzed document opens its `/documents/:clientDocumentId` result route. That route reads the latest local Drift analysis and never requires a network request merely to reopen an existing result. Optional sections are omitted when absent; partial and unavailable are rendered as valid analysis outcomes.
 
 ## Phase 1 implementation
 

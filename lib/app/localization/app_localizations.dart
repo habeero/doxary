@@ -31,8 +31,16 @@ class AppLocalizations {
   String get arabic => _value('arabic');
   String get foundationMessage => _value('foundationMessage');
   String get emptyDocumentsDescription => _value('emptyDocumentsDescription');
+  String get selectedDocument => _value('selectedDocument');
+  String get startAnalysis => _value('startAnalysis');
+  String get analysisUploading => _value('analysisUploading');
+  String get analysisStarted => _value('analysisStarted');
+  String get analysisComplete => _value('analysisComplete');
+  String get analysisFailed => _value('analysisFailed');
+  String get images => _value('images');
+  String get cameraDeferred => _value('cameraDeferred');
   String _value(String key) =>
-      (_strings[locale.languageCode] ?? _strings['de']!)[key]!;
+      (_strings[locale.languageCode] ?? _strings['de']!)[key] ?? key;
 }
 
 const _strings = <String, Map<String, String>>{

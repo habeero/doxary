@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/document_import/presentation/import_page.dart';
+import '../../features/document_analysis/presentation/analysis_result_page.dart';
 import '../../features/documents/presentation/documents_page.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/settings/presentation/profile_page.dart';
@@ -40,7 +41,10 @@ final appRouterProvider = Provider<GoRouter>(
                 routes: [
                   GoRoute(
                     path: ':clientDocumentId',
-                    builder: (context, state) => const DocumentsPage(),
+                    builder: (context, state) => AnalysisResultPage(
+                      clientDocumentId:
+                          state.pathParameters['clientDocumentId']!,
+                    ),
                   ),
                 ],
               ),

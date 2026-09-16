@@ -5203,6 +5203,447 @@ class RequiredDocumentsCompanion extends UpdateCompanion<RequiredDocument> {
   }
 }
 
+class $AnalysisOperationsTable extends AnalysisOperations
+    with TableInfo<$AnalysisOperationsTable, AnalysisOperation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisOperationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _operationIdMeta = const VerificationMeta(
+    'operationId',
+  );
+  @override
+  late final GeneratedColumn<String> operationId = GeneratedColumn<String>(
+    'operation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientDocumentIdMeta = const VerificationMeta(
+    'clientDocumentId',
+  );
+  @override
+  late final GeneratedColumn<String> clientDocumentId = GeneratedColumn<String>(
+    'client_document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES documents (client_document_id)',
+    ),
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastFailureCodeMeta = const VerificationMeta(
+    'lastFailureCode',
+  );
+  @override
+  late final GeneratedColumn<String> lastFailureCode = GeneratedColumn<String>(
+    'last_failure_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    operationId,
+    clientDocumentId,
+    state,
+    lastFailureCode,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_operations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisOperation> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('operation_id')) {
+      context.handle(
+        _operationIdMeta,
+        operationId.isAcceptableOrUnknown(
+          data['operation_id']!,
+          _operationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_operationIdMeta);
+    }
+    if (data.containsKey('client_document_id')) {
+      context.handle(
+        _clientDocumentIdMeta,
+        clientDocumentId.isAcceptableOrUnknown(
+          data['client_document_id']!,
+          _clientDocumentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientDocumentIdMeta);
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stateMeta);
+    }
+    if (data.containsKey('last_failure_code')) {
+      context.handle(
+        _lastFailureCodeMeta,
+        lastFailureCode.isAcceptableOrUnknown(
+          data['last_failure_code']!,
+          _lastFailureCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {operationId};
+  @override
+  AnalysisOperation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisOperation(
+      operationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation_id'],
+      )!,
+      clientDocumentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_document_id'],
+      )!,
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      )!,
+      lastFailureCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_failure_code'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AnalysisOperationsTable createAlias(String alias) {
+    return $AnalysisOperationsTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisOperation extends DataClass
+    implements Insertable<AnalysisOperation> {
+  final String operationId;
+  final String clientDocumentId;
+  final String state;
+  final String? lastFailureCode;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const AnalysisOperation({
+    required this.operationId,
+    required this.clientDocumentId,
+    required this.state,
+    this.lastFailureCode,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['operation_id'] = Variable<String>(operationId);
+    map['client_document_id'] = Variable<String>(clientDocumentId);
+    map['state'] = Variable<String>(state);
+    if (!nullToAbsent || lastFailureCode != null) {
+      map['last_failure_code'] = Variable<String>(lastFailureCode);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AnalysisOperationsCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisOperationsCompanion(
+      operationId: Value(operationId),
+      clientDocumentId: Value(clientDocumentId),
+      state: Value(state),
+      lastFailureCode: lastFailureCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastFailureCode),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AnalysisOperation.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisOperation(
+      operationId: serializer.fromJson<String>(json['operationId']),
+      clientDocumentId: serializer.fromJson<String>(json['clientDocumentId']),
+      state: serializer.fromJson<String>(json['state']),
+      lastFailureCode: serializer.fromJson<String?>(json['lastFailureCode']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'operationId': serializer.toJson<String>(operationId),
+      'clientDocumentId': serializer.toJson<String>(clientDocumentId),
+      'state': serializer.toJson<String>(state),
+      'lastFailureCode': serializer.toJson<String?>(lastFailureCode),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AnalysisOperation copyWith({
+    String? operationId,
+    String? clientDocumentId,
+    String? state,
+    Value<String?> lastFailureCode = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => AnalysisOperation(
+    operationId: operationId ?? this.operationId,
+    clientDocumentId: clientDocumentId ?? this.clientDocumentId,
+    state: state ?? this.state,
+    lastFailureCode: lastFailureCode.present
+        ? lastFailureCode.value
+        : this.lastFailureCode,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AnalysisOperation copyWithCompanion(AnalysisOperationsCompanion data) {
+    return AnalysisOperation(
+      operationId: data.operationId.present
+          ? data.operationId.value
+          : this.operationId,
+      clientDocumentId: data.clientDocumentId.present
+          ? data.clientDocumentId.value
+          : this.clientDocumentId,
+      state: data.state.present ? data.state.value : this.state,
+      lastFailureCode: data.lastFailureCode.present
+          ? data.lastFailureCode.value
+          : this.lastFailureCode,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisOperation(')
+          ..write('operationId: $operationId, ')
+          ..write('clientDocumentId: $clientDocumentId, ')
+          ..write('state: $state, ')
+          ..write('lastFailureCode: $lastFailureCode, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    operationId,
+    clientDocumentId,
+    state,
+    lastFailureCode,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisOperation &&
+          other.operationId == this.operationId &&
+          other.clientDocumentId == this.clientDocumentId &&
+          other.state == this.state &&
+          other.lastFailureCode == this.lastFailureCode &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AnalysisOperationsCompanion extends UpdateCompanion<AnalysisOperation> {
+  final Value<String> operationId;
+  final Value<String> clientDocumentId;
+  final Value<String> state;
+  final Value<String?> lastFailureCode;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const AnalysisOperationsCompanion({
+    this.operationId = const Value.absent(),
+    this.clientDocumentId = const Value.absent(),
+    this.state = const Value.absent(),
+    this.lastFailureCode = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisOperationsCompanion.insert({
+    required String operationId,
+    required String clientDocumentId,
+    required String state,
+    this.lastFailureCode = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : operationId = Value(operationId),
+       clientDocumentId = Value(clientDocumentId),
+       state = Value(state),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<AnalysisOperation> custom({
+    Expression<String>? operationId,
+    Expression<String>? clientDocumentId,
+    Expression<String>? state,
+    Expression<String>? lastFailureCode,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (operationId != null) 'operation_id': operationId,
+      if (clientDocumentId != null) 'client_document_id': clientDocumentId,
+      if (state != null) 'state': state,
+      if (lastFailureCode != null) 'last_failure_code': lastFailureCode,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisOperationsCompanion copyWith({
+    Value<String>? operationId,
+    Value<String>? clientDocumentId,
+    Value<String>? state,
+    Value<String?>? lastFailureCode,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return AnalysisOperationsCompanion(
+      operationId: operationId ?? this.operationId,
+      clientDocumentId: clientDocumentId ?? this.clientDocumentId,
+      state: state ?? this.state,
+      lastFailureCode: lastFailureCode ?? this.lastFailureCode,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (operationId.present) {
+      map['operation_id'] = Variable<String>(operationId.value);
+    }
+    if (clientDocumentId.present) {
+      map['client_document_id'] = Variable<String>(clientDocumentId.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (lastFailureCode.present) {
+      map['last_failure_code'] = Variable<String>(lastFailureCode.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisOperationsCompanion(')
+          ..write('operationId: $operationId, ')
+          ..write('clientDocumentId: $clientDocumentId, ')
+          ..write('state: $state, ')
+          ..write('lastFailureCode: $lastFailureCode, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $UserSettingsTable extends UserSettings
     with TableInfo<$UserSettingsTable, UserSetting> {
   @override
@@ -5484,6 +5925,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AmountsTable amounts = $AmountsTable(this);
   late final $RequiredDocumentsTable requiredDocuments =
       $RequiredDocumentsTable(this);
+  late final $AnalysisOperationsTable analysisOperations =
+      $AnalysisOperationsTable(this);
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -5502,6 +5945,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     appointments,
     amounts,
     requiredDocuments,
+    analysisOperations,
     userSettings,
   ];
 }
@@ -6656,6 +7100,32 @@ final class $$DocumentsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$AnalysisOperationsTable, List<AnalysisOperation>>
+  _analysisOperationsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisOperations,
+        aliasName: 'documents__client_document_id__analysis_operations__client_document_id',
+      );
+
+  $$AnalysisOperationsTableProcessedTableManager get analysisOperationsRefs {
+    final manager =
+        $$AnalysisOperationsTableTableManager(
+          $_db,
+          $_db.analysisOperations,
+        ).filter(
+          (f) => f.clientDocumentId.clientDocumentId.sqlEquals(
+            $_itemColumn<String>('client_document_id')!,
+          ),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisOperationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$DocumentsTableFilterComposer
@@ -6939,6 +7409,31 @@ class $$DocumentsTableFilterComposer
           }) => $$RequiredDocumentsTableFilterComposer(
             $db: $db,
             $table: $db.requiredDocuments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> analysisOperationsRefs(
+    Expression<bool> Function($$AnalysisOperationsTableFilterComposer f) f,
+  ) {
+    final $$AnalysisOperationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.analysisOperations,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysisOperationsTableFilterComposer(
+            $db: $db,
+            $table: $db.analysisOperations,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7324,6 +7819,32 @@ class $$DocumentsTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> analysisOperationsRefs<T extends Object>(
+    Expression<T> Function($$AnalysisOperationsTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisOperationsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.clientDocumentId,
+          referencedTable: $db.analysisOperations,
+          getReferencedColumn: (t) => t.clientDocumentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisOperationsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisOperations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$DocumentsTableTableManager
@@ -7350,6 +7871,7 @@ class $$DocumentsTableTableManager
             bool appointmentsRefs,
             bool amountsRefs,
             bool requiredDocumentsRefs,
+            bool analysisOperationsRefs,
           })
         > {
   $$DocumentsTableTableManager(_$AppDatabase db, $DocumentsTable table)
@@ -7431,6 +7953,7 @@ class $$DocumentsTableTableManager
                 appointmentsRefs = false,
                 amountsRefs = false,
                 requiredDocumentsRefs = false,
+                analysisOperationsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -7443,6 +7966,7 @@ class $$DocumentsTableTableManager
                     if (appointmentsRefs) db.appointments,
                     if (amountsRefs) db.amounts,
                     if (requiredDocumentsRefs) db.requiredDocuments,
+                    if (analysisOperationsRefs) db.analysisOperations,
                   ],
                   addJoins:
                       <
@@ -7663,6 +8187,28 @@ class $$DocumentsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (analysisOperationsRefs)
+                        await $_getPrefetchedData<
+                          Document,
+                          $DocumentsTable,
+                          AnalysisOperation
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DocumentsTableReferences
+                              ._analysisOperationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DocumentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisOperationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) =>
+                                    e.clientDocumentId == item.clientDocumentId,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -7694,6 +8240,7 @@ typedef $$DocumentsTableProcessedTableManager =
         bool appointmentsRefs,
         bool amountsRefs,
         bool requiredDocumentsRefs,
+        bool analysisOperationsRefs,
       })
     >;
 typedef $$DocumentFilesTableCreateCompanionBuilder =
@@ -11349,6 +11896,363 @@ typedef $$RequiredDocumentsTableProcessedTableManager =
       RequiredDocument,
       PrefetchHooks Function({bool clientDocumentId})
     >;
+typedef $$AnalysisOperationsTableCreateCompanionBuilder =
+    AnalysisOperationsCompanion Function({
+      required String operationId,
+      required String clientDocumentId,
+      required String state,
+      Value<String?> lastFailureCode,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$AnalysisOperationsTableUpdateCompanionBuilder =
+    AnalysisOperationsCompanion Function({
+      Value<String> operationId,
+      Value<String> clientDocumentId,
+      Value<String> state,
+      Value<String?> lastFailureCode,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisOperationsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisOperationsTable,
+          AnalysisOperation
+        > {
+  $$AnalysisOperationsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DocumentsTable _clientDocumentIdTable(
+    _$AppDatabase db,
+  ) => db.documents.createAlias(
+    'analysis_operations__client_document_id__documents__client_document_id',
+  );
+
+  $$DocumentsTableProcessedTableManager get clientDocumentId {
+    final $_column = $_itemColumn<String>('client_document_id')!;
+
+    final manager = $$DocumentsTableTableManager(
+      $_db,
+      $_db.documents,
+    ).filter((f) => f.clientDocumentId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_clientDocumentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisOperationsTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisOperationsTable> {
+  $$AnalysisOperationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastFailureCode => $composableBuilder(
+    column: $table.lastFailureCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DocumentsTableFilterComposer get clientDocumentId {
+    final $$DocumentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableFilterComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisOperationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisOperationsTable> {
+  $$AnalysisOperationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastFailureCode => $composableBuilder(
+    column: $table.lastFailureCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DocumentsTableOrderingComposer get clientDocumentId {
+    final $$DocumentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisOperationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisOperationsTable> {
+  $$AnalysisOperationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<String> get lastFailureCode => $composableBuilder(
+    column: $table.lastFailureCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$DocumentsTableAnnotationComposer get clientDocumentId {
+    final $$DocumentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisOperationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisOperationsTable,
+          AnalysisOperation,
+          $$AnalysisOperationsTableFilterComposer,
+          $$AnalysisOperationsTableOrderingComposer,
+          $$AnalysisOperationsTableAnnotationComposer,
+          $$AnalysisOperationsTableCreateCompanionBuilder,
+          $$AnalysisOperationsTableUpdateCompanionBuilder,
+          (AnalysisOperation, $$AnalysisOperationsTableReferences),
+          AnalysisOperation,
+          PrefetchHooks Function({bool clientDocumentId})
+        > {
+  $$AnalysisOperationsTableTableManager(
+    _$AppDatabase db,
+    $AnalysisOperationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisOperationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AnalysisOperationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AnalysisOperationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> operationId = const Value.absent(),
+                Value<String> clientDocumentId = const Value.absent(),
+                Value<String> state = const Value.absent(),
+                Value<String?> lastFailureCode = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisOperationsCompanion(
+                operationId: operationId,
+                clientDocumentId: clientDocumentId,
+                state: state,
+                lastFailureCode: lastFailureCode,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String operationId,
+                required String clientDocumentId,
+                required String state,
+                Value<String?> lastFailureCode = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisOperationsCompanion.insert(
+                operationId: operationId,
+                clientDocumentId: clientDocumentId,
+                state: state,
+                lastFailureCode: lastFailureCode,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AnalysisOperationsTable, AnalysisOperation>(
+                    table,
+                  ),
+                  $$AnalysisOperationsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({clientDocumentId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (clientDocumentId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.clientDocumentId,
+                        referencedTable: $$AnalysisOperationsTableReferences
+                            ._clientDocumentIdTable(db),
+                        referencedColumn: $$AnalysisOperationsTableReferences
+                            ._clientDocumentIdTable(db)
+                            .clientDocumentId,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisOperationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisOperationsTable,
+      AnalysisOperation,
+      $$AnalysisOperationsTableFilterComposer,
+      $$AnalysisOperationsTableOrderingComposer,
+      $$AnalysisOperationsTableAnnotationComposer,
+      $$AnalysisOperationsTableCreateCompanionBuilder,
+      $$AnalysisOperationsTableUpdateCompanionBuilder,
+      (AnalysisOperation, $$AnalysisOperationsTableReferences),
+      AnalysisOperation,
+      PrefetchHooks Function({bool clientDocumentId})
+    >;
 typedef $$UserSettingsTableCreateCompanionBuilder =
     UserSettingsCompanion Function({
       required String key,
@@ -11551,6 +12455,8 @@ class $AppDatabaseManager {
       $$AmountsTableTableManager(_db, _db.amounts);
   $$RequiredDocumentsTableTableManager get requiredDocuments =>
       $$RequiredDocumentsTableTableManager(_db, _db.requiredDocuments);
+  $$AnalysisOperationsTableTableManager get analysisOperations =>
+      $$AnalysisOperationsTableTableManager(_db, _db.analysisOperations);
   $$UserSettingsTableTableManager get userSettings =>
       $$UserSettingsTableTableManager(_db, _db.userSettings);
 }
