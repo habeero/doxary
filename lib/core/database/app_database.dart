@@ -52,6 +52,9 @@ class DocumentFiles extends Table {
   TextColumn get originalFilename => text().nullable()();
   IntColumn get byteSize => integer().nullable()();
   DateTimeColumn get importedAt => dateTime()();
+  IntColumn get pageOrder => integer().withDefault(const Constant(0))();
+  TextColumn get importSource =>
+      text().withDefault(const Constant('filePicker'))();
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -65,7 +68,31 @@ class Analyses extends Table {
   TextColumn get summary => text().nullable()();
   TextColumn get explanation => text().nullable()();
   TextColumn get state => text()();
+  TextColumn get analysisStatus =>
+      text().withDefault(const Constant('complete'))();
+  TextColumn get explanationStyle =>
+      text().withDefault(const Constant('standard'))();
   DateTimeColumn get createdAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class AnalysisQualityReasons extends Table {
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  TextColumn get reason => text()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class SourceReferences extends Table {
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  TextColumn get clientDocumentId =>
+      text().references(Documents, #clientDocumentId)();
+  TextColumn get fileId => text().nullable().references(DocumentFiles, #id)();
+  IntColumn get pageNumber => integer().nullable()();
+  TextColumn get excerptLabel => text().nullable()();
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -141,6 +168,8 @@ class UserSettings extends Table {
     Documents,
     DocumentFiles,
     Analyses,
+    AnalysisQualityReasons,
+    SourceReferences,
     Tasks,
     Deadlines,
     Appointments,
@@ -153,16 +182,20 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async => m.createAll(),
     onUpgrade: (m, from, to) async {
-      // Future migrations are forward-only and explicitly versioned here.
-      throw UnsupportedError(
-        'No forward migration is defined for schema $from to $to.',
-      );
+      if (from < 2) {
+        await m.addColumn(documentFiles, documentFiles.pageOrder);
+        await m.addColumn(documentFiles, documentFiles.importSource);
+        await m.addColumn(analyses, analyses.analysisStatus);
+        await m.addColumn(analyses, analyses.explanationStyle);
+        await m.createTable(analysisQualityReasons);
+        await m.createTable(sourceReferences);
+      }
     },
   );
 }

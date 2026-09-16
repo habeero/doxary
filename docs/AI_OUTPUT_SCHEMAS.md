@@ -6,7 +6,7 @@ AI outputs use `client_document_id` only for MVP document correlation. `operatio
 
 ## DocumentAnalysis v1
 
-Required: `client_document_id`, `detected_language` (or `undetermined`), `summary`, `explanation`, `action_required` (`yes|no|uncertain`), `urgency` (`low|normal|high|critical|uncertain`), `practical_states[]`, `confidence`, `warnings[]`, `uncertainties[]`. Optional: `organization_suggestion` `{name, category, confidence}`, `document_type`, `document_date`, `case_suggestion`, `deadlines[]`, `appointments[]`, `amounts[]`, `required_documents[]`, `suggested_tasks[]`, `source_references[]`.
+Required: `client_document_id`, `analysis_status` (`complete|partial|unavailable`), `detected_language` (or `undetermined`), `action_required` (`yes|no|uncertain`), `urgency` (`low|normal|high|critical|uncertain`), `confidence`, `warnings[]`, `uncertainties[]`, and typed `quality_reasons[]`. `extracted_facts` and `explanation` are separate; explanation carries `output_language` (`arabic|german`) and `explanation_style` (`standard|simple`). Optional typed fields include `summary`, organization/case suggestions, document facts, action facts, and `source_references[]` (`reference_id`, `page_number?`, `file_id?`, `excerpt_label?`). Quality reasons are limited to `blurry_image`, `page_cut_off`, `unreadable_text`, `missing_pages`, `unsupported_file`, `corrupt_file`, and `insufficient_content`, distinct from technical API failures.
 
 `client_document_id` is the stable opaque identifier supplied by the client for its local Document. It is the correlation value for the response and never implies a persisted server resource. A returned organization or case is a suggestion, not a confirmed relationship.
 

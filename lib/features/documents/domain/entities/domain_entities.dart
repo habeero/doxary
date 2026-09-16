@@ -1,5 +1,23 @@
 enum ClassificationState { unclassified, suggested, confirmed }
 
+enum AnalysisStatus { complete, partial, unavailable }
+
+enum DocumentQualityReason {
+  blurryImage,
+  pageCutOff,
+  unreadableText,
+  missingPages,
+  unsupportedFile,
+  corruptFile,
+  insufficientContent,
+}
+
+enum ExplanationLanguage { arabic, german }
+
+enum ExplanationStyle { standard, simple }
+
+enum DocumentFileSource { camera, imageLibrary, filePicker }
+
 enum DocumentStatus {
   imported,
   processing,
@@ -90,6 +108,8 @@ class DocumentFile {
     required this.importedAt,
     this.originalFilename,
     this.byteSize,
+    this.pageOrder = 0,
+    this.importSource = DocumentFileSource.filePicker,
   });
   final String id;
   final String clientDocumentId;
@@ -98,6 +118,21 @@ class DocumentFile {
   final String? originalFilename;
   final int? byteSize;
   final DateTime importedAt;
+  final int pageOrder;
+  final DocumentFileSource importSource;
+}
+
+class SourceReference {
+  const SourceReference({
+    required this.referenceId,
+    this.pageNumber,
+    this.fileId,
+    this.excerptLabel,
+  });
+  final String referenceId;
+  final int? pageNumber;
+  final String? fileId;
+  final String? excerptLabel;
 }
 
 class DocumentAnalysis {
@@ -109,6 +144,10 @@ class DocumentAnalysis {
     required this.createdAt,
     this.summary,
     this.explanation,
+    this.analysisStatus = AnalysisStatus.complete,
+    this.explanationStyle = ExplanationStyle.standard,
+    this.qualityReasons = const [],
+    this.sourceReferences = const [],
   });
   final String id;
   final String clientDocumentId;
@@ -117,6 +156,10 @@ class DocumentAnalysis {
   final String? summary;
   final String? explanation;
   final DateTime createdAt;
+  final AnalysisStatus analysisStatus;
+  final ExplanationStyle explanationStyle;
+  final List<DocumentQualityReason> qualityReasons;
+  final List<SourceReference> sourceReferences;
 }
 
 class Deadline {

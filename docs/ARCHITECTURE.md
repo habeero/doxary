@@ -25,6 +25,8 @@ flowchart LR
 
 The device owns the user's local documents, structured analysis, corrections, tasks, and reminder schedule. Original files remain local by default. The backend temporarily processes uploads and returns validated structured output; permanent server originals are not required for V1. Remote identity, quota, and sync are future bounded contexts, not prerequisites for core local use.
 
+Document-first processing is the intended flow: import and save the local Document, submit selected files for vision-capable analysis, then show the result before any document-scoped assistant action. On-device OCR is not required for the MVP.
+
 Assistant operations are also local-first. The client sends a minimum scoped context envelope for a question or reply draft: its `client_document_id`, validated local analysis, and only the source text/evidence and conversation turns needed for that operation. The backend processes that request context temporarily under the retention policy; it does not resolve the client ID to a permanent server document or require an account/cloud sync. A future sync service may map a local document to a `server_resource_id`, but that is an optional infrastructure capability and does not change the domain model or MVP assistant contract.
 
 No bidirectional sync protocol is defined yet. If introduced, local entities need stable client-generated IDs, `created_at`, `updated_at`, deletion tombstones, revision/version metadata, and explicit conflict rules; sync must not silently overwrite user corrections.

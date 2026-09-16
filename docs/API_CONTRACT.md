@@ -22,6 +22,8 @@ Base path is `/api/v1`; additive changes remain backward compatible within v1. J
 
 Assistant requests carry a `context` envelope rather than a server document path. Both require `{client_document_id, target_language, analysis?, source_evidence?, conversation_context?}`; the question route additionally requires `question`, and the draft route accepts `purpose?` and `user_instructions?`. `analysis` must be a validated structured analysis available locally; `source_evidence` and `conversation_context` are limited to the excerpts/turns needed for the requested operation. This context is processed temporarily and deleted under the retention policy. Responses use schemas in `AI_OUTPUT_SCHEMAS.md` and include `request_id`.
 
+An optional `follow_up_context_id` may identify a bounded, expiring server cache of that same context for a short asynchronous follow-up. It contains no original image/PDF and is deletable by policy; it is not a `server_resource_id` and does not create a permanent Document.
+
 Errors have `{error:{code,message,retryable,details?},request_id}`; details are safe, field-level, and never expose provider internals. Typical codes: `invalid_file`, `unsupported_media`, `too_large`, `rate_limited`, `quota_exceeded`, `processing_failed`, `analysis_unavailable`, `validation_failed`, `unauthorized`.
 
 List endpoints added later use cursor pagination: `?limit=...&cursor=...`, response `{items,next_cursor}`. Every request accepts or receives `X-Request-ID`; services propagate it to privacy-safe logs. File, analysis, and message mutation endpoints require idempotency when retries could duplicate work. Future server-resource endpoints must use explicit `server_resource_id` names and must remain optional alongside local-context assistant operations.

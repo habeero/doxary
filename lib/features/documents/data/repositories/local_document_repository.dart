@@ -48,6 +48,8 @@ class LocalDocumentRepository implements DocumentRepository {
               originalFilename: Value(file.originalFilename),
               byteSize: Value(file.byteSize),
               importedAt: file.importedAt,
+              pageOrder: Value(file.pageOrder),
+              importSource: Value(file.importSource.name),
             ),
           );
     });

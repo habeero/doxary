@@ -11,9 +11,9 @@ All entities have opaque stable IDs, `created_at`, `updated_at`, provenance (`us
 | Organization | name, normalized_name, category, contact hints | active, archived |
 | Case | organization_id, title, status, opened/closed dates | active, completed, archived |
 | Document | client_document_id, organization_id?, case_id?, classification_state, type, received/document dates, status, source language | imported, processing, analyzed, needs-review, archived, deleted |
-| DocumentFile | client_document_id, local URI, media type, checksum, page count | local, temporary-processing, unavailable, deleted |
+| DocumentFile | client_document_id, local URI, media type, stable file ID, original filename/size, import source, ordered page index, timestamps | local, temporary-processing, unavailable, deleted |
 | ExtractedText | client_document_id, text, page/range, extraction confidence | available, partial, unavailable |
-| DocumentAnalysis | client_document_id, schema/prompt versions, target language, structured fields, confidence | suggested, reviewed, superseded |
+| DocumentAnalysis | client_document_id, schema/prompt versions, output language/style, typed extracted facts, separate explanation, quality reasons, typed source references, confidence | complete, partial, unavailable; versioned/history retained locally |
 | Task | case_id?/client_document_id?, title, due date, status, reminder | open, completed, dismissed |
 | Deadline / Appointment | source client_document_id, datetime/date range, timezone, confidence | active, completed/past, cancelled |
 | Amount | value/currency, direction, due date, purpose | active, paid/received, uncertain |
@@ -36,6 +36,6 @@ Maintain local deletion tombstones and `revision`/server-version fields only whe
 
 ## Phase 1 schema v1
 
-Drift/SQLite schema v1 implements normalized tables for organizations, cases, documents, document files, analyses, tasks, deadlines, appointments, amounts, required documents, and non-sensitive user settings. `documents.client_document_id` is the primary local identity; organization/case foreign keys are nullable. Analysis structured fields will be expanded into typed columns as the Phase 3 validated output contract is implemented; Phase 1 stores only schema/version, language, summary/explanation, state, and timestamps.
+Drift/SQLite schema v2 implements normalized tables for organizations, cases, ordered document files, analyses/history, typed quality reasons, source references, tasks, deadlines, appointments, amounts, required documents, and non-sensitive user settings. `documents.client_document_id` is the primary local identity; organization/case foreign keys are nullable. Original bytes remain outside SQLite.
 
 Schema versions are never reset or treated as disposable. The current migration hook creates v1; any later version must add an explicit forward migration and accompanying tests.

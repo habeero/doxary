@@ -1461,6 +1461,30 @@ class $DocumentFilesTable extends DocumentFiles
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _pageOrderMeta = const VerificationMeta(
+    'pageOrder',
+  );
+  @override
+  late final GeneratedColumn<int> pageOrder = GeneratedColumn<int>(
+    'page_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _importSourceMeta = const VerificationMeta(
+    'importSource',
+  );
+  @override
+  late final GeneratedColumn<String> importSource = GeneratedColumn<String>(
+    'import_source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('filePicker'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1470,6 +1494,8 @@ class $DocumentFilesTable extends DocumentFiles
     originalFilename,
     byteSize,
     importedAt,
+    pageOrder,
+    importSource,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1538,6 +1564,21 @@ class $DocumentFilesTable extends DocumentFiles
     } else if (isInserting) {
       context.missing(_importedAtMeta);
     }
+    if (data.containsKey('page_order')) {
+      context.handle(
+        _pageOrderMeta,
+        pageOrder.isAcceptableOrUnknown(data['page_order']!, _pageOrderMeta),
+      );
+    }
+    if (data.containsKey('import_source')) {
+      context.handle(
+        _importSourceMeta,
+        importSource.isAcceptableOrUnknown(
+          data['import_source']!,
+          _importSourceMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1575,6 +1616,14 @@ class $DocumentFilesTable extends DocumentFiles
         DriftSqlType.dateTime,
         data['${effectivePrefix}imported_at'],
       )!,
+      pageOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}page_order'],
+      )!,
+      importSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}import_source'],
+      )!,
     );
   }
 
@@ -1592,6 +1641,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
   final String? originalFilename;
   final int? byteSize;
   final DateTime importedAt;
+  final int pageOrder;
+  final String importSource;
   const DocumentFile({
     required this.id,
     required this.clientDocumentId,
@@ -1600,6 +1651,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
     this.originalFilename,
     this.byteSize,
     required this.importedAt,
+    required this.pageOrder,
+    required this.importSource,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1615,6 +1668,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
       map['byte_size'] = Variable<int>(byteSize);
     }
     map['imported_at'] = Variable<DateTime>(importedAt);
+    map['page_order'] = Variable<int>(pageOrder);
+    map['import_source'] = Variable<String>(importSource);
     return map;
   }
 
@@ -1631,6 +1686,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
           ? const Value.absent()
           : Value(byteSize),
       importedAt: Value(importedAt),
+      pageOrder: Value(pageOrder),
+      importSource: Value(importSource),
     );
   }
 
@@ -1647,6 +1704,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
       originalFilename: serializer.fromJson<String?>(json['originalFilename']),
       byteSize: serializer.fromJson<int?>(json['byteSize']),
       importedAt: serializer.fromJson<DateTime>(json['importedAt']),
+      pageOrder: serializer.fromJson<int>(json['pageOrder']),
+      importSource: serializer.fromJson<String>(json['importSource']),
     );
   }
   @override
@@ -1660,6 +1719,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
       'originalFilename': serializer.toJson<String?>(originalFilename),
       'byteSize': serializer.toJson<int?>(byteSize),
       'importedAt': serializer.toJson<DateTime>(importedAt),
+      'pageOrder': serializer.toJson<int>(pageOrder),
+      'importSource': serializer.toJson<String>(importSource),
     };
   }
 
@@ -1671,6 +1732,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
     Value<String?> originalFilename = const Value.absent(),
     Value<int?> byteSize = const Value.absent(),
     DateTime? importedAt,
+    int? pageOrder,
+    String? importSource,
   }) => DocumentFile(
     id: id ?? this.id,
     clientDocumentId: clientDocumentId ?? this.clientDocumentId,
@@ -1681,6 +1744,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
         : this.originalFilename,
     byteSize: byteSize.present ? byteSize.value : this.byteSize,
     importedAt: importedAt ?? this.importedAt,
+    pageOrder: pageOrder ?? this.pageOrder,
+    importSource: importSource ?? this.importSource,
   );
   DocumentFile copyWithCompanion(DocumentFilesCompanion data) {
     return DocumentFile(
@@ -1697,6 +1762,10 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
       importedAt: data.importedAt.present
           ? data.importedAt.value
           : this.importedAt,
+      pageOrder: data.pageOrder.present ? data.pageOrder.value : this.pageOrder,
+      importSource: data.importSource.present
+          ? data.importSource.value
+          : this.importSource,
     );
   }
 
@@ -1709,7 +1778,9 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
           ..write('mediaType: $mediaType, ')
           ..write('originalFilename: $originalFilename, ')
           ..write('byteSize: $byteSize, ')
-          ..write('importedAt: $importedAt')
+          ..write('importedAt: $importedAt, ')
+          ..write('pageOrder: $pageOrder, ')
+          ..write('importSource: $importSource')
           ..write(')'))
         .toString();
   }
@@ -1723,6 +1794,8 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
     originalFilename,
     byteSize,
     importedAt,
+    pageOrder,
+    importSource,
   );
   @override
   bool operator ==(Object other) =>
@@ -1734,7 +1807,9 @@ class DocumentFile extends DataClass implements Insertable<DocumentFile> {
           other.mediaType == this.mediaType &&
           other.originalFilename == this.originalFilename &&
           other.byteSize == this.byteSize &&
-          other.importedAt == this.importedAt);
+          other.importedAt == this.importedAt &&
+          other.pageOrder == this.pageOrder &&
+          other.importSource == this.importSource);
 }
 
 class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
@@ -1745,6 +1820,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
   final Value<String?> originalFilename;
   final Value<int?> byteSize;
   final Value<DateTime> importedAt;
+  final Value<int> pageOrder;
+  final Value<String> importSource;
   final Value<int> rowid;
   const DocumentFilesCompanion({
     this.id = const Value.absent(),
@@ -1754,6 +1831,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
     this.originalFilename = const Value.absent(),
     this.byteSize = const Value.absent(),
     this.importedAt = const Value.absent(),
+    this.pageOrder = const Value.absent(),
+    this.importSource = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DocumentFilesCompanion.insert({
@@ -1764,6 +1843,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
     this.originalFilename = const Value.absent(),
     this.byteSize = const Value.absent(),
     required DateTime importedAt,
+    this.pageOrder = const Value.absent(),
+    this.importSource = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        clientDocumentId = Value(clientDocumentId),
@@ -1778,6 +1859,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
     Expression<String>? originalFilename,
     Expression<int>? byteSize,
     Expression<DateTime>? importedAt,
+    Expression<int>? pageOrder,
+    Expression<String>? importSource,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1788,6 +1871,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
       if (originalFilename != null) 'original_filename': originalFilename,
       if (byteSize != null) 'byte_size': byteSize,
       if (importedAt != null) 'imported_at': importedAt,
+      if (pageOrder != null) 'page_order': pageOrder,
+      if (importSource != null) 'import_source': importSource,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1800,6 +1885,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
     Value<String?>? originalFilename,
     Value<int?>? byteSize,
     Value<DateTime>? importedAt,
+    Value<int>? pageOrder,
+    Value<String>? importSource,
     Value<int>? rowid,
   }) {
     return DocumentFilesCompanion(
@@ -1810,6 +1897,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
       originalFilename: originalFilename ?? this.originalFilename,
       byteSize: byteSize ?? this.byteSize,
       importedAt: importedAt ?? this.importedAt,
+      pageOrder: pageOrder ?? this.pageOrder,
+      importSource: importSource ?? this.importSource,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1838,6 +1927,12 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
     if (importedAt.present) {
       map['imported_at'] = Variable<DateTime>(importedAt.value);
     }
+    if (pageOrder.present) {
+      map['page_order'] = Variable<int>(pageOrder.value);
+    }
+    if (importSource.present) {
+      map['import_source'] = Variable<String>(importSource.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1854,6 +1949,8 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFile> {
           ..write('originalFilename: $originalFilename, ')
           ..write('byteSize: $byteSize, ')
           ..write('importedAt: $importedAt, ')
+          ..write('pageOrder: $pageOrder, ')
+          ..write('importSource: $importSource, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1941,6 +2038,30 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _analysisStatusMeta = const VerificationMeta(
+    'analysisStatus',
+  );
+  @override
+  late final GeneratedColumn<String> analysisStatus = GeneratedColumn<String>(
+    'analysis_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('complete'),
+  );
+  static const VerificationMeta _explanationStyleMeta = const VerificationMeta(
+    'explanationStyle',
+  );
+  @override
+  late final GeneratedColumn<String> explanationStyle = GeneratedColumn<String>(
+    'explanation_style',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('standard'),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1961,6 +2082,8 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
     summary,
     explanation,
     state,
+    analysisStatus,
+    explanationStyle,
     createdAt,
   ];
   @override
@@ -2036,6 +2159,24 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
     } else if (isInserting) {
       context.missing(_stateMeta);
     }
+    if (data.containsKey('analysis_status')) {
+      context.handle(
+        _analysisStatusMeta,
+        analysisStatus.isAcceptableOrUnknown(
+          data['analysis_status']!,
+          _analysisStatusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('explanation_style')) {
+      context.handle(
+        _explanationStyleMeta,
+        explanationStyle.isAcceptableOrUnknown(
+          data['explanation_style']!,
+          _explanationStyleMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2081,6 +2222,14 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
         DriftSqlType.string,
         data['${effectivePrefix}state'],
       )!,
+      analysisStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_status'],
+      )!,
+      explanationStyle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}explanation_style'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2102,6 +2251,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
   final String? summary;
   final String? explanation;
   final String state;
+  final String analysisStatus;
+  final String explanationStyle;
   final DateTime createdAt;
   const Analyse({
     required this.id,
@@ -2111,6 +2262,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     this.summary,
     this.explanation,
     required this.state,
+    required this.analysisStatus,
+    required this.explanationStyle,
     required this.createdAt,
   });
   @override
@@ -2127,6 +2280,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       map['explanation'] = Variable<String>(explanation);
     }
     map['state'] = Variable<String>(state);
+    map['analysis_status'] = Variable<String>(analysisStatus);
+    map['explanation_style'] = Variable<String>(explanationStyle);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -2144,6 +2299,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           ? const Value.absent()
           : Value(explanation),
       state: Value(state),
+      analysisStatus: Value(analysisStatus),
+      explanationStyle: Value(explanationStyle),
       createdAt: Value(createdAt),
     );
   }
@@ -2161,6 +2318,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       summary: serializer.fromJson<String?>(json['summary']),
       explanation: serializer.fromJson<String?>(json['explanation']),
       state: serializer.fromJson<String>(json['state']),
+      analysisStatus: serializer.fromJson<String>(json['analysisStatus']),
+      explanationStyle: serializer.fromJson<String>(json['explanationStyle']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -2175,6 +2334,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       'summary': serializer.toJson<String?>(summary),
       'explanation': serializer.toJson<String?>(explanation),
       'state': serializer.toJson<String>(state),
+      'analysisStatus': serializer.toJson<String>(analysisStatus),
+      'explanationStyle': serializer.toJson<String>(explanationStyle),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -2187,6 +2348,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     Value<String?> summary = const Value.absent(),
     Value<String?> explanation = const Value.absent(),
     String? state,
+    String? analysisStatus,
+    String? explanationStyle,
     DateTime? createdAt,
   }) => Analyse(
     id: id ?? this.id,
@@ -2196,6 +2359,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     summary: summary.present ? summary.value : this.summary,
     explanation: explanation.present ? explanation.value : this.explanation,
     state: state ?? this.state,
+    analysisStatus: analysisStatus ?? this.analysisStatus,
+    explanationStyle: explanationStyle ?? this.explanationStyle,
     createdAt: createdAt ?? this.createdAt,
   );
   Analyse copyWithCompanion(AnalysesCompanion data) {
@@ -2215,6 +2380,12 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           ? data.explanation.value
           : this.explanation,
       state: data.state.present ? data.state.value : this.state,
+      analysisStatus: data.analysisStatus.present
+          ? data.analysisStatus.value
+          : this.analysisStatus,
+      explanationStyle: data.explanationStyle.present
+          ? data.explanationStyle.value
+          : this.explanationStyle,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -2229,6 +2400,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           ..write('summary: $summary, ')
           ..write('explanation: $explanation, ')
           ..write('state: $state, ')
+          ..write('analysisStatus: $analysisStatus, ')
+          ..write('explanationStyle: $explanationStyle, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -2243,6 +2416,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     summary,
     explanation,
     state,
+    analysisStatus,
+    explanationStyle,
     createdAt,
   );
   @override
@@ -2256,6 +2431,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           other.summary == this.summary &&
           other.explanation == this.explanation &&
           other.state == this.state &&
+          other.analysisStatus == this.analysisStatus &&
+          other.explanationStyle == this.explanationStyle &&
           other.createdAt == this.createdAt);
 }
 
@@ -2267,6 +2444,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
   final Value<String?> summary;
   final Value<String?> explanation;
   final Value<String> state;
+  final Value<String> analysisStatus;
+  final Value<String> explanationStyle;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const AnalysesCompanion({
@@ -2277,6 +2456,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     this.summary = const Value.absent(),
     this.explanation = const Value.absent(),
     this.state = const Value.absent(),
+    this.analysisStatus = const Value.absent(),
+    this.explanationStyle = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2288,6 +2469,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     this.summary = const Value.absent(),
     this.explanation = const Value.absent(),
     required String state,
+    this.analysisStatus = const Value.absent(),
+    this.explanationStyle = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -2304,6 +2487,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     Expression<String>? summary,
     Expression<String>? explanation,
     Expression<String>? state,
+    Expression<String>? analysisStatus,
+    Expression<String>? explanationStyle,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -2315,6 +2500,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
       if (summary != null) 'summary': summary,
       if (explanation != null) 'explanation': explanation,
       if (state != null) 'state': state,
+      if (analysisStatus != null) 'analysis_status': analysisStatus,
+      if (explanationStyle != null) 'explanation_style': explanationStyle,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2328,6 +2515,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     Value<String?>? summary,
     Value<String?>? explanation,
     Value<String>? state,
+    Value<String>? analysisStatus,
+    Value<String>? explanationStyle,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -2339,6 +2528,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
       summary: summary ?? this.summary,
       explanation: explanation ?? this.explanation,
       state: state ?? this.state,
+      analysisStatus: analysisStatus ?? this.analysisStatus,
+      explanationStyle: explanationStyle ?? this.explanationStyle,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -2368,6 +2559,12 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     if (state.present) {
       map['state'] = Variable<String>(state.value);
     }
+    if (analysisStatus.present) {
+      map['analysis_status'] = Variable<String>(analysisStatus.value);
+    }
+    if (explanationStyle.present) {
+      map['explanation_style'] = Variable<String>(explanationStyle.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2387,7 +2584,720 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
           ..write('summary: $summary, ')
           ..write('explanation: $explanation, ')
           ..write('state: $state, ')
+          ..write('analysisStatus: $analysisStatus, ')
+          ..write('explanationStyle: $explanationStyle, ')
           ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisQualityReasonsTable extends AnalysisQualityReasons
+    with TableInfo<$AnalysisQualityReasonsTable, AnalysisQualityReason> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisQualityReasonsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, analysisId, reason];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_quality_reasons';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisQualityReason> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisQualityReason map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisQualityReason(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      )!,
+    );
+  }
+
+  @override
+  $AnalysisQualityReasonsTable createAlias(String alias) {
+    return $AnalysisQualityReasonsTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisQualityReason extends DataClass
+    implements Insertable<AnalysisQualityReason> {
+  final String id;
+  final String analysisId;
+  final String reason;
+  const AnalysisQualityReason({
+    required this.id,
+    required this.analysisId,
+    required this.reason,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['reason'] = Variable<String>(reason);
+    return map;
+  }
+
+  AnalysisQualityReasonsCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisQualityReasonsCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      reason: Value(reason),
+    );
+  }
+
+  factory AnalysisQualityReason.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisQualityReason(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      reason: serializer.fromJson<String>(json['reason']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'reason': serializer.toJson<String>(reason),
+    };
+  }
+
+  AnalysisQualityReason copyWith({
+    String? id,
+    String? analysisId,
+    String? reason,
+  }) => AnalysisQualityReason(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    reason: reason ?? this.reason,
+  );
+  AnalysisQualityReason copyWithCompanion(
+    AnalysisQualityReasonsCompanion data,
+  ) {
+    return AnalysisQualityReason(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisQualityReason(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('reason: $reason')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, analysisId, reason);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisQualityReason &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.reason == this.reason);
+}
+
+class AnalysisQualityReasonsCompanion
+    extends UpdateCompanion<AnalysisQualityReason> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<String> reason;
+  final Value<int> rowid;
+  const AnalysisQualityReasonsCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisQualityReasonsCompanion.insert({
+    required String id,
+    required String analysisId,
+    required String reason,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       reason = Value(reason);
+  static Insertable<AnalysisQualityReason> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<String>? reason,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (reason != null) 'reason': reason,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisQualityReasonsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<String>? reason,
+    Value<int>? rowid,
+  }) {
+    return AnalysisQualityReasonsCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      reason: reason ?? this.reason,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisQualityReasonsCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('reason: $reason, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SourceReferencesTable extends SourceReferences
+    with TableInfo<$SourceReferencesTable, SourceReference> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SourceReferencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _clientDocumentIdMeta = const VerificationMeta(
+    'clientDocumentId',
+  );
+  @override
+  late final GeneratedColumn<String> clientDocumentId = GeneratedColumn<String>(
+    'client_document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES documents (client_document_id)',
+    ),
+  );
+  static const VerificationMeta _fileIdMeta = const VerificationMeta('fileId');
+  @override
+  late final GeneratedColumn<String> fileId = GeneratedColumn<String>(
+    'file_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES document_files (id)',
+    ),
+  );
+  static const VerificationMeta _pageNumberMeta = const VerificationMeta(
+    'pageNumber',
+  );
+  @override
+  late final GeneratedColumn<int> pageNumber = GeneratedColumn<int>(
+    'page_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _excerptLabelMeta = const VerificationMeta(
+    'excerptLabel',
+  );
+  @override
+  late final GeneratedColumn<String> excerptLabel = GeneratedColumn<String>(
+    'excerpt_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    analysisId,
+    clientDocumentId,
+    fileId,
+    pageNumber,
+    excerptLabel,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'source_references';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SourceReference> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('client_document_id')) {
+      context.handle(
+        _clientDocumentIdMeta,
+        clientDocumentId.isAcceptableOrUnknown(
+          data['client_document_id']!,
+          _clientDocumentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientDocumentIdMeta);
+    }
+    if (data.containsKey('file_id')) {
+      context.handle(
+        _fileIdMeta,
+        fileId.isAcceptableOrUnknown(data['file_id']!, _fileIdMeta),
+      );
+    }
+    if (data.containsKey('page_number')) {
+      context.handle(
+        _pageNumberMeta,
+        pageNumber.isAcceptableOrUnknown(data['page_number']!, _pageNumberMeta),
+      );
+    }
+    if (data.containsKey('excerpt_label')) {
+      context.handle(
+        _excerptLabelMeta,
+        excerptLabel.isAcceptableOrUnknown(
+          data['excerpt_label']!,
+          _excerptLabelMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SourceReference map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SourceReference(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      clientDocumentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_document_id'],
+      )!,
+      fileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_id'],
+      ),
+      pageNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}page_number'],
+      ),
+      excerptLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}excerpt_label'],
+      ),
+    );
+  }
+
+  @override
+  $SourceReferencesTable createAlias(String alias) {
+    return $SourceReferencesTable(attachedDatabase, alias);
+  }
+}
+
+class SourceReference extends DataClass implements Insertable<SourceReference> {
+  final String id;
+  final String analysisId;
+  final String clientDocumentId;
+  final String? fileId;
+  final int? pageNumber;
+  final String? excerptLabel;
+  const SourceReference({
+    required this.id,
+    required this.analysisId,
+    required this.clientDocumentId,
+    this.fileId,
+    this.pageNumber,
+    this.excerptLabel,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['client_document_id'] = Variable<String>(clientDocumentId);
+    if (!nullToAbsent || fileId != null) {
+      map['file_id'] = Variable<String>(fileId);
+    }
+    if (!nullToAbsent || pageNumber != null) {
+      map['page_number'] = Variable<int>(pageNumber);
+    }
+    if (!nullToAbsent || excerptLabel != null) {
+      map['excerpt_label'] = Variable<String>(excerptLabel);
+    }
+    return map;
+  }
+
+  SourceReferencesCompanion toCompanion(bool nullToAbsent) {
+    return SourceReferencesCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      clientDocumentId: Value(clientDocumentId),
+      fileId: fileId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileId),
+      pageNumber: pageNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pageNumber),
+      excerptLabel: excerptLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(excerptLabel),
+    );
+  }
+
+  factory SourceReference.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SourceReference(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      clientDocumentId: serializer.fromJson<String>(json['clientDocumentId']),
+      fileId: serializer.fromJson<String?>(json['fileId']),
+      pageNumber: serializer.fromJson<int?>(json['pageNumber']),
+      excerptLabel: serializer.fromJson<String?>(json['excerptLabel']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'clientDocumentId': serializer.toJson<String>(clientDocumentId),
+      'fileId': serializer.toJson<String?>(fileId),
+      'pageNumber': serializer.toJson<int?>(pageNumber),
+      'excerptLabel': serializer.toJson<String?>(excerptLabel),
+    };
+  }
+
+  SourceReference copyWith({
+    String? id,
+    String? analysisId,
+    String? clientDocumentId,
+    Value<String?> fileId = const Value.absent(),
+    Value<int?> pageNumber = const Value.absent(),
+    Value<String?> excerptLabel = const Value.absent(),
+  }) => SourceReference(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    clientDocumentId: clientDocumentId ?? this.clientDocumentId,
+    fileId: fileId.present ? fileId.value : this.fileId,
+    pageNumber: pageNumber.present ? pageNumber.value : this.pageNumber,
+    excerptLabel: excerptLabel.present ? excerptLabel.value : this.excerptLabel,
+  );
+  SourceReference copyWithCompanion(SourceReferencesCompanion data) {
+    return SourceReference(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      clientDocumentId: data.clientDocumentId.present
+          ? data.clientDocumentId.value
+          : this.clientDocumentId,
+      fileId: data.fileId.present ? data.fileId.value : this.fileId,
+      pageNumber: data.pageNumber.present
+          ? data.pageNumber.value
+          : this.pageNumber,
+      excerptLabel: data.excerptLabel.present
+          ? data.excerptLabel.value
+          : this.excerptLabel,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SourceReference(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('clientDocumentId: $clientDocumentId, ')
+          ..write('fileId: $fileId, ')
+          ..write('pageNumber: $pageNumber, ')
+          ..write('excerptLabel: $excerptLabel')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    analysisId,
+    clientDocumentId,
+    fileId,
+    pageNumber,
+    excerptLabel,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SourceReference &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.clientDocumentId == this.clientDocumentId &&
+          other.fileId == this.fileId &&
+          other.pageNumber == this.pageNumber &&
+          other.excerptLabel == this.excerptLabel);
+}
+
+class SourceReferencesCompanion extends UpdateCompanion<SourceReference> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<String> clientDocumentId;
+  final Value<String?> fileId;
+  final Value<int?> pageNumber;
+  final Value<String?> excerptLabel;
+  final Value<int> rowid;
+  const SourceReferencesCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.clientDocumentId = const Value.absent(),
+    this.fileId = const Value.absent(),
+    this.pageNumber = const Value.absent(),
+    this.excerptLabel = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SourceReferencesCompanion.insert({
+    required String id,
+    required String analysisId,
+    required String clientDocumentId,
+    this.fileId = const Value.absent(),
+    this.pageNumber = const Value.absent(),
+    this.excerptLabel = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       clientDocumentId = Value(clientDocumentId);
+  static Insertable<SourceReference> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<String>? clientDocumentId,
+    Expression<String>? fileId,
+    Expression<int>? pageNumber,
+    Expression<String>? excerptLabel,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (clientDocumentId != null) 'client_document_id': clientDocumentId,
+      if (fileId != null) 'file_id': fileId,
+      if (pageNumber != null) 'page_number': pageNumber,
+      if (excerptLabel != null) 'excerpt_label': excerptLabel,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SourceReferencesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<String>? clientDocumentId,
+    Value<String?>? fileId,
+    Value<int?>? pageNumber,
+    Value<String?>? excerptLabel,
+    Value<int>? rowid,
+  }) {
+    return SourceReferencesCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      clientDocumentId: clientDocumentId ?? this.clientDocumentId,
+      fileId: fileId ?? this.fileId,
+      pageNumber: pageNumber ?? this.pageNumber,
+      excerptLabel: excerptLabel ?? this.excerptLabel,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (clientDocumentId.present) {
+      map['client_document_id'] = Variable<String>(clientDocumentId.value);
+    }
+    if (fileId.present) {
+      map['file_id'] = Variable<String>(fileId.value);
+    }
+    if (pageNumber.present) {
+      map['page_number'] = Variable<int>(pageNumber.value);
+    }
+    if (excerptLabel.present) {
+      map['excerpt_label'] = Variable<String>(excerptLabel.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SourceReferencesCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('clientDocumentId: $clientDocumentId, ')
+          ..write('fileId: $fileId, ')
+          ..write('pageNumber: $pageNumber, ')
+          ..write('excerptLabel: $excerptLabel, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4563,6 +5473,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DocumentsTable documents = $DocumentsTable(this);
   late final $DocumentFilesTable documentFiles = $DocumentFilesTable(this);
   late final $AnalysesTable analyses = $AnalysesTable(this);
+  late final $AnalysisQualityReasonsTable analysisQualityReasons =
+      $AnalysisQualityReasonsTable(this);
+  late final $SourceReferencesTable sourceReferences = $SourceReferencesTable(
+    this,
+  );
   late final $TasksTable tasks = $TasksTable(this);
   late final $DeadlinesTable deadlines = $DeadlinesTable(this);
   late final $AppointmentsTable appointments = $AppointmentsTable(this);
@@ -4580,6 +5495,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     documents,
     documentFiles,
     analyses,
+    analysisQualityReasons,
+    sourceReferences,
     tasks,
     deadlines,
     appointments,
@@ -5609,6 +6526,29 @@ final class $$DocumentsTableReferences
     );
   }
 
+  static MultiTypedResultKey<$SourceReferencesTable, List<SourceReference>>
+  _sourceReferencesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.sourceReferences,
+    aliasName:
+        'documents__client_document_id__source_references__client_document_id',
+  );
+
+  $$SourceReferencesTableProcessedTableManager get sourceReferencesRefs {
+    final manager =
+        $$SourceReferencesTableTableManager($_db, $_db.sourceReferences).filter(
+          (f) => f.clientDocumentId.clientDocumentId.sqlEquals(
+            $_itemColumn<String>('client_document_id')!,
+          ),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _sourceReferencesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$TasksTable, List<Task>> _tasksRefsTable(
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
@@ -5849,6 +6789,31 @@ class $$DocumentsTableFilterComposer
           }) => $$AnalysesTableFilterComposer(
             $db: $db,
             $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> sourceReferencesRefs(
+    Expression<bool> Function($$SourceReferencesTableFilterComposer f) f,
+  ) {
+    final $$SourceReferencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.sourceReferences,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceReferencesTableFilterComposer(
+            $db: $db,
+            $table: $db.sourceReferences,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6209,6 +7174,31 @@ class $$DocumentsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> sourceReferencesRefs<T extends Object>(
+    Expression<T> Function($$SourceReferencesTableAnnotationComposer a) f,
+  ) {
+    final $$SourceReferencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.sourceReferences,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceReferencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sourceReferences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> tasksRefs<T extends Object>(
     Expression<T> Function($$TasksTableAnnotationComposer a) f,
   ) {
@@ -6354,6 +7344,7 @@ class $$DocumentsTableTableManager
             bool caseId,
             bool documentFilesRefs,
             bool analysesRefs,
+            bool sourceReferencesRefs,
             bool tasksRefs,
             bool deadlinesRefs,
             bool appointmentsRefs,
@@ -6434,6 +7425,7 @@ class $$DocumentsTableTableManager
                 caseId = false,
                 documentFilesRefs = false,
                 analysesRefs = false,
+                sourceReferencesRefs = false,
                 tasksRefs = false,
                 deadlinesRefs = false,
                 appointmentsRefs = false,
@@ -6445,6 +7437,7 @@ class $$DocumentsTableTableManager
                   explicitlyWatchedTables: [
                     if (documentFilesRefs) db.documentFiles,
                     if (analysesRefs) db.analyses,
+                    if (sourceReferencesRefs) db.sourceReferences,
                     if (tasksRefs) db.tasks,
                     if (deadlinesRefs) db.deadlines,
                     if (appointmentsRefs) db.appointments,
@@ -6531,6 +7524,28 @@ class $$DocumentsTableTableManager
                                 table,
                                 p0,
                               ).analysesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) =>
+                                    e.clientDocumentId == item.clientDocumentId,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sourceReferencesRefs)
+                        await $_getPrefetchedData<
+                          Document,
+                          $DocumentsTable,
+                          SourceReference
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DocumentsTableReferences
+                              ._sourceReferencesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DocumentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sourceReferencesRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) =>
@@ -6673,6 +7688,7 @@ typedef $$DocumentsTableProcessedTableManager =
         bool caseId,
         bool documentFilesRefs,
         bool analysesRefs,
+        bool sourceReferencesRefs,
         bool tasksRefs,
         bool deadlinesRefs,
         bool appointmentsRefs,
@@ -6689,6 +7705,8 @@ typedef $$DocumentFilesTableCreateCompanionBuilder =
       Value<String?> originalFilename,
       Value<int?> byteSize,
       required DateTime importedAt,
+      Value<int> pageOrder,
+      Value<String> importSource,
       Value<int> rowid,
     });
 typedef $$DocumentFilesTableUpdateCompanionBuilder =
@@ -6700,6 +7718,8 @@ typedef $$DocumentFilesTableUpdateCompanionBuilder =
       Value<String?> originalFilename,
       Value<int?> byteSize,
       Value<DateTime> importedAt,
+      Value<int> pageOrder,
+      Value<String> importSource,
       Value<int> rowid,
     });
 
@@ -6727,6 +7747,26 @@ final class $$DocumentFilesTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$SourceReferencesTable, List<SourceReference>>
+  _sourceReferencesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.sourceReferences,
+    aliasName: 'document_files__id__source_references__file_id',
+  );
+
+  $$SourceReferencesTableProcessedTableManager get sourceReferencesRefs {
+    final manager = $$SourceReferencesTableTableManager(
+      $_db,
+      $_db.sourceReferences,
+    ).filter((f) => f.fileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _sourceReferencesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 }
@@ -6770,6 +7810,16 @@ class $$DocumentFilesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get pageOrder => $composableBuilder(
+    column: $table.pageOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get importSource => $composableBuilder(
+    column: $table.importSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$DocumentsTableFilterComposer get clientDocumentId {
     final $$DocumentsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -6791,6 +7841,31 @@ class $$DocumentFilesTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> sourceReferencesRefs(
+    Expression<bool> Function($$SourceReferencesTableFilterComposer f) f,
+  ) {
+    final $$SourceReferencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sourceReferences,
+      getReferencedColumn: (t) => t.fileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceReferencesTableFilterComposer(
+            $db: $db,
+            $table: $db.sourceReferences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -6830,6 +7905,16 @@ class $$DocumentFilesTableOrderingComposer
 
   ColumnOrderings<DateTime> get importedAt => $composableBuilder(
     column: $table.importedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pageOrder => $composableBuilder(
+    column: $table.pageOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get importSource => $composableBuilder(
+    column: $table.importSource,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6888,6 +7973,14 @@ class $$DocumentFilesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get pageOrder =>
+      $composableBuilder(column: $table.pageOrder, builder: (column) => column);
+
+  GeneratedColumn<String> get importSource => $composableBuilder(
+    column: $table.importSource,
+    builder: (column) => column,
+  );
+
   $$DocumentsTableAnnotationComposer get clientDocumentId {
     final $$DocumentsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -6910,6 +8003,31 @@ class $$DocumentFilesTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> sourceReferencesRefs<T extends Object>(
+    Expression<T> Function($$SourceReferencesTableAnnotationComposer a) f,
+  ) {
+    final $$SourceReferencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sourceReferences,
+      getReferencedColumn: (t) => t.fileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceReferencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sourceReferences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DocumentFilesTableTableManager
@@ -6925,7 +8043,10 @@ class $$DocumentFilesTableTableManager
           $$DocumentFilesTableUpdateCompanionBuilder,
           (DocumentFile, $$DocumentFilesTableReferences),
           DocumentFile,
-          PrefetchHooks Function({bool clientDocumentId})
+          PrefetchHooks Function({
+            bool clientDocumentId,
+            bool sourceReferencesRefs,
+          })
         > {
   $$DocumentFilesTableTableManager(_$AppDatabase db, $DocumentFilesTable table)
     : super(
@@ -6947,6 +8068,8 @@ class $$DocumentFilesTableTableManager
                 Value<String?> originalFilename = const Value.absent(),
                 Value<int?> byteSize = const Value.absent(),
                 Value<DateTime> importedAt = const Value.absent(),
+                Value<int> pageOrder = const Value.absent(),
+                Value<String> importSource = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DocumentFilesCompanion(
                 id: id,
@@ -6956,6 +8079,8 @@ class $$DocumentFilesTableTableManager
                 originalFilename: originalFilename,
                 byteSize: byteSize,
                 importedAt: importedAt,
+                pageOrder: pageOrder,
+                importSource: importSource,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -6967,6 +8092,8 @@ class $$DocumentFilesTableTableManager
                 Value<String?> originalFilename = const Value.absent(),
                 Value<int?> byteSize = const Value.absent(),
                 required DateTime importedAt,
+                Value<int> pageOrder = const Value.absent(),
+                Value<String> importSource = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DocumentFilesCompanion.insert(
                 id: id,
@@ -6976,6 +8103,8 @@ class $$DocumentFilesTableTableManager
                 originalFilename: originalFilename,
                 byteSize: byteSize,
                 importedAt: importedAt,
+                pageOrder: pageOrder,
+                importSource: importSource,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -6986,45 +8115,70 @@ class $$DocumentFilesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({clientDocumentId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (clientDocumentId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.clientDocumentId,
-                        referencedTable: $$DocumentFilesTableReferences
-                            ._clientDocumentIdTable(db),
-                        referencedColumn: $$DocumentFilesTableReferences
-                            ._clientDocumentIdTable(db)
-                            .clientDocumentId,
-                      ) as T;
-                    }
+          prefetchHooksCallback:
+              ({clientDocumentId = false, sourceReferencesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (sourceReferencesRefs) db.sourceReferences,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (clientDocumentId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.clientDocumentId,
+                            referencedTable: $$DocumentFilesTableReferences
+                                ._clientDocumentIdTable(db),
+                            referencedColumn: $$DocumentFilesTableReferences
+                                ._clientDocumentIdTable(db)
+                                .clientDocumentId,
+                          ) as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (sourceReferencesRefs)
+                        await $_getPrefetchedData<
+                          DocumentFile,
+                          $DocumentFilesTable,
+                          SourceReference
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DocumentFilesTableReferences
+                              ._sourceReferencesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DocumentFilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sourceReferencesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.fileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -7041,7 +8195,7 @@ typedef $$DocumentFilesTableProcessedTableManager =
       $$DocumentFilesTableUpdateCompanionBuilder,
       (DocumentFile, $$DocumentFilesTableReferences),
       DocumentFile,
-      PrefetchHooks Function({bool clientDocumentId})
+      PrefetchHooks Function({bool clientDocumentId, bool sourceReferencesRefs})
     >;
 typedef $$AnalysesTableCreateCompanionBuilder = AnalysesCompanion Function({
   required String id,
@@ -7051,6 +8205,8 @@ typedef $$AnalysesTableCreateCompanionBuilder = AnalysesCompanion Function({
   Value<String?> summary,
   Value<String?> explanation,
   required String state,
+  Value<String> analysisStatus,
+  Value<String> explanationStyle,
   required DateTime createdAt,
   Value<int> rowid,
 });
@@ -7062,6 +8218,8 @@ typedef $$AnalysesTableUpdateCompanionBuilder = AnalysesCompanion Function({
   Value<String?> summary,
   Value<String?> explanation,
   Value<String> state,
+  Value<String> analysisStatus,
+  Value<String> explanationStyle,
   Value<DateTime> createdAt,
   Value<int> rowid,
 });
@@ -7086,6 +8244,51 @@ final class $$AnalysesTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AnalysisQualityReasonsTable,
+    List<AnalysisQualityReason>
+  >
+  _analysisQualityReasonsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisQualityReasons,
+        aliasName: 'analyses__id__analysis_quality_reasons__analysis_id',
+      );
+
+  $$AnalysisQualityReasonsTableProcessedTableManager
+  get analysisQualityReasonsRefs {
+    final manager = $$AnalysisQualityReasonsTableTableManager(
+      $_db,
+      $_db.analysisQualityReasons,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisQualityReasonsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SourceReferencesTable, List<SourceReference>>
+  _sourceReferencesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.sourceReferences,
+    aliasName: 'analyses__id__source_references__analysis_id',
+  );
+
+  $$SourceReferencesTableProcessedTableManager get sourceReferencesRefs {
+    final manager = $$SourceReferencesTableTableManager(
+      $_db,
+      $_db.sourceReferences,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _sourceReferencesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 }
@@ -7129,6 +8332,16 @@ class $$AnalysesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get analysisStatus => $composableBuilder(
+    column: $table.analysisStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get explanationStyle => $composableBuilder(
+    column: $table.explanationStyle,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -7155,6 +8368,57 @@ class $$AnalysesTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> analysisQualityReasonsRefs(
+    Expression<bool> Function($$AnalysisQualityReasonsTableFilterComposer f) f,
+  ) {
+    final $$AnalysisQualityReasonsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisQualityReasons,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisQualityReasonsTableFilterComposer(
+                $db: $db,
+                $table: $db.analysisQualityReasons,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> sourceReferencesRefs(
+    Expression<bool> Function($$SourceReferencesTableFilterComposer f) f,
+  ) {
+    final $$SourceReferencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sourceReferences,
+      getReferencedColumn: (t) => t.analysisId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceReferencesTableFilterComposer(
+            $db: $db,
+            $table: $db.sourceReferences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -7194,6 +8458,16 @@ class $$AnalysesTableOrderingComposer
 
   ColumnOrderings<String> get state => $composableBuilder(
     column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get analysisStatus => $composableBuilder(
+    column: $table.analysisStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get explanationStyle => $composableBuilder(
+    column: $table.explanationStyle,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -7259,6 +8533,16 @@ class $$AnalysesTableAnnotationComposer
   GeneratedColumn<String> get state =>
       $composableBuilder(column: $table.state, builder: (column) => column);
 
+  GeneratedColumn<String> get analysisStatus => $composableBuilder(
+    column: $table.analysisStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get explanationStyle => $composableBuilder(
+    column: $table.explanationStyle,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -7284,6 +8568,57 @@ class $$AnalysesTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> analysisQualityReasonsRefs<T extends Object>(
+    Expression<T> Function($$AnalysisQualityReasonsTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisQualityReasonsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisQualityReasons,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisQualityReasonsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisQualityReasons,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> sourceReferencesRefs<T extends Object>(
+    Expression<T> Function($$SourceReferencesTableAnnotationComposer a) f,
+  ) {
+    final $$SourceReferencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sourceReferences,
+      getReferencedColumn: (t) => t.analysisId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceReferencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sourceReferences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AnalysesTableTableManager
@@ -7299,7 +8634,11 @@ class $$AnalysesTableTableManager
           $$AnalysesTableUpdateCompanionBuilder,
           (Analyse, $$AnalysesTableReferences),
           Analyse,
-          PrefetchHooks Function({bool clientDocumentId})
+          PrefetchHooks Function({
+            bool clientDocumentId,
+            bool analysisQualityReasonsRefs,
+            bool sourceReferencesRefs,
+          })
         > {
   $$AnalysesTableTableManager(_$AppDatabase db, $AnalysesTable table)
     : super(
@@ -7321,6 +8660,8 @@ class $$AnalysesTableTableManager
                 Value<String?> summary = const Value.absent(),
                 Value<String?> explanation = const Value.absent(),
                 Value<String> state = const Value.absent(),
+                Value<String> analysisStatus = const Value.absent(),
+                Value<String> explanationStyle = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AnalysesCompanion(
@@ -7331,6 +8672,8 @@ class $$AnalysesTableTableManager
                 summary: summary,
                 explanation: explanation,
                 state: state,
+                analysisStatus: analysisStatus,
+                explanationStyle: explanationStyle,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -7343,6 +8686,8 @@ class $$AnalysesTableTableManager
                 Value<String?> summary = const Value.absent(),
                 Value<String?> explanation = const Value.absent(),
                 required String state,
+                Value<String> analysisStatus = const Value.absent(),
+                Value<String> explanationStyle = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => AnalysesCompanion.insert(
@@ -7353,6 +8698,8 @@ class $$AnalysesTableTableManager
                 summary: summary,
                 explanation: explanation,
                 state: state,
+                analysisStatus: analysisStatus,
+                explanationStyle: explanationStyle,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -7364,7 +8711,362 @@ class $$AnalysesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({clientDocumentId = false}) {
+          prefetchHooksCallback:
+              ({
+                clientDocumentId = false,
+                analysisQualityReasonsRefs = false,
+                sourceReferencesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (analysisQualityReasonsRefs) db.analysisQualityReasons,
+                    if (sourceReferencesRefs) db.sourceReferences,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (clientDocumentId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.clientDocumentId,
+                            referencedTable: $$AnalysesTableReferences
+                                ._clientDocumentIdTable(db),
+                            referencedColumn: $$AnalysesTableReferences
+                                ._clientDocumentIdTable(db)
+                                .clientDocumentId,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (analysisQualityReasonsRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisQualityReason
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisQualityReasonsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisQualityReasonsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sourceReferencesRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          SourceReference
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._sourceReferencesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sourceReferencesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$AnalysesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysesTable,
+      Analyse,
+      $$AnalysesTableFilterComposer,
+      $$AnalysesTableOrderingComposer,
+      $$AnalysesTableAnnotationComposer,
+      $$AnalysesTableCreateCompanionBuilder,
+      $$AnalysesTableUpdateCompanionBuilder,
+      (Analyse, $$AnalysesTableReferences),
+      Analyse,
+      PrefetchHooks Function({
+        bool clientDocumentId,
+        bool analysisQualityReasonsRefs,
+        bool sourceReferencesRefs,
+      })
+    >;
+typedef $$AnalysisQualityReasonsTableCreateCompanionBuilder =
+    AnalysisQualityReasonsCompanion Function({
+      required String id,
+      required String analysisId,
+      required String reason,
+      Value<int> rowid,
+    });
+typedef $$AnalysisQualityReasonsTableUpdateCompanionBuilder =
+    AnalysisQualityReasonsCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<String> reason,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisQualityReasonsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisQualityReasonsTable,
+          AnalysisQualityReason
+        > {
+  $$AnalysisQualityReasonsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) => db.analyses
+      .createAlias('analysis_quality_reasons__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisQualityReasonsTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisQualityReasonsTable> {
+  $$AnalysisQualityReasonsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisQualityReasonsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisQualityReasonsTable> {
+  $$AnalysisQualityReasonsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisQualityReasonsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisQualityReasonsTable> {
+  $$AnalysisQualityReasonsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisQualityReasonsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisQualityReasonsTable,
+          AnalysisQualityReason,
+          $$AnalysisQualityReasonsTableFilterComposer,
+          $$AnalysisQualityReasonsTableOrderingComposer,
+          $$AnalysisQualityReasonsTableAnnotationComposer,
+          $$AnalysisQualityReasonsTableCreateCompanionBuilder,
+          $$AnalysisQualityReasonsTableUpdateCompanionBuilder,
+          (AnalysisQualityReason, $$AnalysisQualityReasonsTableReferences),
+          AnalysisQualityReason,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisQualityReasonsTableTableManager(
+    _$AppDatabase db,
+    $AnalysisQualityReasonsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisQualityReasonsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AnalysisQualityReasonsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AnalysisQualityReasonsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<String> reason = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisQualityReasonsCompanion(
+                id: id,
+                analysisId: analysisId,
+                reason: reason,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required String reason,
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisQualityReasonsCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                reason: reason,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $AnalysisQualityReasonsTable,
+                    AnalysisQualityReason
+                  >(table),
+                  $$AnalysisQualityReasonsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -7384,15 +9086,16 @@ class $$AnalysesTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (clientDocumentId) {
+                    if (analysisId) {
                       state = state.withJoin(
                         currentTable: table,
-                        currentColumn: table.clientDocumentId,
-                        referencedTable: $$AnalysesTableReferences
-                            ._clientDocumentIdTable(db),
-                        referencedColumn: $$AnalysesTableReferences
-                            ._clientDocumentIdTable(db)
-                            .clientDocumentId,
+                        currentColumn: table.analysisId,
+                        referencedTable: $$AnalysisQualityReasonsTableReferences
+                            ._analysisIdTable(db),
+                        referencedColumn:
+                            $$AnalysisQualityReasonsTableReferences
+                                ._analysisIdTable(db)
+                                .id,
                       ) as T;
                     }
 
@@ -7407,19 +9110,543 @@ class $$AnalysesTableTableManager
       );
 }
 
-typedef $$AnalysesTableProcessedTableManager =
+typedef $$AnalysisQualityReasonsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $AnalysesTable,
-      Analyse,
-      $$AnalysesTableFilterComposer,
-      $$AnalysesTableOrderingComposer,
-      $$AnalysesTableAnnotationComposer,
-      $$AnalysesTableCreateCompanionBuilder,
-      $$AnalysesTableUpdateCompanionBuilder,
-      (Analyse, $$AnalysesTableReferences),
-      Analyse,
-      PrefetchHooks Function({bool clientDocumentId})
+      $AnalysisQualityReasonsTable,
+      AnalysisQualityReason,
+      $$AnalysisQualityReasonsTableFilterComposer,
+      $$AnalysisQualityReasonsTableOrderingComposer,
+      $$AnalysisQualityReasonsTableAnnotationComposer,
+      $$AnalysisQualityReasonsTableCreateCompanionBuilder,
+      $$AnalysisQualityReasonsTableUpdateCompanionBuilder,
+      (AnalysisQualityReason, $$AnalysisQualityReasonsTableReferences),
+      AnalysisQualityReason,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$SourceReferencesTableCreateCompanionBuilder =
+    SourceReferencesCompanion Function({
+      required String id,
+      required String analysisId,
+      required String clientDocumentId,
+      Value<String?> fileId,
+      Value<int?> pageNumber,
+      Value<String?> excerptLabel,
+      Value<int> rowid,
+    });
+typedef $$SourceReferencesTableUpdateCompanionBuilder =
+    SourceReferencesCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<String> clientDocumentId,
+      Value<String?> fileId,
+      Value<int?> pageNumber,
+      Value<String?> excerptLabel,
+      Value<int> rowid,
+    });
+
+final class $$SourceReferencesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $SourceReferencesTable, SourceReference> {
+  $$SourceReferencesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) =>
+      db.analyses.createAlias('source_references__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $DocumentsTable _clientDocumentIdTable(_$AppDatabase db) =>
+      db.documents.createAlias(
+        'source_references__client_document_id__documents__client_document_id',
+      );
+
+  $$DocumentsTableProcessedTableManager get clientDocumentId {
+    final $_column = $_itemColumn<String>('client_document_id')!;
+
+    final manager = $$DocumentsTableTableManager(
+      $_db,
+      $_db.documents,
+    ).filter((f) => f.clientDocumentId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_clientDocumentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $DocumentFilesTable _fileIdTable(_$AppDatabase db) => db.documentFiles
+      .createAlias('source_references__file_id__document_files__id');
+
+  $$DocumentFilesTableProcessedTableManager? get fileId {
+    final $_column = $_itemColumn<String>('file_id');
+    if ($_column == null) return null;
+    final manager = $$DocumentFilesTableTableManager(
+      $_db,
+      $_db.documentFiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_fileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SourceReferencesTableFilterComposer
+    extends Composer<_$AppDatabase, $SourceReferencesTable> {
+  $$SourceReferencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pageNumber => $composableBuilder(
+    column: $table.pageNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get excerptLabel => $composableBuilder(
+    column: $table.excerptLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentsTableFilterComposer get clientDocumentId {
+    final $$DocumentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableFilterComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentFilesTableFilterComposer get fileId {
+    final $$DocumentFilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableFilterComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SourceReferencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SourceReferencesTable> {
+  $$SourceReferencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pageNumber => $composableBuilder(
+    column: $table.pageNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get excerptLabel => $composableBuilder(
+    column: $table.excerptLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentsTableOrderingComposer get clientDocumentId {
+    final $$DocumentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentFilesTableOrderingComposer get fileId {
+    final $$DocumentFilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SourceReferencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SourceReferencesTable> {
+  $$SourceReferencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get pageNumber => $composableBuilder(
+    column: $table.pageNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get excerptLabel => $composableBuilder(
+    column: $table.excerptLabel,
+    builder: (column) => column,
+  );
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentsTableAnnotationComposer get clientDocumentId {
+    final $$DocumentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clientDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.clientDocumentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentFilesTableAnnotationComposer get fileId {
+    final $$DocumentFilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SourceReferencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SourceReferencesTable,
+          SourceReference,
+          $$SourceReferencesTableFilterComposer,
+          $$SourceReferencesTableOrderingComposer,
+          $$SourceReferencesTableAnnotationComposer,
+          $$SourceReferencesTableCreateCompanionBuilder,
+          $$SourceReferencesTableUpdateCompanionBuilder,
+          (SourceReference, $$SourceReferencesTableReferences),
+          SourceReference,
+          PrefetchHooks Function({
+            bool analysisId,
+            bool clientDocumentId,
+            bool fileId,
+          })
+        > {
+  $$SourceReferencesTableTableManager(
+    _$AppDatabase db,
+    $SourceReferencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SourceReferencesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SourceReferencesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SourceReferencesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<String> clientDocumentId = const Value.absent(),
+                Value<String?> fileId = const Value.absent(),
+                Value<int?> pageNumber = const Value.absent(),
+                Value<String?> excerptLabel = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SourceReferencesCompanion(
+                id: id,
+                analysisId: analysisId,
+                clientDocumentId: clientDocumentId,
+                fileId: fileId,
+                pageNumber: pageNumber,
+                excerptLabel: excerptLabel,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required String clientDocumentId,
+                Value<String?> fileId = const Value.absent(),
+                Value<int?> pageNumber = const Value.absent(),
+                Value<String?> excerptLabel = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SourceReferencesCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                clientDocumentId: clientDocumentId,
+                fileId: fileId,
+                pageNumber: pageNumber,
+                excerptLabel: excerptLabel,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SourceReferencesTable, SourceReference>(table),
+                  $$SourceReferencesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({analysisId = false, clientDocumentId = false, fileId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (analysisId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.analysisId,
+                            referencedTable: $$SourceReferencesTableReferences
+                                ._analysisIdTable(db),
+                            referencedColumn: $$SourceReferencesTableReferences
+                                ._analysisIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (clientDocumentId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.clientDocumentId,
+                            referencedTable: $$SourceReferencesTableReferences
+                                ._clientDocumentIdTable(db),
+                            referencedColumn: $$SourceReferencesTableReferences
+                                ._clientDocumentIdTable(db)
+                                .clientDocumentId,
+                          ) as T;
+                        }
+                        if (fileId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.fileId,
+                            referencedTable: $$SourceReferencesTableReferences
+                                ._fileIdTable(db),
+                            referencedColumn: $$SourceReferencesTableReferences
+                                ._fileIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SourceReferencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SourceReferencesTable,
+      SourceReference,
+      $$SourceReferencesTableFilterComposer,
+      $$SourceReferencesTableOrderingComposer,
+      $$SourceReferencesTableAnnotationComposer,
+      $$SourceReferencesTableCreateCompanionBuilder,
+      $$SourceReferencesTableUpdateCompanionBuilder,
+      (SourceReference, $$SourceReferencesTableReferences),
+      SourceReference,
+      PrefetchHooks Function({
+        bool analysisId,
+        bool clientDocumentId,
+        bool fileId,
+      })
     >;
 typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   required String id,
@@ -9307,6 +11534,13 @@ class $AppDatabaseManager {
       $$DocumentFilesTableTableManager(_db, _db.documentFiles);
   $$AnalysesTableTableManager get analyses =>
       $$AnalysesTableTableManager(_db, _db.analyses);
+  $$AnalysisQualityReasonsTableTableManager get analysisQualityReasons =>
+      $$AnalysisQualityReasonsTableTableManager(
+        _db,
+        _db.analysisQualityReasons,
+      );
+  $$SourceReferencesTableTableManager get sourceReferences =>
+      $$SourceReferencesTableTableManager(_db, _db.sourceReferences);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
   $$DeadlinesTableTableManager get deadlines =>

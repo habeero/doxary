@@ -49,3 +49,7 @@ Each entry is an ADR-style confirmed decision. Open product/commercial choices r
 ## D-012 Explicit unavailable platform capabilities
 
 **Context:** camera/file permissions and notifications require platform integration choices that are outside the foundation scope. **Decision:** expose typed `DocumentImportGateway` and `ReminderScheduler` ports with adapters that return or expose unavailable capability state. **Rationale:** UI can be honest and domain code remains independent of platform libraries. **Consequences:** no fake imports or reminder scheduling occur in Phase 1; native adapters can be introduced later without changing use cases. **Alternative:** silent no-op success and picker coupling in presentation were rejected.
+
+## D-013 Document-first vision analysis and bounded follow-up context
+
+**Decision:** Analysis starts from an imported document before assistant use. Vision-capable backend processing is the MVP path; on-device OCR is optional. Results separate extracted facts from explanation, include output language/style, typed quality outcomes/reasons, and typed evidence. Multiple versioned analyses remain possible per local document. A backend follow-up context, if used, is short-lived, deletable, and limited to structured analysis, summary, evidence, version, and lifecycle timestamps; it never stores original files or creates a permanent Document resource.

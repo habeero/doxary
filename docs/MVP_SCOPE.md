@@ -3,7 +3,7 @@
 ## Included
 
 - Camera, image, and PDF import architecture; later implementation will analyze imported German documents.
-- Structured analysis: sender, type, language, summary/explanation, action state, urgency, dates, appointments, amounts, requested documents, tasks, warnings, and confidence.
+- Structured vision analysis first: sender, type, language, extracted facts, separate explanation, action state, urgency, dates, appointments, amounts, requested documents, tasks, warnings, typed quality reasons, evidence, and confidence. On-device OCR is not required.
 - Document/case questions, simpler explanations, German reply drafts, and access to original German text.
 - Automatic and manual tasks, deadlines, appointments, local reminders, and Today/Upcoming/Completed views.
 - Browsing by Organization -> Case -> Documents, correction of suggestions, simple search-ready metadata, Arabic explanation/UI architecture with RTL.
