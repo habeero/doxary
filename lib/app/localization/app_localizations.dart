@@ -19,6 +19,35 @@ class AppLocalizations {
   String get recentDocuments => _value('recentDocuments');
   String get noUpcomingTasks => _value('noUpcomingTasks');
   String get noDocuments => _value('noDocuments');
+  String get unclassified => _value('unclassified');
+  String get classificationSuggested => _value('classificationSuggested');
+  String get classificationConfirmed => _value('classificationConfirmed');
+  String get documentFallback => _value('documentFallback');
+  String get originalDocument => _value('originalDocument');
+  String get originalDocumentUnavailable =>
+      _value('originalDocumentUnavailable');
+  String get documentDate => _value('documentDate');
+  String get receivedDate => _value('receivedDate');
+  String get analysisState => _value('analysisState');
+  String get viewAnalysis => _value('viewAnalysis');
+  String get imported => _value('imported');
+  String get archived => _value('archived');
+  String get deleted => _value('deleted');
+  String get confirm => _value('confirm');
+  String get organization => _value('organization');
+  String get caseLabel => _value('caseLabel');
+  String get caseNotAssigned => _value('caseNotAssigned');
+  String get suggestedClassification => _value('suggestedClassification');
+  String get change => _value('change');
+  String get editClassification => _value('editClassification');
+  String get save => _value('save');
+  String get cancel => _value('cancel');
+  String get chooseOrganization => _value('chooseOrganization');
+  String get organizationName => _value('organizationName');
+  String get caseName => _value('caseName');
+  String get clearCase => _value('clearCase');
+  String get cases => _value('cases');
+  String get organizationDocuments => _value('organizationDocuments');
   String get today => _value('today');
   String get completed => _value('completed');
   String get noTasks => _value('noTasks');
@@ -88,6 +117,8 @@ class AppLocalizations {
       (_extraStrings[locale.languageCode] ?? _extraStrings['de']!)[key] ??
       (_analysisLanguageStrings[locale.languageCode] ??
           _analysisLanguageStrings['de']!)[key] ??
+      (_documentLibraryStrings[locale.languageCode] ??
+          _documentLibraryStrings['de']!)[key] ??
       key;
 }
 
@@ -102,6 +133,76 @@ const _analysisLanguageStrings = <String, Map<String, String>>{
         '\u0644\u063a\u0629 \u0627\u0644\u0634\u0631\u062d',
     'analysisLanguageArabic': '\u0627\u0644\u0639\u0631\u0628\u064a\u0629',
     'analysisLanguageSimpleGerman': '\u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 \u0627\u0644\u0628\u0633\u064a\u0637\u0629',
+  },
+};
+
+const _documentLibraryStrings = <String, Map<String, String>>{
+  'de': {
+    'unclassified': 'Nicht zugeordnet',
+    'classificationSuggested': 'Vorschlag \u2013 bitte best\u00e4tigen',
+    'classificationConfirmed': 'Zugeordnet',
+    'documentFallback': 'Dokument',
+    'originalDocument': 'Originaldokument',
+    'originalDocumentUnavailable':
+        '\u00d6ffnen des Originals ist noch nicht verf\u00fcgbar.',
+    'documentDate': 'Dokumentdatum',
+    'receivedDate': 'Empfangen',
+    'analysisState': 'Analysestatus',
+    'viewAnalysis': 'Analyse ansehen',
+    'imported': 'Importiert',
+    'archived': 'Archiviert',
+    'deleted': 'Gel\u00f6scht',
+    'confirm': 'Bestätigen',
+    'organization': 'Organisation',
+    'caseLabel': 'Vorgang',
+    'caseNotAssigned': 'Nicht zugeordnet',
+    'suggestedClassification': 'Vorgeschlagene Zuordnung',
+    'change': 'Aendern',
+    'editClassification': 'Zuordnung bearbeiten',
+    'save': 'Speichern',
+    'cancel': 'Abbrechen',
+    'chooseOrganization': 'Organisation waehlen',
+    'organizationName': 'Name der Organisation',
+    'caseName': 'Name des Vorgangs',
+    'clearCase': 'Vorgang entfernen',
+    'cases': 'Vorgaenge',
+    'organizationDocuments': 'Dokumente ohne Vorgang',
+  },
+  'ar': {
+    'unclassified': '\u063a\u064a\u0631 \u0645\u0635\u0646\u0641',
+    'classificationSuggested': '\u0627\u0642\u062a\u0631\u0627\u062d \u2013 \u064a\u0631\u062c\u0649 \u0627\u0644\u062a\u0623\u0643\u064a\u062f',
+    'classificationConfirmed': '\u0645\u0635\u0646\u0641',
+    'documentFallback': '\u0645\u0633\u062a\u0646\u062f',
+    'originalDocument': '\u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a',
+    'originalDocumentUnavailable': '\u0641\u062a\u062d \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u0628\u0639\u062f.',
+    'documentDate': '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0645\u0633\u062a\u0646\u062f',
+    'receivedDate': '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0633\u062a\u0644\u0627\u0645',
+    'analysisState':
+        '\u062d\u0627\u0644\u0629 \u0627\u0644\u062a\u062d\u0644\u064a\u0644',
+    'viewAnalysis':
+        '\u0639\u0631\u0636 \u0627\u0644\u062a\u062d\u0644\u064a\u0644',
+    'imported':
+        '\u062a\u0645 \u0627\u0644\u0627\u0633\u062a\u064a\u0631\u0627\u062f',
+    'archived': '\u0645\u0624\u0631\u0634\u0641',
+    'deleted': '\u0645\u062d\u0630\u0648\u0641',
+    'confirm': '\u062a\u0623\u0643\u064a\u062f',
+    'organization': '\u0627\u0644\u0645\u0624\u0633\u0633\u0629',
+    'caseLabel': '\u0627\u0644\u0645\u0639\u0627\u0645\u0644\u0629',
+    'caseNotAssigned': '\u063a\u064a\u0631 \u0645\u062d\u062f\u062f\u0629',
+    'suggestedClassification': '\u0627\u0644\u062a\u0635\u0646\u064a\u0641 \u0627\u0644\u0645\u0642\u062a\u0631\u062d',
+    'change': '\u062a\u063a\u064a\u064a\u0631',
+    'editClassification': '\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062a\u0635\u0646\u064a\u0641',
+    'save': '\u062d\u0641\u0638',
+    'cancel': '\u0625\u0644\u063a\u0627\u0621',
+    'chooseOrganization':
+        '\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0624\u0633\u0633\u0629',
+    'organizationName':
+        '\u0627\u0633\u0645 \u0627\u0644\u0645\u0624\u0633\u0633\u0629',
+    'caseName': '\u0627\u0633\u0645 \u0627\u0644\u0645\u0644\u0641',
+    'clearCase':
+        '\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0645\u0644\u0641',
+    'cases': '\u0627\u0644\u0645\u0644\u0641\u0627\u062a',
+    'organizationDocuments': '\u0645\u0633\u062a\u0646\u062f\u0627\u062a \u0628\u062f\u0648\u0646 \u0645\u0644\u0641',
   },
 };
 

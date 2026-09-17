@@ -7,6 +7,25 @@ import '../../domain/repositories/case_repository.dart';
 class LocalCaseRepository implements CaseRepository {
   LocalCaseRepository(this._database);
   final AppDatabase _database;
+
+  @override
+  Stream<List<Case>> watchAll() =>
+      (_database.select(
+        _database.cases,
+      )..orderBy([(row) => OrderingTerm.asc(row.title)])).watch().map(
+        (rows) => rows
+            .map(
+              (row) => Case(
+                id: row.id,
+                organizationId: row.organizationId,
+                title: row.title,
+                createdAt: row.createdAt,
+                updatedAt: row.updatedAt,
+              ),
+            )
+            .toList(),
+      );
+
   @override
   Stream<List<Case>> watchForOrganization(String organizationId) =>
       (_database.select(_database.cases)

@@ -210,6 +210,8 @@ void main() {
         overrides: [
           documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+          organizationsProvider.overrideWithValue(const AsyncValue.data([])),
+          casesProvider.overrideWithValue(const AsyncValue.data([])),
         ],
         child: const ProjectApp(),
       ),
@@ -224,6 +226,8 @@ void main() {
         overrides: [
           documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+          organizationsProvider.overrideWithValue(const AsyncValue.data([])),
+          casesProvider.overrideWithValue(const AsyncValue.data([])),
         ],
         child: MaterialApp(
           locale: const Locale('ar'),
@@ -248,12 +252,28 @@ void main() {
 
 class _EmptyDocuments implements DocumentRepository {
   @override
+  Future<void> updateClassification(
+    String clientDocumentId, {
+    String? organizationId,
+    String? caseId,
+    required ClassificationState state,
+  }) async {}
+  @override
+  Future<LocalDocument?> getById(String clientDocumentId) async => null;
+
+  @override
+  Future<List<DocumentFile>> getFiles(String clientDocumentId) async => [];
+
+  @override
   Future<void> saveImportedDocument(
     LocalDocument document,
     DocumentFile file,
   ) async {}
   @override
   Stream<List<LocalDocument>> watchRecent({int limit = 5}) => Stream.value([]);
+
+  @override
+  Stream<List<LocalDocument>> watchAll() => Stream.value([]);
 }
 
 class _EmptyTasks implements TaskRepository {

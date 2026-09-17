@@ -2,7 +2,7 @@
 
 Primary bottom navigation is **Home**, **Documents**, central **New Document**, **Tasks**, and **Profile**. The central action opens camera, image import, or PDF import. Deep links are reserved for future document, case, task, and notification routes; they must validate authorization/local availability before displaying content.
 
-Home emphasizes the import action, upcoming deadlines/tasks, and recent documents. Documents browses Organization -> Case -> Documents with filters/search added progressively. Tasks has simple Today, Upcoming, and Completed tabs. Profile owns language, privacy, notification, and future account/billing settings.
+Home emphasizes the import action, upcoming deadlines/tasks, and a bounded recent-documents preview (currently five). Documents is the complete local library and browses Organization -> Case -> Documents, with unclassified documents in a separate section; filters/search are added progressively. Tasks has simple Today, Upcoming, and Completed tabs. Profile owns language, privacy, notification, and future account/billing settings.
 
 ```mermaid
 flowchart LR
@@ -19,7 +19,7 @@ The result starts with sender suggestion, document type, plain explanation, acti
 
 The import review places a compact analysis-language selector beside the Analyze action. It controls generated explanation language (Arabic or Einfaches Deutsch) independently from the app interface language and persists locally.
 
-An analyzed document opens its `/documents/:clientDocumentId` result route. That route reads the latest local Drift analysis and never requires a network request merely to reopen an existing result. Optional sections are omitted when absent; partial and unavailable are rendered as valid analysis outcomes.
+Documents uses real local routes: `/documents/organization/:organizationId`, `/documents/organization/:organizationId/case/:caseId`, and `/documents/:clientDocumentId`. An organization view lists its cases and documents directly associated with it; a case view lists its documents. Unclassified documents remain directly available. The detail route presents title and confirmed/suggested classification before original local metadata and analysis. Suggestions are confirmed or changed explicitly; they never classify automatically. Original opening remains deferred because a maintained permission-aware PDF/image adapter is not yet justified.
 
 ## Phase 1 implementation
 

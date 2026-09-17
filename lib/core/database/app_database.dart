@@ -72,6 +72,9 @@ class Analyses extends Table {
       text().withDefault(const Constant('complete'))();
   TextColumn get explanationStyle =>
       text().withDefault(const Constant('standard'))();
+  // Classification is analysis provenance, not a confirmed document relation.
+  TextColumn get suggestedOrganizationName => text().nullable()();
+  TextColumn get suggestedDocumentType => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -197,7 +200,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -213,6 +216,10 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await m.createTable(analysisOperations);
+      }
+      if (from < 4) {
+        await m.addColumn(analyses, analyses.suggestedOrganizationName);
+        await m.addColumn(analyses, analyses.suggestedDocumentType);
       }
     },
   );

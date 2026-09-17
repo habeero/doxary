@@ -19,3 +19,5 @@ Prompts are immutable, versioned records with purpose, input contract, output sc
 Schemas require uncertainty where evidence is missing. The system must not fabricate sender, dates, legal obligations, citations, or reply facts. Explanations state that they are informational and prompt verification for consequential matters. Source language and target explanation language/style are separate parameters; extracted facts remain distinct from explanatory prose, and domain enums remain language-neutral. Vision-capable processing is the MVP strategy; on-device OCR is not a prerequisite. Fallback is bounded, idempotent where possible, timeout-controlled, and does not expose provider errors to clients.
 
 Provider data-processing terms, retention, regional handling, and user consent must be evaluated before selection; architecture alone does not establish GDPR compliance.
+
+The current OpenAI provider/model configuration and Flutter polling loop are replaceable MVP choices. They should change only after measured quality, latency, reliability, privacy, cost, battery, or operational evidence warrants an ADR (see D-017).

@@ -16,6 +16,8 @@ Analysis is shown before optional chat. A user is never required to create an or
 
 The app interface language and the language used for generated analysis explanations are independent preferences. The MVP offers Arabic and Einfaches Deutsch explanations through a compact selector near Analyze. The interface follows the device locale on first launch (Arabic for Arabic locales, German otherwise); explicit choices are persisted locally and are not silently overwritten by the other preference.
 
+Home is a recent/actionable overview, while Documents is the complete local library organized as Organization → Case → Document. Unclassified documents remain visible without fabricated “Unknown” records, and the original DocumentFile remains distinct from its analysis result.
+
 ## Product principles
 
 - Be practical: surface the next action in seconds.

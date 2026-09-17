@@ -11,12 +11,16 @@ import '../../../shared/design_system/app_widgets.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 
 class AnalysisResultPage extends ConsumerWidget {
-  const AnalysisResultPage({required this.clientDocumentId, super.key});
+  const AnalysisResultPage({
+    required this.clientDocumentId,
+    this.embedded = false,
+    super.key,
+  });
   final String clientDocumentId;
+  final bool embedded;
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(title: Text(context.l10n.analysisTitle)),
-    body: ref
+  Widget build(BuildContext context, WidgetRef ref) {
+    final body = ref
         .watch(latestAnalysisProvider(clientDocumentId))
         .when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -24,8 +28,13 @@ class AnalysisResultPage extends ConsumerWidget {
           data: (analysis) => analysis == null
               ? Center(child: Text(context.l10n.noSavedAnalysis))
               : _ResultBody(analysis: analysis),
-        ),
-  );
+        );
+    if (embedded) return body;
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.analysisTitle)),
+      body: body,
+    );
+  }
 }
 
 class _ResultBody extends StatelessWidget {

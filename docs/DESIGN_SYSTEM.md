@@ -1,6 +1,6 @@
 # Design system principles
 
-Use a calm, trustworthy, mobile-first system independent of the temporary codename. Typography must support German and Arabic well, use scalable text, adequate line height, and RTL-aware alignment/order/mirroring. All UI strings use Flutter localization; domain values are localized at presentation boundaries.
+Use a calm, trustworthy, mobile-first system independent of the temporary codename. Typography must support German and Arabic well, use scalable text, adequate line height, and RTL-aware alignment/order/mirroring. All UI strings use Flutter localization; domain values are localized at presentation boundaries. Human-authored localization strings should remain directly readable UTF-8 in source; Unicode escapes are reserved for generated resources or technical constraints.
 
 Use a consistent spacing scale, touch targets suitable for mobile, semantic—not brand-dependent—colors for primary action, information, success, warning, error, and neutral states. Never rely on color alone; pair status with labels/icons. Meet platform accessibility contrast, screen-reader labels, focus order, dynamic text, and reduced-motion needs.
 

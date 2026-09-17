@@ -10,6 +10,8 @@
 
 Phases are outcome-oriented, have no promised dates, and require revisiting privacy, quality, and scope before advancing.
 
+Pre-release gate: feature complete -> independent cross-repository audit -> findings report -> human triage/approval -> small reviewed remediation batches -> full regression validation -> release candidate -> final release. The audit covers both repositories and the full checklist in D-018; it occurs before remediation.
+
 Phase 2.6 also includes independent UI-locale and analysis-explanation-language selection, with both preferences persisted locally.
 
 ## Phase 2 delivery sequence

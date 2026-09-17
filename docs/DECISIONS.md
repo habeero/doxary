@@ -65,3 +65,24 @@ Each entry is an ADR-style confirmed decision. Open product/commercial choices r
 ## D-016 Independent interface and analysis-explanation languages
 
 **Context:** Users may prefer Arabic or German interface labels independently from the language used to explain a document. **Decision:** Persist UI locale and analysis-output language as separate local settings. The MVP supports Arabic and Einfaches Deutsch explanations; the default follows the effective UI locale on first use, while an explicit analysis-language choice remains independent. **Rationale:** changing labels must not silently rewrite a user's analysis preference, and cold-start locale detection must work before persisted settings are available. **Consequences:** the import review exposes a compact selector near Analyze and submits the selected language/style as `output_language` and `output_style`; both preferences remain local-first. **Alternative:** deriving output language on every build from UI locale was rejected because it overwrites explicit user intent.
+
+## D-017 Replaceable staging implementation choices
+
+The following choices are current MVP/staging implementations, not permanent architecture commitments. Each replacement requires measured evidence and a documented follow-up decision:
+
+- The configured OpenAI provider/model may change when comparative quality, latency, reliability, privacy, or cost measurements justify it.
+- Flutter polling may be replaced by SSE, WebSocket, or push when real product telemetry shows polling latency, battery use, or reliability is inadequate.
+- The PostgreSQL row-lock/lease worker queue may move to Redis/Celery or another queue when throughput, lock contention, distributed workers, or operations require it.
+- A local temporary filesystem is valid while API and worker share host/storage; object storage becomes appropriate when multi-host or horizontal scaling requires shared artifacts.
+- One-host Docker Compose on Hetzner is staging topology; production scale, availability, or isolation requirements trigger a different deployment topology.
+- Gunicorn and Caddy remain tunable/replaceable operational components; measured capacity, TLS, or proxy requirements trigger a change.
+- Flask remains adequate; a framework change requires a demonstrated bottleneck or capability need, not preference.
+- Flutter, Riverpod, GoRouter, and Drift/SQLite are approved foundation choices and are not scheduled for replacement absent a demonstrated product or platform constraint.
+
+## D-018 Mandatory pre-release cross-repository audit
+
+Every release follows: feature complete -> independent cross-repository audit -> severity-classified findings report -> human triage/approval -> reviewed remediation batches (with affected documentation updated in each batch) -> full regression validation -> release candidate -> final release. The cold reviewer audits both Flutter and backend for architecture boundaries, API/domain/schema drift, enums/nullability, duplication/dead code, coupling, migrations/data integrity, async lifecycle/races, retries/idempotency, errors, privacy/security/logging, secrets/configuration, deployment assumptions, performance, dependencies, tests, localization/RTL/accessibility, and release readiness. The audit precedes remediation and is not performed by the implementing author alone.
+
+## D-019 Local classification review and browse hierarchy
+
+**Decision:** Persist typed analysis classification metadata necessary for local review, but require the user to create or reuse confirmed Organization and Case relationships. Exact whitespace-normalized, case-insensitive names may reuse an Organization; Cases may reuse only under that Organization with the same normalization. Manual edits can clear a Case or leave a Document unclassified. **Consequences:** no fuzzy merging or fabricated Unknown records; Documents navigates Organization -> Case -> Document while keeping organization-only and unclassified documents visible. **Alternative:** copying analysis suggestions into confirmed relationships at analysis completion was rejected.

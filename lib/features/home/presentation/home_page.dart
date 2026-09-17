@@ -7,6 +7,8 @@ import '../../../app/providers.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../shared/design_system/app_widgets.dart';
+import '../../document_analysis/presentation/document_detail_page.dart';
+import '../../documents/presentation/documents_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -76,10 +78,15 @@ class HomePage extends ConsumerWidget {
                     child: Column(
                       children: items
                           .map(
-                            (item) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(item.clientDocumentId),
-                              leading: const Icon(Icons.description_outlined),
+                            (item) => DocumentListTile(
+                              document: item,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => DocumentDetailPage(
+                                    clientDocumentId: item.clientDocumentId,
+                                  ),
+                                ),
+                              ),
                             ),
                           )
                           .toList(),

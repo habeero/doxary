@@ -134,7 +134,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          recentDocumentsProvider.overrideWithValue(
+          allDocumentsProvider.overrideWithValue(
             AsyncValue.data([
               LocalDocument(
                 clientDocumentId: 'doc',
@@ -145,6 +145,21 @@ void main() {
               ),
             ]),
           ),
+          documentProvider('doc').overrideWithValue(
+            AsyncValue.data(
+              LocalDocument(
+                clientDocumentId: 'doc',
+                classificationState: ClassificationState.unclassified,
+                status: DocumentStatus.analyzed,
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+            ),
+          ),
+          documentFilesProvider('doc')
+              .overrideWithValue(const AsyncValue.data([])),
+          organizationsProvider.overrideWithValue(const AsyncValue.data([])),
+          casesProvider.overrideWithValue(const AsyncValue.data([])),
           latestAnalysisProvider('doc')
               .overrideWithValue(AsyncValue.data(analysis)),
         ],
@@ -152,7 +167,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('doc'));
+    await tester.tap(find.widgetWithText(ListTile, 'Dokument'));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisResultPage), findsOneWidget);
     expect(find.text('A clear summary'), findsOneWidget);

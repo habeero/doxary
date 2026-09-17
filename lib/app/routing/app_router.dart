@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/document_import/presentation/import_page.dart';
-import '../../features/document_analysis/presentation/analysis_result_page.dart';
+import '../../features/document_analysis/presentation/document_detail_page.dart';
+import '../../features/organizations/presentation/organization_page.dart';
+import '../../features/cases/presentation/case_page.dart';
 import '../../features/documents/presentation/documents_page.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/settings/presentation/profile_page.dart';
@@ -40,8 +42,21 @@ final appRouterProvider = Provider<GoRouter>(
                 builder: (context, state) => const DocumentsPage(),
                 routes: [
                   GoRoute(
+                    path: 'organization/:organizationId',
+                    builder: (context, state) => OrganizationPage(
+                      organizationId: state.pathParameters['organizationId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'case/:caseId',
+                        builder: (context, state) =>
+                            CasePage(caseId: state.pathParameters['caseId']!),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
                     path: ':clientDocumentId',
-                    builder: (context, state) => AnalysisResultPage(
+                    builder: (context, state) => DocumentDetailPage(
                       clientDocumentId:
                           state.pathParameters['clientDocumentId']!,
                     ),

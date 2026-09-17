@@ -40,6 +40,14 @@ class LocalAnalysisRepository implements AnalysisRepository {
     createdAt: row.createdAt,
     analysisStatus: AnalysisStatus.values.byName(row.analysisStatus),
     explanationStyle: ExplanationStyle.values.byName(row.explanationStyle),
+    classification:
+        row.suggestedOrganizationName == null &&
+            row.suggestedDocumentType == null
+        ? null
+        : ClassificationSuggestion(
+            organizationName: row.suggestedOrganizationName,
+            documentType: row.suggestedDocumentType,
+          ),
   );
 
   @override
@@ -90,6 +98,12 @@ class LocalAnalysisRepository implements AnalysisRepository {
               state: analysis.analysisStatus.name,
               analysisStatus: Value(analysis.analysisStatus.name),
               explanationStyle: Value(analysis.explanationStyle.name),
+              suggestedOrganizationName: Value(
+                analysis.classification?.organizationName,
+              ),
+              suggestedDocumentType: Value(
+                analysis.classification?.documentType,
+              ),
               createdAt: analysis.createdAt,
             ),
           );

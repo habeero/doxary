@@ -2062,6 +2062,28 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
     requiredDuringInsert: false,
     defaultValue: const Constant('standard'),
   );
+  static const VerificationMeta _suggestedOrganizationNameMeta =
+      const VerificationMeta('suggestedOrganizationName');
+  @override
+  late final GeneratedColumn<String> suggestedOrganizationName =
+      GeneratedColumn<String>(
+        'suggested_organization_name',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _suggestedDocumentTypeMeta =
+      const VerificationMeta('suggestedDocumentType');
+  @override
+  late final GeneratedColumn<String> suggestedDocumentType =
+      GeneratedColumn<String>(
+        'suggested_document_type',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2084,6 +2106,8 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
     state,
     analysisStatus,
     explanationStyle,
+    suggestedOrganizationName,
+    suggestedDocumentType,
     createdAt,
   ];
   @override
@@ -2177,6 +2201,24 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
         ),
       );
     }
+    if (data.containsKey('suggested_organization_name')) {
+      context.handle(
+        _suggestedOrganizationNameMeta,
+        suggestedOrganizationName.isAcceptableOrUnknown(
+          data['suggested_organization_name']!,
+          _suggestedOrganizationNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('suggested_document_type')) {
+      context.handle(
+        _suggestedDocumentTypeMeta,
+        suggestedDocumentType.isAcceptableOrUnknown(
+          data['suggested_document_type']!,
+          _suggestedDocumentTypeMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2230,6 +2272,14 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
         DriftSqlType.string,
         data['${effectivePrefix}explanation_style'],
       )!,
+      suggestedOrganizationName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}suggested_organization_name'],
+      ),
+      suggestedDocumentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}suggested_document_type'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2253,6 +2303,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
   final String state;
   final String analysisStatus;
   final String explanationStyle;
+  final String? suggestedOrganizationName;
+  final String? suggestedDocumentType;
   final DateTime createdAt;
   const Analyse({
     required this.id,
@@ -2264,6 +2316,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     required this.state,
     required this.analysisStatus,
     required this.explanationStyle,
+    this.suggestedOrganizationName,
+    this.suggestedDocumentType,
     required this.createdAt,
   });
   @override
@@ -2282,6 +2336,14 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     map['state'] = Variable<String>(state);
     map['analysis_status'] = Variable<String>(analysisStatus);
     map['explanation_style'] = Variable<String>(explanationStyle);
+    if (!nullToAbsent || suggestedOrganizationName != null) {
+      map['suggested_organization_name'] = Variable<String>(
+        suggestedOrganizationName,
+      );
+    }
+    if (!nullToAbsent || suggestedDocumentType != null) {
+      map['suggested_document_type'] = Variable<String>(suggestedDocumentType);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -2301,6 +2363,13 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       state: Value(state),
       analysisStatus: Value(analysisStatus),
       explanationStyle: Value(explanationStyle),
+      suggestedOrganizationName:
+          suggestedOrganizationName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(suggestedOrganizationName),
+      suggestedDocumentType: suggestedDocumentType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(suggestedDocumentType),
       createdAt: Value(createdAt),
     );
   }
@@ -2320,6 +2389,12 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       state: serializer.fromJson<String>(json['state']),
       analysisStatus: serializer.fromJson<String>(json['analysisStatus']),
       explanationStyle: serializer.fromJson<String>(json['explanationStyle']),
+      suggestedOrganizationName: serializer.fromJson<String?>(
+        json['suggestedOrganizationName'],
+      ),
+      suggestedDocumentType: serializer.fromJson<String?>(
+        json['suggestedDocumentType'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -2336,6 +2411,12 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       'state': serializer.toJson<String>(state),
       'analysisStatus': serializer.toJson<String>(analysisStatus),
       'explanationStyle': serializer.toJson<String>(explanationStyle),
+      'suggestedOrganizationName': serializer.toJson<String?>(
+        suggestedOrganizationName,
+      ),
+      'suggestedDocumentType': serializer.toJson<String?>(
+        suggestedDocumentType,
+      ),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -2350,6 +2431,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     String? state,
     String? analysisStatus,
     String? explanationStyle,
+    Value<String?> suggestedOrganizationName = const Value.absent(),
+    Value<String?> suggestedDocumentType = const Value.absent(),
     DateTime? createdAt,
   }) => Analyse(
     id: id ?? this.id,
@@ -2361,6 +2444,12 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     state: state ?? this.state,
     analysisStatus: analysisStatus ?? this.analysisStatus,
     explanationStyle: explanationStyle ?? this.explanationStyle,
+    suggestedOrganizationName: suggestedOrganizationName.present
+        ? suggestedOrganizationName.value
+        : this.suggestedOrganizationName,
+    suggestedDocumentType: suggestedDocumentType.present
+        ? suggestedDocumentType.value
+        : this.suggestedDocumentType,
     createdAt: createdAt ?? this.createdAt,
   );
   Analyse copyWithCompanion(AnalysesCompanion data) {
@@ -2386,6 +2475,12 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       explanationStyle: data.explanationStyle.present
           ? data.explanationStyle.value
           : this.explanationStyle,
+      suggestedOrganizationName: data.suggestedOrganizationName.present
+          ? data.suggestedOrganizationName.value
+          : this.suggestedOrganizationName,
+      suggestedDocumentType: data.suggestedDocumentType.present
+          ? data.suggestedDocumentType.value
+          : this.suggestedDocumentType,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -2402,6 +2497,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           ..write('state: $state, ')
           ..write('analysisStatus: $analysisStatus, ')
           ..write('explanationStyle: $explanationStyle, ')
+          ..write('suggestedOrganizationName: $suggestedOrganizationName, ')
+          ..write('suggestedDocumentType: $suggestedDocumentType, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -2418,6 +2515,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     state,
     analysisStatus,
     explanationStyle,
+    suggestedOrganizationName,
+    suggestedDocumentType,
     createdAt,
   );
   @override
@@ -2433,6 +2532,8 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           other.state == this.state &&
           other.analysisStatus == this.analysisStatus &&
           other.explanationStyle == this.explanationStyle &&
+          other.suggestedOrganizationName == this.suggestedOrganizationName &&
+          other.suggestedDocumentType == this.suggestedDocumentType &&
           other.createdAt == this.createdAt);
 }
 
@@ -2446,6 +2547,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
   final Value<String> state;
   final Value<String> analysisStatus;
   final Value<String> explanationStyle;
+  final Value<String?> suggestedOrganizationName;
+  final Value<String?> suggestedDocumentType;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const AnalysesCompanion({
@@ -2458,6 +2561,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     this.state = const Value.absent(),
     this.analysisStatus = const Value.absent(),
     this.explanationStyle = const Value.absent(),
+    this.suggestedOrganizationName = const Value.absent(),
+    this.suggestedDocumentType = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2471,6 +2576,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     required String state,
     this.analysisStatus = const Value.absent(),
     this.explanationStyle = const Value.absent(),
+    this.suggestedOrganizationName = const Value.absent(),
+    this.suggestedDocumentType = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -2489,6 +2596,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     Expression<String>? state,
     Expression<String>? analysisStatus,
     Expression<String>? explanationStyle,
+    Expression<String>? suggestedOrganizationName,
+    Expression<String>? suggestedDocumentType,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -2502,6 +2611,10 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
       if (state != null) 'state': state,
       if (analysisStatus != null) 'analysis_status': analysisStatus,
       if (explanationStyle != null) 'explanation_style': explanationStyle,
+      if (suggestedOrganizationName != null)
+        'suggested_organization_name': suggestedOrganizationName,
+      if (suggestedDocumentType != null)
+        'suggested_document_type': suggestedDocumentType,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2517,6 +2630,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     Value<String>? state,
     Value<String>? analysisStatus,
     Value<String>? explanationStyle,
+    Value<String?>? suggestedOrganizationName,
+    Value<String?>? suggestedDocumentType,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -2530,6 +2645,10 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
       state: state ?? this.state,
       analysisStatus: analysisStatus ?? this.analysisStatus,
       explanationStyle: explanationStyle ?? this.explanationStyle,
+      suggestedOrganizationName:
+          suggestedOrganizationName ?? this.suggestedOrganizationName,
+      suggestedDocumentType:
+          suggestedDocumentType ?? this.suggestedDocumentType,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -2565,6 +2684,16 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     if (explanationStyle.present) {
       map['explanation_style'] = Variable<String>(explanationStyle.value);
     }
+    if (suggestedOrganizationName.present) {
+      map['suggested_organization_name'] = Variable<String>(
+        suggestedOrganizationName.value,
+      );
+    }
+    if (suggestedDocumentType.present) {
+      map['suggested_document_type'] = Variable<String>(
+        suggestedDocumentType.value,
+      );
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2586,6 +2715,8 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
           ..write('state: $state, ')
           ..write('analysisStatus: $analysisStatus, ')
           ..write('explanationStyle: $explanationStyle, ')
+          ..write('suggestedOrganizationName: $suggestedOrganizationName, ')
+          ..write('suggestedDocumentType: $suggestedDocumentType, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -8754,6 +8885,8 @@ typedef $$AnalysesTableCreateCompanionBuilder = AnalysesCompanion Function({
   required String state,
   Value<String> analysisStatus,
   Value<String> explanationStyle,
+  Value<String?> suggestedOrganizationName,
+  Value<String?> suggestedDocumentType,
   required DateTime createdAt,
   Value<int> rowid,
 });
@@ -8767,6 +8900,8 @@ typedef $$AnalysesTableUpdateCompanionBuilder = AnalysesCompanion Function({
   Value<String> state,
   Value<String> analysisStatus,
   Value<String> explanationStyle,
+  Value<String?> suggestedOrganizationName,
+  Value<String?> suggestedDocumentType,
   Value<DateTime> createdAt,
   Value<int> rowid,
 });
@@ -8886,6 +9021,16 @@ class $$AnalysesTableFilterComposer
 
   ColumnFilters<String> get explanationStyle => $composableBuilder(
     column: $table.explanationStyle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get suggestedOrganizationName => $composableBuilder(
+    column: $table.suggestedOrganizationName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get suggestedDocumentType => $composableBuilder(
+    column: $table.suggestedDocumentType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9018,6 +9163,16 @@ class $$AnalysesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get suggestedOrganizationName => $composableBuilder(
+    column: $table.suggestedOrganizationName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get suggestedDocumentType => $composableBuilder(
+    column: $table.suggestedDocumentType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -9087,6 +9242,16 @@ class $$AnalysesTableAnnotationComposer
 
   GeneratedColumn<String> get explanationStyle => $composableBuilder(
     column: $table.explanationStyle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get suggestedOrganizationName => $composableBuilder(
+    column: $table.suggestedOrganizationName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get suggestedDocumentType => $composableBuilder(
+    column: $table.suggestedDocumentType,
     builder: (column) => column,
   );
 
@@ -9209,6 +9374,8 @@ class $$AnalysesTableTableManager
                 Value<String> state = const Value.absent(),
                 Value<String> analysisStatus = const Value.absent(),
                 Value<String> explanationStyle = const Value.absent(),
+                Value<String?> suggestedOrganizationName = const Value.absent(),
+                Value<String?> suggestedDocumentType = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AnalysesCompanion(
@@ -9221,6 +9388,8 @@ class $$AnalysesTableTableManager
                 state: state,
                 analysisStatus: analysisStatus,
                 explanationStyle: explanationStyle,
+                suggestedOrganizationName: suggestedOrganizationName,
+                suggestedDocumentType: suggestedDocumentType,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -9235,6 +9404,8 @@ class $$AnalysesTableTableManager
                 required String state,
                 Value<String> analysisStatus = const Value.absent(),
                 Value<String> explanationStyle = const Value.absent(),
+                Value<String?> suggestedOrganizationName = const Value.absent(),
+                Value<String?> suggestedDocumentType = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => AnalysesCompanion.insert(
@@ -9247,6 +9418,8 @@ class $$AnalysesTableTableManager
                 state: state,
                 analysisStatus: analysisStatus,
                 explanationStyle: explanationStyle,
+                suggestedOrganizationName: suggestedOrganizationName,
+                suggestedDocumentType: suggestedDocumentType,
                 createdAt: createdAt,
                 rowid: rowid,
               ),

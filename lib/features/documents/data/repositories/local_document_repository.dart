@@ -17,6 +17,66 @@ class LocalDocumentRepository implements DocumentRepository {
   }
 
   @override
+  Stream<List<LocalDocument>> watchAll() {
+    final query = _database.select(_database.documents)
+      ..where((row) => row.status.isNotIn(['deleted']))
+      ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)]);
+    return query.watch().map((rows) => rows.map(_toEntity).toList());
+  }
+
+  @override
+  Future<LocalDocument?> getById(String clientDocumentId) async {
+    final row =
+        await (_database.select(_database.documents)
+              ..where((item) => item.clientDocumentId.equals(clientDocumentId)))
+            .getSingleOrNull();
+    return row == null ? null : _toEntity(row);
+  }
+
+  @override
+  Future<List<DocumentFile>> getFiles(String clientDocumentId) async {
+    final rows =
+        await (_database.select(_database.documentFiles)
+              ..where((row) => row.clientDocumentId.equals(clientDocumentId))
+              ..orderBy([(row) => OrderingTerm.asc(row.pageOrder)]))
+            .get();
+    return rows
+        .map(
+          (row) => DocumentFile(
+            id: row.id,
+            clientDocumentId: row.clientDocumentId,
+            localUri: Uri.parse(row.localUri),
+            mediaType: row.mediaType,
+            originalFilename: row.originalFilename,
+            byteSize: row.byteSize,
+            importedAt: row.importedAt,
+            pageOrder: row.pageOrder,
+            importSource: DocumentFileSource.values.byName(row.importSource),
+          ),
+        )
+        .toList();
+  }
+
+  @override
+  Future<void> updateClassification(
+    String clientDocumentId, {
+    String? organizationId,
+    String? caseId,
+    required ClassificationState state,
+  }) async {
+    await (_database.update(
+      _database.documents,
+    )..where((row) => row.clientDocumentId.equals(clientDocumentId))).write(
+      DocumentsCompanion(
+        organizationId: Value(organizationId),
+        caseId: Value(caseId),
+        classificationState: Value(state.name),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  @override
   Future<void> saveImportedDocument(
     LocalDocument document,
     DocumentFile file,

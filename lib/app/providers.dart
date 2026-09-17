@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/database/app_database.dart';
+import '../core/database/app_database.dart'
+    hide Case, DocumentFile, Organization;
 import '../core/config/doxary_api_config.dart';
 import '../core/network/doxary_api_client.dart';
 import '../core/notifications/reminder_scheduler.dart';
@@ -90,6 +91,23 @@ final entitlementServiceProvider = Provider<EntitlementService>(
 );
 final recentDocumentsProvider = StreamProvider<List<LocalDocument>>(
   (ref) => ref.watch(documentRepositoryProvider).watchRecent(),
+);
+final allDocumentsProvider = StreamProvider<List<LocalDocument>>(
+  (ref) => ref.watch(documentRepositoryProvider).watchAll(),
+);
+final documentProvider = FutureProvider.family<LocalDocument?, String>(
+  (ref, clientDocumentId) =>
+      ref.watch(documentRepositoryProvider).getById(clientDocumentId),
+);
+final documentFilesProvider = FutureProvider.family<List<DocumentFile>, String>(
+  (ref, clientDocumentId) =>
+      ref.watch(documentRepositoryProvider).getFiles(clientDocumentId),
+);
+final organizationsProvider = StreamProvider<List<Organization>>(
+  (ref) => ref.watch(organizationRepositoryProvider).watchAll(),
+);
+final casesProvider = StreamProvider<List<Case>>(
+  (ref) => ref.watch(caseRepositoryProvider).watchAll(),
 );
 final openTasksProvider = StreamProvider<List<LocalTask>>(
   (ref) => ref.watch(taskRepositoryProvider).watchOpen(),
