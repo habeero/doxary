@@ -20,6 +20,8 @@ Home is a recent/actionable overview, while Documents is the complete local libr
 
 The end-to-end analysis and document-organization foundation works, but the current presentation is not yet product-ready. The next product step is design-first UX architecture and screen design; implementation follows approved coherent designs rather than continued incremental widget changes.
 
+The approved UX sequence treats Processing as a staged, truthful progress experience; Analyze as a single immutable logical submission; and Result as a hierarchy of returned facts rather than a schema checklist. Leaving Processing preserves the running local Document, and completion routes to Result when the screen is active. No notification promise is made until notification behavior is implemented and tested.
+
 ## Product principles
 
 - Be practical: surface the next action in seconds.

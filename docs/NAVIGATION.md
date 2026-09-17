@@ -19,6 +19,18 @@ The result starts with sender suggestion, document type, plain explanation, acti
 
 The import review places a compact analysis-language selector beside the Analyze action. It controls generated explanation language (Arabic or Einfaches Deutsch) independently from the app interface language and persists locally.
 
+### Processing UX
+
+Processing is a user-facing staged timeline, not a raw technical log. A stage has an active and completed label (for example, Arabic `جاري رفع المستند` -> `تم رفع المستند`, then `جاري تحليل المستند` -> `تم تحليل المستند`); wireframes may show both as notation, while production shows only the label matching the current state. The client never invents percentage progress or backend sub-stages that cannot be derived from a real client/server state. Leaving this screen does not cancel analysis: the Document remains visible in Documents as processing. If completion arrives while Processing is open, navigation proceeds to Result. A completion notification is a launch requirement only when notification behavior is explicitly implemented and tested.
+
+### Import submission UX
+
+Analyze captures an immutable submission snapshot. Selected-file presentation is cleared or locked immediately when submission begins, and repeated taps cannot create duplicate logical analyses. The snapshot and existing idempotency lifecycle remain local integration concerns; this does not change the API contract.
+
+### Result UX
+
+Important facts are rendered from returned meaningful values only. The schema may support a broad fact catalog, but the UI does not create empty rows such as “amount: unknown” or “deadline: uncertain”. Organization and Case/Vorgang (`المعاملة`) are organizational metadata and may explicitly show an unassigned state; meaningful uncertainty appears as review guidance, not artificial fact values. The hierarchy is title -> summary -> required action -> relevant facts -> classification -> expandable details -> original document.
+
 Documents uses real local routes: `/documents/organization/:organizationId`, `/documents/organization/:organizationId/case/:caseId`, and `/documents/:clientDocumentId`. An organization view lists its cases and documents directly associated with it; a case view lists its documents. Unclassified documents remain directly available. The detail route presents title and confirmed/suggested classification before original local metadata and analysis. Suggestions are confirmed or changed explicitly; they never classify automatically. Original opening remains deferred because a maintained permission-aware PDF/image adapter is not yet justified.
 
 ## Phase 2.6.3 screen-design brief

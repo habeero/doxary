@@ -10,6 +10,8 @@ Components include cards for document/action summary, status chips, date/deadlin
 
 Before substantial screen implementation, each approved screen design must define its primary goal, information hierarchy, primary and secondary actions, navigation entry and exit, loading/empty/error states, offline or local-only behavior, partial-analysis behavior where relevant, German and Arabic RTL layouts, and accessibility semantics, focus order, contrast, dynamic type, and touch targets. Wireframes are the implementation source of truth; incremental widget changes must not substitute for an approved flow.
 
+Processing progress uses semantic staged labels with active/completed states, never invented percentages or raw transport logs. Import controls use an immutable Analyze snapshot and become disabled or cleared at submission. Result components are data-driven: absent or meaningless facts are omitted, while explicit organizational unassigned states and useful uncertainty guidance remain visible. Completion, failure, and offline states must be communicated without implying work that the client or server did not actually perform.
+
 ## Phase 1 implementation
 
 The foundation provides a directional spacing scale, Material 3 light/dark semantic color schemes, accessible minimum-height primary actions, reusable section cards, status chips, empty states, and error states. User-visible UI strings are resolved through `AppLocalizations` for German and Arabic; widgets use directional Material layouts and do not contain hardcoded German/Arabic strings. Typography remains system-provided until a future font decision that supports both scripts is made.
