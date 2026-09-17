@@ -18,6 +18,12 @@ Phase 2.6 also includes independent UI-locale and analysis-explanation-language 
 
 Backend staging is verified through the current Phase 2.7a scope; Flutter-to-staging end-to-end validation remains pending.
 
+The backend/analysis pipeline and local document-organization foundation work end-to-end, but their UI/UX is not product-ready. Before substantial new product features, **Phase 2.6.3 — UX Architecture & Screen Design** is a design-first phase: approve coherent information architecture and wireframes before screen implementation resumes.
+
+Near-term sequence: **Phase 2.6.3 UX architecture + wireframes** -> **fix duplicate-analysis submission defect** -> **implement approved Import/Processing UX** -> **implement approved Documents/Organization/Case UX** -> **implement approved Document Detail/Result UX** -> **analysis-performance instrumentation** -> **measured latency optimization** -> **structured real-device testing** -> **Phase 2.9 beta/release hardening** -> **Phase 3 document-scoped assistant/questions/reply drafting** -> **mandatory independent cross-repository pre-release audit** -> **remediation + full regression** -> **release candidate** -> **final release**.
+
+Analysis succeeds, but latency is not yet understood. Instrumentation must produce a timing breakdown before optimization is selected. The known duplicate-analysis UX defect is that selected transient import files remain selectable after analysis starts; the approved Import/Processing UX must clear or lock them so an accidental second submission cannot occur.
+
 - **Phase 2.6 â€” Flutter integration:** typed API client, multipart submission, idempotency, bounded operation polling, backend-result mapping, local Drift persistence, and opt-in local end-to-end validation. Staging deployment begins only after the local flow upload -> operation -> poll -> local result -> UI is proven.
 - **Phase 2.7 â€” Staging deployment (deferred):** production-like PostgreSQL, web/API and worker processes, HTTPS, runtime secrets, shared temporary storage strategy, migrations, logging/health/readiness, rollback, and deployment documentation.
 - **Phase 2.8 â€” Real-device and beta testing (deferred):** 2.8a developer/self testing on a real phone against staging; 2.8b 2-3 informed trusted testers using real documents with quality/cost/latency/failure evidence; 2.8c broader closed beta when stable.

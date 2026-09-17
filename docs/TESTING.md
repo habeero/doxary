@@ -19,3 +19,7 @@ Picker tests should exercise the import port with fakes; the production adapter 
 Result presentation tests cover local latest-analysis reads, complete/partial/unavailable statuses, Arabic and German/simple explanation metadata, absent optional sections, and document navigation to the persisted result without a remote request.
 
 Documents-library tests cover an unbounded non-deleted list, bounded Home recents, readable non-ID titles, unclassified visibility, confirmed Organization -> Case navigation, non-promoting persisted AI suggestions, conservative Organization/Case reuse, organization-only classification, original-file metadata, and Arabic RTL labels. Schema v4 migration coverage verifies persisted classification metadata. The original-file viewer remains deferred until an approved adapter exists.
+
+## Phase 2.6.3 design validation
+
+Approved designs require screen-level acceptance criteria before implementation: explicit entry/exit navigation, primary and secondary actions, loading, empty, error, offline/local-only, and partial-analysis states; German and Arabic RTL rendering; and accessibility semantics, focus, dynamic text, and touch targets. Import/Processing regression coverage must prove that transient selected files are cleared or locked after submission, preventing a second accidental analysis. Performance work must first test and record timing instrumentation; latency optimizations require measured before/after evidence.

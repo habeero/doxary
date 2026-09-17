@@ -18,6 +18,8 @@ The app interface language and the language used for generated analysis explanat
 
 Home is a recent/actionable overview, while Documents is the complete local library organized as Organization → Case → Document. Unclassified documents remain visible without fabricated “Unknown” records, and the original DocumentFile remains distinct from its analysis result.
 
+The end-to-end analysis and document-organization foundation works, but the current presentation is not yet product-ready. The next product step is design-first UX architecture and screen design; implementation follows approved coherent designs rather than continued incremental widget changes.
+
 ## Product principles
 
 - Be practical: surface the next action in seconds.
@@ -27,6 +29,8 @@ Home is a recent/actionable overview, while Documents is the complete local libr
 - Preserve agency: automated classification and task suggestions are editable.
 
 ## Terminology
+
+For Arabic product UI, Organization is **الجهة** or **المؤسسة** as context requires; Case (Vorgang) is consistently **المعاملة**; Document is **المستند**; and the original DocumentFile is **المستند الأصلي** or **الملف الأصلي** as context requires. Case must not be labeled **الملف**.
 
 **Organization** is a sender/recipient body (for example, Jobcenter). **Case (Vorgang)** is a continuing matter with an organization. **Document** is the logical correspondence item; **DocumentFile** is an imported image or PDF. **Analysis** is structured, versioned interpretation. A **task**, **deadline**, **appointment**, **amount**, and **required document** are actionable facts associated with a document and normally visible within its case. A **conversation** is document/case-scoped assistant context.
 
