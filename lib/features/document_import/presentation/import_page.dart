@@ -8,6 +8,7 @@ import '../../../core/errors/app_error.dart';
 import '../../../core/logging/debug_log.dart';
 import '../../../shared/design_system/app_widgets.dart';
 import '../../document_analysis/domain/analysis_submission.dart';
+import '../../document_analysis/domain/analysis_output_language.dart';
 import '../../document_analysis/presentation/analysis_result_page.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../domain/document_import.dart';
@@ -72,17 +73,13 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         return;
       }
       final submission = _submission ??= await _createSubmission(selection);
-      final arabic = ref.read(languageProvider)?.languageCode == 'ar';
+      final analysisLanguage = ref.read(analysisLanguageProvider);
       final accepted = await ref
           .read(analysisWorkflowProvider)
           .submit(
             submission.copyWith(
-              language: arabic
-                  ? ExplanationLanguage.arabic
-                  : ExplanationLanguage.german,
-              style: arabic
-                  ? ExplanationStyle.standard
-                  : ExplanationStyle.simple,
+              language: analysisLanguage.explanationLanguage,
+              style: analysisLanguage.explanationStyle,
               idempotencyKey: _idempotencyKey ??= ref
                   .read(idGeneratorProvider)
                   .newId(),
@@ -182,6 +179,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final analysisLanguage = ref.watch(analysisLanguageProvider);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.importDocument)),
@@ -197,10 +195,40 @@ class _ImportPageState extends ConsumerState<ImportPage> {
               if (_selection != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 AppSectionCard(
-                  child: ListTile(
-                    leading: const Icon(Icons.description_outlined),
-                    title: Text(l10n.selectedDocument),
-                    subtitle: Text('${_selection!.files.length} file(s)'),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.description_outlined),
+                        title: Text(l10n.selectedDocument),
+                        subtitle: Text('${_selection!.files.length} file(s)'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.translate_outlined),
+                        title: Text(l10n.analysisLanguageLabel),
+                        trailing: DropdownButton<AnalysisOutputLanguage>(
+                          value: analysisLanguage,
+                          onChanged: _busy
+                              ? null
+                              : (value) {
+                                  if (value != null) {
+                                    ref
+                                        .read(analysisLanguageProvider.notifier)
+                                        .setLanguage(value);
+                                  }
+                                },
+                          items: [
+                            DropdownMenuItem(
+                              value: AnalysisOutputLanguage.arabic,
+                              child: Text(l10n.analysisLanguageArabic),
+                            ),
+                            DropdownMenuItem(
+                              value: AnalysisOutputLanguage.simpleGerman,
+                              child: Text(l10n.analysisLanguageSimpleGerman),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),

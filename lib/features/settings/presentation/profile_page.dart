@@ -11,9 +11,7 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final current =
-        ref.watch(languageProvider)?.languageCode ??
-        Localizations.localeOf(context).languageCode;
+    final current = ref.watch(languageProvider).languageCode;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.profile)),

@@ -143,6 +143,30 @@ void main() {
     expect(transport.body, contains('name="output_language"\r\n\r\nde'));
     expect(transport.body, contains('name="output_style"\r\n\r\nsimple'));
     expect(_allIndexes(transport.body), ['0', '1']);
+
+    final arabicTransport = _RecordingClient(
+      _jsonResponse({
+        'operation_id': 'op-arabic',
+        'status': 'accepted',
+        'request_id': 'request-arabic',
+      }, 202),
+    );
+    final arabicSource = DoxaryDocumentAnalysisRemoteDataSource(
+      DoxaryApiClient(
+        DoxaryApiConfig(baseUri: Uri.parse('http://example.test/api/v1/')),
+        client: arabicTransport,
+      ),
+    );
+    await arabicSource.submit(
+      AnalysisSubmission(
+        clientDocumentId: 'document-1',
+        language: ExplanationLanguage.arabic,
+        style: ExplanationStyle.standard,
+        idempotencyKey: 'idempotency-arabic',
+        files: [_file('file-1', first, 'image/jpeg', 0)],
+      ),
+    );
+    expect(arabicTransport.body, contains('name="output_language"\r\n\r\nar'));
   });
 
   test('polling persists a new completed analysis version without changing document identity', () async {

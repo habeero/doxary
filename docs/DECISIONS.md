@@ -61,3 +61,7 @@ Each entry is an ADR-style confirmed decision. Open product/commercial choices r
 ## D-015 Local persisted-result read path
 
 **Decision:** A document result route reads the latest typed `DocumentAnalysis` through `AnalysisRepository` and Drift. It does not re-submit or poll solely to display an existing result. Optional sections are omitted, while `complete`, `partial`, and `unavailable` remain explicit product outcomes. Classification suggestions and evidence remain non-confirming metadata.
+
+## D-016 Independent interface and analysis-explanation languages
+
+**Context:** Users may prefer Arabic or German interface labels independently from the language used to explain a document. **Decision:** Persist UI locale and analysis-output language as separate local settings. The MVP supports Arabic and Einfaches Deutsch explanations; the default follows the effective UI locale on first use, while an explicit analysis-language choice remains independent. **Rationale:** changing labels must not silently rewrite a user's analysis preference, and cold-start locale detection must work before persisted settings are available. **Consequences:** the import review exposes a compact selector near Analyze and submits the selected language/style as `output_language` and `output_style`; both preferences remain local-first. **Alternative:** deriving output language on every build from UI locale was rejected because it overwrites explicit user intent.

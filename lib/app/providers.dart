@@ -14,6 +14,7 @@ import '../features/document_analysis/application/analysis_workflow.dart';
 import '../features/document_analysis/data/doxary_document_analysis_remote_data_source.dart';
 import '../features/document_analysis/data/local_analysis_repository.dart';
 import '../features/document_analysis/domain/analysis_repository.dart';
+import '../features/document_analysis/domain/analysis_output_language.dart';
 import '../features/document_analysis/domain/analysis_submission.dart';
 import '../features/documents/data/repositories/local_document_repository.dart';
 import '../features/documents/domain/entities/domain_entities.dart';
@@ -45,6 +46,9 @@ final apiClientProvider = Provider<DoxaryApiClient>((ref) {
   ref.onDispose(client.close);
   return client;
 });
+final deviceLocaleProvider = Provider<Locale>(
+  (ref) => WidgetsBinding.instance.platformDispatcher.locale,
+);
 final analysisRemoteDataSourceProvider =
     Provider<DocumentAnalysisRemoteDataSource>(
       (ref) =>
@@ -94,30 +98,79 @@ final completedTasksProvider = StreamProvider<List<LocalTask>>(
   (ref) => ref.watch(taskRepositoryProvider).watchCompleted(),
 );
 
-class LanguageController extends Notifier<Locale?> {
+Locale defaultUiLocaleForDevice(Locale deviceLocale) =>
+    deviceLocale.languageCode == 'ar' ? const Locale('ar') : const Locale('de');
+
+class LanguageController extends Notifier<Locale> {
+  bool _explicitlySelected = false;
+
   @override
-  Locale? build() {
+  Locale build() {
+    final deviceLocale = ref.watch(deviceLocaleProvider);
     _restore();
-    return null;
+    return defaultUiLocaleForDevice(deviceLocale);
   }
 
   Future<void> _restore() async {
     final code = await ref.read(settingsRepositoryProvider).read('ui_language');
-    if (code == 'de' || code == 'ar') {
+    if ((code == 'de' || code == 'ar') && !_explicitlySelected) {
       state = Locale(code!);
     }
   }
 
-  Future<void> setLocale(Locale? locale) async {
+  Future<void> setLocale(Locale locale) async {
+    _explicitlySelected = true;
     state = locale;
-    if (locale != null) {
-      await ref
-          .read(settingsRepositoryProvider)
-          .write('ui_language', locale.languageCode);
-    }
+    await ref
+        .read(settingsRepositoryProvider)
+        .write('ui_language', locale.languageCode);
   }
 }
 
-final languageProvider = NotifierProvider<LanguageController, Locale?>(
+final languageProvider = NotifierProvider<LanguageController, Locale>(
   LanguageController.new,
 );
+
+class AnalysisLanguageController extends Notifier<AnalysisOutputLanguage> {
+  bool _explicitlySelected = false;
+  bool _hasPersistedSelection = false;
+
+  @override
+  AnalysisOutputLanguage build() {
+    final uiLocale = ref.read(languageProvider);
+    ref.listen<Locale>(languageProvider, (_, next) {
+      if (!_explicitlySelected && !_hasPersistedSelection) {
+        state = next.languageCode == 'ar'
+            ? AnalysisOutputLanguage.arabic
+            : AnalysisOutputLanguage.simpleGerman;
+      }
+    });
+    _restore();
+    return uiLocale.languageCode == 'ar'
+        ? AnalysisOutputLanguage.arabic
+        : AnalysisOutputLanguage.simpleGerman;
+  }
+
+  Future<void> _restore() async {
+    final value = analysisOutputLanguageFromSetting(
+      await ref.read(settingsRepositoryProvider).read('analysis_language'),
+    );
+    if (value != null) {
+      _hasPersistedSelection = true;
+      if (!_explicitlySelected) state = value;
+    }
+  }
+
+  Future<void> setLanguage(AnalysisOutputLanguage language) async {
+    _explicitlySelected = true;
+    state = language;
+    await ref
+        .read(settingsRepositoryProvider)
+        .write('analysis_language', language.settingValue);
+  }
+}
+
+final analysisLanguageProvider =
+    NotifierProvider<AnalysisLanguageController, AnalysisOutputLanguage>(
+      AnalysisLanguageController.new,
+    );

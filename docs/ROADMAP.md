@@ -10,6 +10,8 @@
 
 Phases are outcome-oriented, have no promised dates, and require revisiting privacy, quality, and scope before advancing.
 
+Phase 2.6 also includes independent UI-locale and analysis-explanation-language selection, with both preferences persisted locally.
+
 ## Phase 2 delivery sequence
 
 Backend staging is verified through the current Phase 2.7a scope; Flutter-to-staging end-to-end validation remains pending.

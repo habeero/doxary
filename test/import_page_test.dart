@@ -6,6 +6,7 @@ import 'package:doxary/core/errors/app_error.dart';
 import 'package:doxary/core/errors/result.dart';
 import 'package:doxary/core/utils/id_generator.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
+import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
 import 'package:doxary/features/document_import/domain/document_import.dart';
 import 'package:doxary/features/document_import/presentation/import_page.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('Arabic device locale defaults the next submission to Arabic', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final remote = _FailedOperationRemote();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          deviceLocaleProvider.overrideWithValue(const Locale('ar')),
+          idGeneratorProvider.overrideWithValue(_SequenceIdGenerator()),
+          importGatewayProvider.overrideWithValue(_SelectionGateway()),
+          analysisRemoteDataSourceProvider.overrideWithValue(remote),
+        ],
+        child: _app(const Locale('ar')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.image_outlined));
+    await tester.pump();
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(remote.submissions.single.language, ExplanationLanguage.arabic);
+  });
+
   testWidgets(
     'terminal operation failure replaces loading state with a localized retry-safe message',
     (tester) async {
@@ -26,6 +57,7 @@ void main() {
         ProviderScope(
           overrides: [
             databaseProvider.overrideWithValue(database),
+            deviceLocaleProvider.overrideWithValue(const Locale('de')),
             idGeneratorProvider.overrideWithValue(_SequenceIdGenerator()),
             importGatewayProvider.overrideWithValue(_SelectionGateway()),
             analysisRemoteDataSourceProvider.overrideWithValue(remote),
@@ -51,6 +83,7 @@ void main() {
       );
       expect(remote.submitCalls, 1);
       expect(remote.getCalls, 1);
+      expect(remote.submissions.single.language, ExplanationLanguage.german);
 
       final firstSubmission = remote.submissions.single;
       await tester.tap(find.text('Analyse starten'));
@@ -85,8 +118,8 @@ void main() {
   );
 }
 
-Widget _app() => MaterialApp(
-  locale: const Locale('de'),
+Widget _app([Locale locale = const Locale('de')]) => MaterialApp(
+  locale: locale,
   supportedLocales: AppLocalizations.supportedLocales,
   localizationsDelegates: const [
     AppLocalizations.delegate,

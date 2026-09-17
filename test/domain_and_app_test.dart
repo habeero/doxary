@@ -13,11 +13,124 @@ import 'package:doxary/features/documents/domain/repositories/document_repositor
 import 'package:doxary/features/documents/presentation/documents_page.dart';
 import 'package:doxary/features/document_import/domain/document_import.dart';
 import 'package:doxary/core/errors/result.dart';
+import 'package:doxary/features/document_analysis/domain/analysis_output_language.dart';
 import 'package:doxary/features/home/presentation/home_page.dart';
 import 'package:doxary/features/tasks/application/task_timeframes.dart';
 import 'package:doxary/features/tasks/domain/repositories/task_repository.dart';
+import 'package:doxary/features/settings/domain/settings_repository.dart';
 
 void main() {
+  test('Arabic device locale bootstraps Arabic UI and analysis language', () {
+    final settings = _MemorySettings();
+    final container = ProviderContainer(
+      overrides: [
+        deviceLocaleProvider.overrideWithValue(const Locale('ar')),
+        settingsRepositoryProvider.overrideWithValue(settings),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(container.read(languageProvider), const Locale('ar'));
+    expect(
+      container.read(analysisLanguageProvider),
+      AnalysisOutputLanguage.arabic,
+    );
+  });
+
+  test(
+    'non-Arabic device locale bootstraps German UI and analysis language',
+    () {
+      final container = ProviderContainer(
+        overrides: [
+          deviceLocaleProvider.overrideWithValue(const Locale('en', 'GB')),
+          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(languageProvider), const Locale('de'));
+      expect(
+        container.read(analysisLanguageProvider),
+        AnalysisOutputLanguage.simpleGerman,
+      );
+    },
+  );
+
+  test('explicit persisted UI language overrides device locale', () async {
+    final settings = _MemorySettings({'ui_language': 'ar'});
+    final container = ProviderContainer(
+      overrides: [
+        deviceLocaleProvider.overrideWithValue(const Locale('de')),
+        settingsRepositoryProvider.overrideWithValue(settings),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    container.read(languageProvider);
+    await Future<void>.delayed(Duration.zero);
+    expect(container.read(languageProvider), const Locale('ar'));
+  });
+
+  test(
+    'analysis language defaults from a persisted UI locale when not selected',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          deviceLocaleProvider.overrideWithValue(const Locale('de')),
+          settingsRepositoryProvider.overrideWithValue(
+            _MemorySettings({'ui_language': 'ar'}),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(languageProvider);
+      container.read(analysisLanguageProvider);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(languageProvider), const Locale('ar'));
+      expect(
+        container.read(analysisLanguageProvider),
+        AnalysisOutputLanguage.arabic,
+      );
+    },
+  );
+
+  test('analysis language persists independently from UI language', () async {
+    final settings = _MemorySettings();
+    final first = ProviderContainer(
+      overrides: [
+        deviceLocaleProvider.overrideWithValue(const Locale('ar')),
+        settingsRepositoryProvider.overrideWithValue(settings),
+      ],
+    );
+    await first
+        .read(analysisLanguageProvider.notifier)
+        .setLanguage(AnalysisOutputLanguage.simpleGerman);
+    await first.read(languageProvider.notifier).setLocale(const Locale('ar'));
+    expect(
+      first.read(analysisLanguageProvider),
+      AnalysisOutputLanguage.simpleGerman,
+    );
+    first.dispose();
+
+    final restarted = ProviderContainer(
+      overrides: [
+        deviceLocaleProvider.overrideWithValue(const Locale('ar')),
+        settingsRepositoryProvider.overrideWithValue(settings),
+      ],
+    );
+    addTearDown(restarted.dispose);
+    restarted.read(languageProvider);
+    restarted.read(analysisLanguageProvider);
+    await Future<void>.delayed(Duration.zero);
+    expect(restarted.read(languageProvider), const Locale('ar'));
+    expect(
+      restarted.read(analysisLanguageProvider),
+      AnalysisOutputLanguage.simpleGerman,
+    );
+  });
+
   test('an imported document is valid before classification', () {
     final document = LocalDocument(
       clientDocumentId: 'client-1',
@@ -156,4 +269,15 @@ class _EmptyTasks implements TaskRepository {
   Stream<List<LocalTask>> watchCompleted() => Stream.value([]);
   @override
   Stream<List<LocalTask>> watchOpen() => Stream.value([]);
+}
+
+class _MemorySettings implements SettingsRepository {
+  _MemorySettings([Map<String, String>? initial]) : _values = {...?initial};
+  final Map<String, String> _values;
+
+  @override
+  Future<String?> read(String key) async => _values[key];
+
+  @override
+  Future<void> write(String key, String value) async => _values[key] = value;
 }

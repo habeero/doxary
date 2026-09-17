@@ -12,7 +12,7 @@ Foundation tests verify that an imported document can remain unclassified, Drift
 
 ## Phase 2.6 coverage
 
-Unit tests use an injected HTTP transport and never call the backend or OpenAI. They verify multipart field names, repeated ordered image page indexes, output language/style, idempotency headers, accepted parsing, expired-result handling, DTO-to-domain mapping, and completion persistence into a new local analysis version without changing a confirmed document relationship. Polling tests use an injected delay and deterministic fake responses. The opt-in local E2E procedure remains separate from normal tests.
+Unit tests use an injected HTTP transport and never call the backend or OpenAI. They verify multipart field names, repeated ordered image page indexes, output language/style, idempotency headers, accepted parsing, expired-result handling, DTO-to-domain mapping, and completion persistence into a new local analysis version without changing a confirmed document relationship. Polling tests use an injected delay and deterministic fake responses. Locale tests cover Arabic device-locale bootstrap, explicit persisted UI overrides, and an independently persisted analysis-language choice. The opt-in local E2E procedure remains separate from normal tests.
 
 Picker tests should exercise the import port with fakes; the production adapter uses the native document provider and is not exercised through brittle system-picker UI tests. PDF selection produces one logical DocumentFile, while multi-image selection produces ordered pages in one logical Document. Cancellation is a neutral outcome; picker failures are typed recoverable errors.
 

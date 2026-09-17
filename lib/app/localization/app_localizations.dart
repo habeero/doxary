@@ -42,6 +42,10 @@ class AppLocalizations {
   String get operationRetryableError => _value('operationRetryableError');
   String get operationFailedError => _value('operationFailedError');
   String get importError => _value('importError');
+  String get analysisLanguageLabel => _value('analysisLanguageLabel');
+  String get analysisLanguageArabic => _value('analysisLanguageArabic');
+  String get analysisLanguageSimpleGerman =>
+      _value('analysisLanguageSimpleGerman');
   String get analysisTitle => _value('analysisTitle');
   String get analysisReadError => _value('analysisReadError');
   String get noSavedAnalysis => _value('noSavedAnalysis');
@@ -82,8 +86,24 @@ class AppLocalizations {
   String _value(String key) =>
       (_strings[locale.languageCode] ?? _strings['de']!)[key] ??
       (_extraStrings[locale.languageCode] ?? _extraStrings['de']!)[key] ??
+      (_analysisLanguageStrings[locale.languageCode] ??
+          _analysisLanguageStrings['de']!)[key] ??
       key;
 }
+
+const _analysisLanguageStrings = <String, Map<String, String>>{
+  'de': {
+    'analysisLanguageLabel': 'Sprache der Erkl\u00e4rung',
+    'analysisLanguageArabic': 'Arabisch',
+    'analysisLanguageSimpleGerman': 'Einfaches Deutsch',
+  },
+  'ar': {
+    'analysisLanguageLabel':
+        '\u0644\u063a\u0629 \u0627\u0644\u0634\u0631\u062d',
+    'analysisLanguageArabic': '\u0627\u0644\u0639\u0631\u0628\u064a\u0629',
+    'analysisLanguageSimpleGerman': '\u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 \u0627\u0644\u0628\u0633\u064a\u0637\u0629',
+  },
+};
 
 const _extraStrings = <String, Map<String, String>>{
   'de': {

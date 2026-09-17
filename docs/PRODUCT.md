@@ -14,6 +14,8 @@ Doxary turns a document into an understandable, action-oriented case: sender, do
 
 Analysis is shown before optional chat. A user is never required to create an organization or case first: an imported document is valid while unclassified, and AI suggestions become confirmed only after user acceptance or correction.
 
+The app interface language and the language used for generated analysis explanations are independent preferences. The MVP offers Arabic and Einfaches Deutsch explanations through a compact selector near Analyze. The interface follows the device locale on first launch (Arabic for Arabic locales, German otherwise); explicit choices are persisted locally and are not silently overwritten by the other preference.
+
 ## Product principles
 
 - Be practical: surface the next action in seconds.
