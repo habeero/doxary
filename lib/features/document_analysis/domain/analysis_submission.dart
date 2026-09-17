@@ -26,6 +26,18 @@ class AnalysisSubmission {
   final ExplanationStyle style;
   final String idempotencyKey;
 
+  AnalysisSubmission copyWith({
+    ExplanationLanguage? language,
+    ExplanationStyle? style,
+    String? idempotencyKey,
+  }) => AnalysisSubmission(
+    clientDocumentId: clientDocumentId,
+    files: files,
+    language: language ?? this.language,
+    style: style ?? this.style,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+  );
+
   bool get isPdf =>
       files.length == 1 && files.single.mediaType == 'application/pdf';
 }
@@ -46,12 +58,14 @@ class BackendOperation {
     required this.requestId,
     this.result,
     this.failureCode,
+    this.failureRetryable,
   });
   final String operationId;
   final BackendOperationStatus status;
-  final String requestId;
+  final String? requestId;
   final DocumentAnalysis? result;
   final String? failureCode;
+  final bool? failureRetryable;
 }
 
 abstract interface class DocumentAnalysisRemoteDataSource {

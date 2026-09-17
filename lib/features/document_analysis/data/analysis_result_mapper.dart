@@ -1,3 +1,4 @@
+import '../../../core/logging/debug_log.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 
 /// Maps the versioned backend boundary into Flutter-only domain values.
@@ -15,11 +16,19 @@ DocumentAnalysis mapAnalysisResult(
     return value;
   }
 
-  final facts = _map(json['extracted_facts']);
+  final facts = _mapOrNull(json['extracted_facts']);
   final explanation = _mapOrNull(json['explanation']);
   final qualityIssues = _list(json['quality_issues'])
       .map(_map)
-      .map((issue) => _qualityReason(issue['reason']))
+      .toList(growable: false)
+      .asMap()
+      .entries
+      .map(
+        (entry) => _qualityReason(
+          entry.value['reason'],
+          'quality_issues[${entry.key}].reason',
+        ),
+      )
       .toList(growable: false);
   return DocumentAnalysis(
     id: id,
@@ -29,26 +38,46 @@ DocumentAnalysis mapAnalysisResult(
     createdAt: createdAt,
     summary: explanation['summary'] as String?,
     explanation: explanation['body'] as String?,
-    analysisStatus: AnalysisStatus.values.byName(
+    documentDate:
+        (_mapOrNull(facts['document_date']))['value'] as String? ??
+        (_mapOrNull(facts['document_date']))['source_text'] as String?,
+    analysisStatus: _enumByName(
+      AnalysisStatus.values,
       requiredString('analysis_status'),
+      'analysis_status',
     ),
-    explanationStyle: ExplanationStyle.values.byName(
+    explanationStyle: _enumByName(
+      ExplanationStyle.values,
       explanation['style'] as String? ?? 'standard',
+      'explanation.style',
     ),
     qualityReasons: qualityIssues,
     sourceReferences: _list(json['source_references'])
         .map(_sourceReference)
         .toList(growable: false),
     detectedLanguage: json['detected_language'] as String? ?? 'undetermined',
-    actionRequired: ActionRequirement.values.byName(
+    actionRequired: _enumByName(
+      ActionRequirement.values,
       json['action_required'] as String? ?? 'uncertain',
+      'action_required',
     ),
-    urgency: AnalysisUrgency.values.byName(
+    urgency: _enumByName(
+      AnalysisUrgency.values,
       json['urgency'] as String? ?? 'uncertain',
+      'urgency',
     ),
     practicalStates: _list(json['practical_states'])
         .whereType<String>()
-        .map((value) => PracticalState.values.byName(_camel(value)))
+        .toList(growable: false)
+        .asMap()
+        .entries
+        .map(
+          (entry) => _enumByName(
+            PracticalState.values,
+            _camel(entry.value),
+            'practical_states[${entry.key}]',
+          ),
+        )
         .toList(growable: false),
     uncertainties: _list(json['uncertainties'])
         .map(_map)
@@ -65,7 +94,10 @@ DocumentAnalysis mapAnalysisResult(
         .toList(growable: false),
     amounts: _list(facts['amounts'])
         .map(_map)
-        .map(_amount)
+        .toList(growable: false)
+        .asMap()
+        .entries
+        .map((entry) => _amount(entry.value, 'amounts[${entry.key}]'))
         .toList(growable: false),
     requiredDocuments: _list(facts['required_documents'])
         .map(_map)
@@ -95,6 +127,9 @@ SourceReference _sourceReference(Object? value) {
     pageNumber: json['page_number'] as int?,
     fileId: json['file_id'] as String?,
     excerptLabel: json['excerpt'] as String?,
+    pageIndex: json['page_index'] as int?,
+    location: json['location'] as String?,
+    provenance: json['provenance'] as String?,
   );
 }
 
@@ -108,40 +143,43 @@ ClassificationSuggestion? _classification(Map<String, dynamic> json) =>
 
 AnalysisDeadline _deadline(Map<String, dynamic> json) => AnalysisDeadline(
   label: json['description'] as String,
-  dateOrRange: json['value'] as String? ?? json['source_text'] as String,
-  confidence: 0,
+  dateOrRange: json['value'] as String? ?? json['source_text'] as String?,
+  confidence: (json['confidence'] as num?)?.toDouble(),
   consequence: json['consequence'] as String?,
   sourceReference: _referenceId(json),
 );
 AnalysisAppointment _appointment(Map<String, dynamic> json) =>
     AnalysisAppointment(
       label: json['purpose'] as String,
-      startOrDate: json['appointment_date'] as String? ?? 'unknown',
-      confidence: 0,
+      startOrDate: json['appointment_date'] as String?,
+      confidence: (json['confidence'] as num?)?.toDouble(),
       location: json['location'] as String?,
       sourceReference: _referenceId(json),
     );
-AnalysisAmount _amount(Map<String, dynamic> json) => AnalysisAmount(
-  value: json['value'].toString(),
-  currency: json['currency'] as String,
-  direction: AmountDirection.values.byName(
-    json['direction'] as String? ?? 'unknown',
-  ),
-  confidence: 0,
-  dueDate: json['due_date'] as String?,
-  purpose: json['purpose'] as String?,
-  sourceReference: _referenceId(json),
-);
+AnalysisAmount _amount(Map<String, dynamic> json, String path) =>
+    AnalysisAmount(
+      value: json['value'].toString(),
+      currency: json['currency'] as String,
+      direction: _enumByName(
+        AmountDirection.values,
+        json['direction'] as String? ?? 'unknown',
+        '$path.direction',
+      ),
+      confidence: (json['confidence'] as num?)?.toDouble(),
+      dueDate: json['due_date'] as String?,
+      purpose: json['purpose'] as String?,
+      sourceReference: _referenceId(json),
+    );
 AnalysisRequiredDocument _requiredDocument(Map<String, dynamic> json) =>
     AnalysisRequiredDocument(
       description: json['description'] as String,
-      confidence: 0,
+      confidence: (json['confidence'] as num?)?.toDouble(),
       dueDate: json['due_date'] as String?,
       sourceReference: _referenceId(json),
     );
 AnalysisSuggestedTask _task(Map<String, dynamic> json) => AnalysisSuggestedTask(
   title: json['title'] as String,
-  confidence: 0,
+  confidence: (json['confidence'] as num?)?.toDouble(),
   dueDate: json['due_date'] as String?,
   instructions: json['instructions'] as String?,
   sourceReference: _referenceId(json),
@@ -151,8 +189,33 @@ String? _referenceId(Map<String, dynamic> json) {
   return values.isEmpty ? null : values.first as String?;
 }
 
-DocumentQualityReason _qualityReason(Object? value) =>
-    DocumentQualityReason.values.byName(_camel(value as String));
+DocumentQualityReason _qualityReason(Object? value, String path) =>
+    _enumByName(DocumentQualityReason.values, _camel(value as String), path);
+
+T _enumByName<T extends Enum>(List<T> values, String value, String path) {
+  try {
+    return values.byName(value);
+  } on ArgumentError {
+    analysisDebugLog(
+      'domain_mapping',
+      'failed path=$path type=ArgumentError token_category=${_enumTokenCategory(value, values)}',
+    );
+    rethrow;
+  }
+}
+
+String _enumTokenCategory<T extends Enum>(String value, List<T> values) {
+  final names = values.map((item) => item.name).toSet();
+  if (names.contains(value)) return 'lowercase_valid';
+  if (value != value.toLowerCase() && names.contains(value.toLowerCase())) {
+    return 'uppercase_variant';
+  }
+  if (value != value.trim() && names.contains(value.trim())) {
+    return 'whitespace_variant';
+  }
+  return 'unknown_enum_token';
+}
+
 String _camel(String value) => value.replaceAllMapped(
   RegExp(r'_([a-z])'),
   (match) => match[1]!.toUpperCase(),

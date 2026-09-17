@@ -7,6 +7,7 @@ import 'package:http_parser/http_parser.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../core/network/doxary_api_client.dart';
+import '../../../core/logging/debug_log.dart';
 import '../domain/analysis_submission.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import 'analysis_result_mapper.dart';
@@ -24,6 +25,7 @@ class DoxaryDocumentAnalysisRemoteDataSource
   Future<AcceptedAnalysisOperation> submit(
     AnalysisSubmission submission,
   ) async {
+    analysisDebugLog('upload', 'starting multipart submission');
     if (submission.files.isEmpty) {
       throw const ValidationError('A document needs at least one file.');
     }
@@ -63,6 +65,7 @@ class DoxaryDocumentAnalysisRemoteDataSource
     }
     final response = await _api.send(request);
     final body = await _api.readJson(response);
+    analysisDebugLog('accepted_parsing', 'status=${response.statusCode}');
     if (response.statusCode != 202) {
       throw toRemoteApiError(response.statusCode, body);
     }
@@ -83,6 +86,8 @@ class DoxaryDocumentAnalysisRemoteDataSource
 
   @override
   Future<BackendOperation> getOperation(String operationId) async {
+    analysisDebugLog('operation_parsing', 'entered');
+    analysisDebugLog('polling', 'GET operation/$operationId');
     final response = await _api.send(
       http.Request('GET', _api.endpoint('operations/$operationId')),
     );
@@ -100,14 +105,15 @@ class DoxaryDocumentAnalysisRemoteDataSource
     }
     final statusText = body['status'];
     final responseOperationId = body['operation_id'];
-    final requestId = body['request_id'];
-    if (statusText is! String ||
-        responseOperationId is! String ||
-        requestId is! String) {
+    final requestIdValue = body['request_id'];
+    final requestId = requestIdValue is String ? requestIdValue : null;
+    if (statusText is! String || responseOperationId is! String) {
       throw const MalformedRemoteResponseError(
         'The operation response was invalid.',
       );
     }
+    analysisDebugLog('operation_parsing', 'succeeded');
+    analysisDebugLog('operation_response_parsing', 'status=$statusText');
     final status = _parseStatus(statusText);
     final result = body['result'];
     if (status == BackendOperationStatus.succeeded &&
@@ -116,37 +122,78 @@ class DoxaryDocumentAnalysisRemoteDataSource
         'The completed operation had no valid result.',
       );
     }
+    if (status == BackendOperationStatus.succeeded) {
+      analysisDebugLog('result_parsing', 'entered');
+      analysisDebugLog('result_parsing', 'succeeded');
+    }
+    final failure = _failureMetadata(body['failure']);
     return BackendOperation(
       operationId: responseOperationId,
       status: status,
       requestId: requestId,
       result: result is Map<String, dynamic>
-          ? _mapResult(result, operationId, _clock())
+          ? _mapResult(result, responseOperationId, _clock())
           : null,
-      failureCode:
-          (body['failure'] as Map<String, dynamic>?)?['code'] as String?,
+      failureCode: failure.code,
+      failureRetryable: failure.retryable,
     );
   }
 }
+
+({String? code, bool? retryable}) _failureMetadata(Object? value) {
+  if (value is! Map<String, dynamic>) return (code: null, retryable: null);
+  final code = value['code'];
+  final retryable = value['retryable'];
+  return (
+    code: code is String ? _safeFailureCode(code) : null,
+    retryable: retryable is bool ? retryable : null,
+  );
+}
+
+String _safeFailureCode(String value) =>
+    _documentedFailureCodes.contains(value) ? value : 'processing_failed';
+
+const _documentedFailureCodes = <String>{
+  'invalid_file',
+  'unsupported_media',
+  'too_large',
+  'rate_limited',
+  'quota_exceeded',
+  'processing_failed',
+  'analysis_unavailable',
+  'validation_failed',
+  'unauthorized',
+  'operation_expired',
+};
 
 DocumentAnalysis _mapResult(
   Map<String, dynamic> json,
   String operationId,
   DateTime createdAt,
 ) {
+  analysisDebugLog('domain_mapping', 'entered');
   try {
-    return mapAnalysisResult(json, id: operationId, createdAt: createdAt);
+    final mapped = mapAnalysisResult(
+      json,
+      id: operationId,
+      createdAt: createdAt,
+    );
+    analysisDebugLog('domain_mapping', 'succeeded');
+    return mapped;
   } on FormatException catch (error) {
+    analysisDebugLog('domain_mapping', 'failed type=${error.runtimeType}');
     throw MalformedRemoteResponseError(
       'The completed operation had an invalid result.',
       cause: error,
     );
   } on TypeError catch (error) {
+    analysisDebugLog('domain_mapping', 'failed type=${error.runtimeType}');
     throw MalformedRemoteResponseError(
       'The completed operation had an invalid result.',
       cause: error,
     );
   } on ArgumentError catch (error) {
+    analysisDebugLog('domain_mapping', 'failed type=${error.runtimeType}');
     throw MalformedRemoteResponseError(
       'The completed operation had an invalid result.',
       cause: error,

@@ -1,6 +1,7 @@
 import '../../../core/errors/app_error.dart';
 import '../domain/analysis_repository.dart';
 import '../domain/analysis_submission.dart';
+import '../../../core/logging/debug_log.dart';
 
 /// Coordinates submission and bounded polling without putting network logic in
 /// widgets. A retry polls an existing operation; it never re-uploads it.
@@ -23,6 +24,10 @@ class AnalysisWorkflow {
     AnalysisSubmission submission,
   ) async {
     final accepted = await _remote.submit(submission);
+    analysisDebugLog(
+      'local_persistence',
+      'saving accepted operation ${accepted.operationId}',
+    );
     await _local.saveOperation(
       operationId: accepted.operationId,
       clientDocumentId: submission.clientDocumentId,
@@ -35,6 +40,7 @@ class AnalysisWorkflow {
     String operationId,
     String clientDocumentId,
   ) async {
+    analysisDebugLog('polling', 'entered');
     for (var attempt = 0; attempt < maxPolls; attempt++) {
       final operation = await _remote.getOperation(operationId);
       switch (operation.status) {
@@ -59,7 +65,20 @@ class AnalysisWorkflow {
               'The completed operation had no result.',
             );
           }
-          await _local.saveCompleted(analysis);
+          analysisDebugLog('local_persistence', 'entered');
+          try {
+            await _local.saveCompleted(analysis);
+          } catch (error) {
+            analysisDebugLog(
+              'local_persistence',
+              'failed type=${error.runtimeType}',
+            );
+            rethrow;
+          }
+          analysisDebugLog(
+            'local_persistence',
+            'saved completed analysis; cleared operation ${operation.operationId}',
+          );
           return operation;
         case BackendOperationStatus.failed:
           await _local.saveOperation(
@@ -68,7 +87,13 @@ class AnalysisWorkflow {
             state: AnalysisLifecycleState.failed,
             failureCode: operation.failureCode,
           );
-          return operation;
+          throw RemoteApiError(
+            'The analysis operation failed.',
+            statusCode: 200,
+            code: operation.failureCode ?? 'processing_failed',
+            retryable: operation.failureRetryable ?? false,
+            isTerminalOperationFailure: true,
+          );
       }
       await _wait(pollInterval);
     }

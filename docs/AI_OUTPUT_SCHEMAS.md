@@ -23,6 +23,10 @@ Required: `client_document_id`, `analysis_status` (`complete|partial|unavailable
 
 ## Assistant schemas
 
+### Flutter integration note
+
+The implemented backend `analysis_result.v1` contract does not emit nested confidence fields for extracted facts; Flutter preserves those domain fields as nullable rather than fabricating scores. Wire quality is represented by `quality_issues` (not `quality_reasons`), and evidence references preserve `file_id`, `page_number`, `page_index`, `location`, `excerpt`, and `provenance` when present.
+
 **QuestionAnswer v1** requires `client_document_id`, `answer`, `answer_language`, `confidence`, `uncertainties[]`, and `source_references[]`; optional `suggested_next_steps[]`. It answers only from client-supplied scoped document/case context and explicitly says when that context does not contain the answer.
 
 **ReplyDraft v1** requires `client_document_id`, `german_draft`, `purpose`, `assumptions[]`, `missing_information[]`, and `confidence`; optional `arabic_explanation`, `subject`, `attachments_to_include[]`. It must not claim events, identity facts, or documents not supplied by the user/context.

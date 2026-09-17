@@ -5,6 +5,7 @@ import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/errors/app_error.dart';
+import '../../../core/logging/debug_log.dart';
 import '../../../shared/design_system/app_widgets.dart';
 import '../../document_analysis/domain/analysis_submission.dart';
 import '../../document_analysis/presentation/analysis_result_page.dart';
@@ -22,6 +23,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   String? _message;
   bool _busy = false;
   String? _idempotencyKey;
+  AnalysisSubmission? _submission;
+  String? _pendingOperationId;
 
   Future<void> _select(ImportSource source) async {
     final result = await ref.read(importGatewayProvider).pickSelection(source);
@@ -30,6 +33,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
       success: (selection) => setState(() {
         _selection = selection;
         _idempotencyKey = null;
+        _submission = null;
+        _pendingOperationId = null;
         _message = null;
       }),
       failure: (error) {
@@ -47,49 +52,31 @@ class _ImportPageState extends ConsumerState<ImportPage> {
       _busy = true;
       _message = context.l10n.analysisUploading;
     });
-    final id = ref.read(idGeneratorProvider).newId();
-    final now = DateTime.now();
-    final files = <DocumentFile>[];
-    for (var index = 0; index < selection.files.length; index++) {
-      final candidate = selection.files[index];
-      files.add(
-        DocumentFile(
-          id: ref.read(idGeneratorProvider).newId(),
-          clientDocumentId: id,
-          localUri: candidate.localUri,
-          mediaType: candidate.mediaType == ImportedMediaType.pdf
-              ? 'application/pdf'
-              : (candidate.originalFilename?.toLowerCase().endsWith('.png') ==
-                        true
-                    ? 'image/png'
-                    : 'image/jpeg'),
-          originalFilename: candidate.originalFilename,
-          byteSize: candidate.byteSize,
-          importedAt: candidate.importedAt,
-          pageOrder: index,
-        ),
-      );
-    }
-    final document = LocalDocument(
-      clientDocumentId: id,
-      classificationState: ClassificationState.unclassified,
-      status: DocumentStatus.imported,
-      createdAt: now,
-      updatedAt: now,
-    );
-    final repository = ref.read(documentRepositoryProvider);
-    await repository.saveImportedDocument(document, files.first);
-    for (final file in files.skip(1)) {
-      await repository.saveImportedDocument(document, file);
-    }
     try {
+      if (_pendingOperationId != null) {
+        final terminal = await ref
+            .read(analysisWorkflowProvider)
+            .poll(_pendingOperationId!, _submission!.clientDocumentId);
+        if (terminal.status == BackendOperationStatus.succeeded && mounted) {
+          _pendingOperationId = null;
+          _submission = null;
+          setState(() => _busy = false);
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AnalysisResultPage(
+                clientDocumentId: terminal.result!.clientDocumentId,
+              ),
+            ),
+          );
+        }
+        return;
+      }
+      final submission = _submission ??= await _createSubmission(selection);
       final arabic = ref.read(languageProvider)?.languageCode == 'ar';
       final accepted = await ref
           .read(analysisWorkflowProvider)
           .submit(
-            AnalysisSubmission(
-              clientDocumentId: id,
-              files: files,
+            submission.copyWith(
               language: arabic
                   ? ExplanationLanguage.arabic
                   : ExplanationLanguage.german,
@@ -101,17 +88,44 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                   .newId(),
             ),
           );
+      _pendingOperationId = accepted.operationId;
+      _idempotencyKey = null;
       if (mounted) setState(() => _message = context.l10n.analysisStarted);
-      await ref.read(analysisWorkflowProvider).poll(accepted.operationId, id);
+      final terminal = await ref
+          .read(analysisWorkflowProvider)
+          .poll(accepted.operationId, submission.clientDocumentId);
       if (mounted) {
+        if (terminal.status != BackendOperationStatus.succeeded) {
+          _pendingOperationId = null;
+          _submission = null;
+          setState(() => _busy = false);
+          return;
+        }
+        _pendingOperationId = null;
+        _submission = null;
+        analysisDebugLog(
+          'controller',
+          'analysis success; navigating to result',
+        );
         setState(() => _busy = false);
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => AnalysisResultPage(clientDocumentId: id),
+            builder: (_) => AnalysisResultPage(
+              clientDocumentId: submission.clientDocumentId,
+            ),
           ),
         );
       }
     } catch (error) {
+      final terminalFailure =
+          error is RemoteApiError && error.isTerminalOperationFailure;
+      if (terminalFailure) {
+        analysisDebugLog('controller', 'terminal failure code=${error.code}');
+        _pendingOperationId = null;
+        _idempotencyKey = null;
+      } else {
+        analysisDebugLog('controller', 'failed type=${error.runtimeType}');
+      }
       if (mounted) {
         setState(() {
           _busy = false;
@@ -123,6 +137,46 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         });
       }
     }
+  }
+
+  Future<AnalysisSubmission> _createSubmission(
+    DocumentImportSelection selection,
+  ) async {
+    final id = ref.read(idGeneratorProvider).newId();
+    final now = DateTime.now();
+    final files = [
+      for (var index = 0; index < selection.files.length; index++)
+        DocumentFile(
+          id: ref.read(idGeneratorProvider).newId(),
+          clientDocumentId: id,
+          localUri: selection.files[index].localUri,
+          mediaType: selection.files[index].mediaType == ImportedMediaType.pdf
+              ? 'application/pdf'
+              : 'image/jpeg',
+          originalFilename: selection.files[index].originalFilename,
+          byteSize: selection.files[index].byteSize,
+          importedAt: selection.files[index].importedAt,
+          pageOrder: index,
+        ),
+    ];
+    final document = LocalDocument(
+      clientDocumentId: id,
+      classificationState: ClassificationState.unclassified,
+      status: DocumentStatus.imported,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final repository = ref.read(documentRepositoryProvider);
+    for (final file in files) {
+      await repository.saveImportedDocument(document, file);
+    }
+    return AnalysisSubmission(
+      clientDocumentId: id,
+      files: files,
+      language: ExplanationLanguage.german,
+      style: ExplanationStyle.simple,
+      idempotencyKey: 'pending',
+    );
   }
 
   @override

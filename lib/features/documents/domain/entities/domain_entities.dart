@@ -128,11 +128,17 @@ class SourceReference {
     this.pageNumber,
     this.fileId,
     this.excerptLabel,
+    this.pageIndex,
+    this.location,
+    this.provenance,
   });
   final String referenceId;
   final int? pageNumber;
   final String? fileId;
   final String? excerptLabel;
+  final int? pageIndex;
+  final String? location;
+  final String? provenance;
 }
 
 class DocumentAnalysis {
@@ -161,6 +167,7 @@ class DocumentAnalysis {
     this.requiredDocuments = const [],
     this.suggestedTasks = const [],
     this.nextActions = const [],
+    this.documentDate,
   });
   final String id;
   final String clientDocumentId;
@@ -168,6 +175,7 @@ class DocumentAnalysis {
   final String targetLanguage;
   final String? summary;
   final String? explanation;
+  final String? documentDate;
   final DateTime createdAt;
   final AnalysisStatus analysisStatus;
   final ExplanationStyle explanationStyle;
@@ -217,8 +225,8 @@ class AnalysisDeadline {
     this.sourceReference,
   });
   final String label;
-  final String dateOrRange;
-  final double confidence;
+  final String? dateOrRange;
+  final double? confidence;
   final String? time;
   final String? timezone;
   final String? consequence;
@@ -236,8 +244,8 @@ class AnalysisAppointment {
     this.sourceReference,
   });
   final String label;
-  final String startOrDate;
-  final double confidence;
+  final String? startOrDate;
+  final double? confidence;
   final String? end;
   final String? location;
   final String? preparation;
@@ -257,7 +265,7 @@ class AnalysisAmount {
   final String value;
   final String currency;
   final AmountDirection direction;
-  final double confidence;
+  final double? confidence;
   final String? dueDate;
   final String? purpose;
   final String? sourceReference;
@@ -272,7 +280,7 @@ class AnalysisRequiredDocument {
     this.sourceReference,
   });
   final String description;
-  final double confidence;
+  final double? confidence;
   final String? dueDate;
   final String? submissionMethod;
   final String? sourceReference;
@@ -287,7 +295,7 @@ class AnalysisSuggestedTask {
     this.sourceReference,
   });
   final String title;
-  final double confidence;
+  final double? confidence;
   final String? dueDate;
   final String? instructions;
   final String? sourceReference;

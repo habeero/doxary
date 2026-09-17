@@ -12,6 +12,7 @@ import 'package:doxary/features/document_analysis/data/doxary_document_analysis_
 import 'package:doxary/features/document_analysis/data/local_analysis_repository.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
 import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
@@ -47,6 +48,62 @@ void main() {
       expect(result.qualityReasons, [DocumentQualityReason.blurryImage]);
     },
   );
+
+  test('maps the complete staging-shaped result including document date and evidence metadata', () {
+    final payload = _result()
+      ..['analysis_status'] = 'complete'
+      ..['quality_issues'] = []
+      ..['extracted_facts'] = {
+        'document_date': {'value': '2026-09-01', 'source_text': '01.09.2026'},
+        'deadlines': [],
+        'appointments': [],
+        'amounts': [],
+        'required_documents': [],
+        'suggested_tasks': [],
+      };
+    final result = mapAnalysisResult(
+      payload,
+      id: 'analysis-complete',
+      createdAt: DateTime(2026),
+    );
+    expect(result.analysisStatus, AnalysisStatus.complete);
+    expect(result.documentDate, '2026-09-01');
+    expect(result.sourceReferences.single.pageIndex, isNull);
+    expect(result.sourceReferences.single.fileId, isNull);
+  });
+
+  test('incompatible result payload fails safely', () {
+    expect(
+      () => mapAnalysisResult(
+        {'schema_version': 'analysis_result.v1'},
+        id: 'a',
+        createdAt: DateTime(2026),
+      ),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('submission retry preserves key and client document while new submission differs', () {
+    final first = AnalysisSubmission(
+      clientDocumentId: 'document-1',
+      files: const [],
+      language: ExplanationLanguage.german,
+      style: ExplanationStyle.simple,
+      idempotencyKey: 'key-1',
+    );
+    final retry = first.copyWith();
+    final second = AnalysisSubmission(
+      clientDocumentId: 'document-2',
+      files: const [],
+      language: ExplanationLanguage.german,
+      style: ExplanationStyle.simple,
+      idempotencyKey: 'key-2',
+    );
+    expect(retry.idempotencyKey, first.idempotencyKey);
+    expect(retry.clientDocumentId, first.clientDocumentId);
+    expect(second.idempotencyKey, isNot(first.idempotencyKey));
+    expect(second.clientDocumentId, isNot(first.clientDocumentId));
+  });
 
   test('multipart submission preserves files, language, idempotency, and repeated page indexes', () async {
     final directory = await Directory.systemTemp.createTemp(
@@ -131,6 +188,99 @@ void main() {
       'document-1',
     );
     expect(await database.select(database.analysisOperations).get(), isEmpty);
+    expect(remote.submitCalls, 0);
+  });
+
+  test(
+    'accepted operation transitions to terminal failure without another POST',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final local = LocalAnalysisRepository(database);
+      await _insertDocument(database, 'document-failed');
+      await local.saveOperation(
+        operationId: 'op-failed',
+        clientDocumentId: 'document-failed',
+        state: AnalysisLifecycleState.accepted,
+      );
+      final remote = _FakeRemote([
+        const BackendOperation(
+          operationId: 'op-failed',
+          status: BackendOperationStatus.failed,
+          requestId: null,
+          failureCode: 'processing_failed',
+          failureRetryable: false,
+        ),
+      ]);
+      final workflow = AnalysisWorkflow(remote, local, wait: (_) async {});
+
+      await expectLater(
+        workflow.poll('op-failed', 'document-failed'),
+        throwsA(
+          isA<RemoteApiError>()
+              .having((error) => error.code, 'code', 'processing_failed')
+              .having(
+                (error) => error.isTerminalOperationFailure,
+                'isTerminalOperationFailure',
+                true,
+              )
+              .having((error) => error.retryable, 'retryable', false),
+        ),
+      );
+
+      final operations = await database
+          .select(database.analysisOperations)
+          .get();
+      final documents = await database.select(database.documents).get();
+      expect(remote.getCalls, 1);
+      expect(remote.submitCalls, 0);
+      expect(operations.single.state, AnalysisLifecycleState.failed.name);
+      expect(operations.single.lastFailureCode, 'processing_failed');
+      expect(documents.single.status, DocumentStatus.needsReview.name);
+      expect(await local.watchPending().first, isEmpty);
+    },
+  );
+
+  test('processing operation stops polling when it reaches failed', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final local = LocalAnalysisRepository(database);
+    await _insertDocument(database, 'document-processing-failed');
+    final remote = _FakeRemote([
+      const BackendOperation(
+        operationId: 'op-processing-failed',
+        status: BackendOperationStatus.processing,
+        requestId: null,
+      ),
+      const BackendOperation(
+        operationId: 'op-processing-failed',
+        status: BackendOperationStatus.failed,
+        requestId: null,
+        failureCode: 'analysis_unavailable',
+        failureRetryable: true,
+      ),
+    ]);
+    final workflow = AnalysisWorkflow(
+      remote,
+      local,
+      maxPolls: 3,
+      wait: (_) async {},
+    );
+
+    await expectLater(
+      workflow.poll('op-processing-failed', 'document-processing-failed'),
+      throwsA(
+        isA<RemoteApiError>()
+            .having((error) => error.code, 'code', 'analysis_unavailable')
+            .having((error) => error.retryable, 'retryable', true),
+      ),
+    );
+
+    final operations = await database.select(database.analysisOperations).get();
+    expect(remote.getCalls, 2);
+    expect(remote.submitCalls, 0);
+    expect(operations.single.state, AnalysisLifecycleState.failed.name);
+    expect(await local.watchPending().first, isEmpty);
   });
 
   test(
@@ -182,6 +332,159 @@ void main() {
       throwsA(isA<MalformedRemoteResponseError>()),
     );
   });
+
+  test(
+    'failed operation parses safe code and retryability without its message',
+    () async {
+      final source = DoxaryDocumentAnalysisRemoteDataSource(
+        DoxaryApiClient(
+          DoxaryApiConfig(baseUri: Uri.parse('http://example.test')),
+          client: _RecordingClient(
+            _jsonResponse({
+              'failure': {
+                'code': 'analysis_unavailable',
+                'message': 'This must never reach Flutter logs or UI.',
+                'retryable': true,
+              },
+              'operation_id': 'op-failed',
+              'status': 'failed',
+            }, 200),
+          ),
+        ),
+      );
+
+      final operation = await source.getOperation('op-failed');
+      expect(operation.status, BackendOperationStatus.failed);
+      expect(operation.failureCode, 'analysis_unavailable');
+      expect(operation.failureRetryable, true);
+    },
+  );
+
+  test('succeeded operation envelope without request_id maps through production DTO path', () async {
+    final payload = _result()
+      ..['analysis_status'] = 'complete'
+      ..['quality_issues'] = [];
+    final source = DoxaryDocumentAnalysisRemoteDataSource(
+      DoxaryApiClient(
+        DoxaryApiConfig(baseUri: Uri.parse('http://example.test')),
+        client: _RecordingClient(
+          _jsonResponse({
+            'failure': null,
+            'operation_id': 'op-succeeded',
+            'result': payload,
+            'status': 'succeeded',
+          }, 200),
+        ),
+      ),
+    );
+    final operation = await source.getOperation('op-succeeded');
+    expect(operation.status, BackendOperationStatus.succeeded);
+    expect(operation.requestId, isNull);
+    expect(operation.result?.analysisStatus, AnalysisStatus.complete);
+  });
+
+  test('invalid enum mapping reports only path and token category', () async {
+    final payload = _result()
+      ..['extracted_facts'] = {
+        'deadlines': [],
+        'appointments': [],
+        'amounts': [
+          {
+            'value': '12.50',
+            'currency': 'EUR',
+            'purpose': 'Fee',
+            'direction': 'invalid',
+            'evidence_reference_ids': [],
+          },
+        ],
+        'required_documents': [],
+        'suggested_tasks': [],
+      };
+    final logs = <String>[];
+    final previous = debugPrint;
+    debugPrint = (message, {wrapWidth}) {
+      if (message is String) logs.add(message);
+    };
+    addTearDown(() => debugPrint = previous);
+    final source = DoxaryDocumentAnalysisRemoteDataSource(
+      DoxaryApiClient(
+        DoxaryApiConfig(baseUri: Uri.parse('http://example.test')),
+        client: _RecordingClient(
+          _jsonResponse({
+            'failure': null,
+            'operation_id': 'op-invalid-enum',
+            'result': payload,
+            'status': 'succeeded',
+          }, 200),
+        ),
+      ),
+    );
+    await expectLater(
+      source.getOperation('op-invalid-enum'),
+      throwsA(isA<MalformedRemoteResponseError>()),
+    );
+    expect(
+      logs,
+      contains(
+        '[DoxaryAnalysis][domain_mapping] failed path=amounts[0].direction type=ArgumentError token_category=unknown_enum_token',
+      ),
+    );
+  });
+
+  test('uppercase enum variant remains invalid and is classified without its value', () async {
+    final payload = _result()
+      ..['extracted_facts'] = {
+        'deadlines': [],
+        'appointments': [],
+        'amounts': [
+          {
+            'value': '12.50',
+            'currency': 'EUR',
+            'purpose': 'Fee',
+            'direction': 'PAY',
+            'evidence_reference_ids': [],
+          },
+        ],
+        'required_documents': [],
+        'suggested_tasks': [],
+      };
+    final logs = <String>[];
+    final previous = debugPrint;
+    debugPrint = (message, {wrapWidth}) {
+      if (message is String) logs.add(message);
+    };
+    addTearDown(() => debugPrint = previous);
+
+    expect(
+      () =>
+          mapAnalysisResult(payload, id: 'analysis', createdAt: DateTime(2026)),
+      throwsA(isA<ArgumentError>()),
+    );
+    expect(
+      logs,
+      contains(
+        '[DoxaryAnalysis][domain_mapping] failed path=amounts[0].direction type=ArgumentError token_category=uppercase_variant',
+      ),
+    );
+  });
+}
+
+Future<void> _insertDocument(
+  AppDatabase database,
+  String clientDocumentId,
+) async {
+  final now = DateTime(2026);
+  await database
+      .into(database.documents)
+      .insert(
+        DocumentsCompanion.insert(
+          clientDocumentId: clientDocumentId,
+          classificationState: 'unclassified',
+          status: 'imported',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
 }
 
 DocumentFile _file(String id, File file, String mediaType, int pageOrder) =>
@@ -226,14 +529,24 @@ class _RecordingClient extends http.BaseClient {
 class _FakeRemote implements DocumentAnalysisRemoteDataSource {
   _FakeRemote(this._responses);
   final List<BackendOperation> _responses;
+  int submitCalls = 0;
+  int getCalls = 0;
   @override
-  Future<BackendOperation> getOperation(String operationId) async =>
-      _responses.removeAt(0);
+  Future<BackendOperation> getOperation(String operationId) async {
+    getCalls++;
+    return _responses.removeAt(0);
+  }
+
   @override
   Future<AcceptedAnalysisOperation> submit(
     AnalysisSubmission submission,
-  ) async =>
-      const AcceptedAnalysisOperation(operationId: 'op-1', requestId: 'r-1');
+  ) async {
+    submitCalls++;
+    return const AcceptedAnalysisOperation(
+      operationId: 'op-1',
+      requestId: 'r-1',
+    );
+  }
 }
 
 Map<String, dynamic> _result() => {

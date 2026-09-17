@@ -46,10 +46,12 @@ final class RemoteApiError extends RemoteError {
     required this.statusCode,
     required this.code,
     required this.retryable,
+    this.isTerminalOperationFailure = false,
   });
   final int statusCode;
   final String code;
   final bool retryable;
+  final bool isTerminalOperationFailure;
 }
 
 final class UnexpectedAppError extends AppError {
