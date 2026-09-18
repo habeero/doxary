@@ -22,6 +22,8 @@ The end-to-end analysis and document-organization foundation works, but the curr
 
 The approved UX sequence treats Processing as a staged, truthful progress experience; Analyze as a single immutable logical submission; and Result as a hierarchy of returned facts rather than a schema checklist. Leaving Processing preserves the running local Document, and completion routes to Result when the screen is active. No notification promise is made until notification behavior is implemented and tested.
 
+**Doxary UX Wireframes v1** is the approved Phase 2.6.3 wireframe milestone and the implementation reference before visual-design refinement. It is not executable specification and does not replace authoritative product, domain, API, or implementation documentation. Phase 2.6.3 wireframe architecture is sufficiently defined to proceed into visual design; visual design implementation and Flutter redesign are not complete.
+
 ## Product principles
 
 Primary navigation is Home, Documents, Analyze, Tasks, and Settings. Analyze expresses the user's intent to understand a document; importing or capturing is part of that flow. Settings contains profile/account functionality. Camera capture is required for the intended launch experience, as are the agreed PDF/image/file import states; the current wireframe constraint is up to 10 pages/images per submission, without implying a backend limit.

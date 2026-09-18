@@ -12,6 +12,8 @@ Before substantial screen implementation, each approved screen design must defin
 
 Processing progress uses semantic staged labels with active/completed states, never invented percentages or raw transport logs. Import controls use an immutable Analyze snapshot and become disabled or cleared at submission. Result components are data-driven: absent or meaningless facts are omitted, while explicit organizational unassigned states and useful uncertainty guidance remain visible. Completion, failure, and offline states must be communicated without implying work that the client or server did not actually perform.
 
+Focused flows hide primary navigation and provide explicit Back/Close controls. Reusable design-system patterns, rather than bespoke Figma screens for every standard condition, cover ordinary empty states and notification-permission prompts while respecting the documented context and permission rules. Examples include empty Documents, no Tasks in a tab, no search results, an Organization with no Cases, and no Unclassified Documents. Empty is not Error.
+
 ## Phase 1 implementation
 
 The primary navigation component uses Home, Documents, Analyze, Tasks, and Settings. The central Analyze affordance communicates document understanding, not merely file addition. Camera capture and the agreed import states are launch-quality design requirements. A selected multi-image flow supports ordered previews, per-page removal, remove-all, adding pages, and a maximum of 10 pages/images in the current UX design.

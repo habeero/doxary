@@ -2,7 +2,11 @@
 
 Primary bottom navigation is **Home**, **Documents**, central **Analyze**, **Tasks**, and **Settings**. Analyze is the user's document-understanding intent; camera capture and file import are steps inside that flow, not a separate primary destination. Settings includes profile/account functionality; Profile is not a separate bottom-navigation destination. Deep links are reserved for future document, case, task, and notification routes; they must validate authorization/local availability before displaying content.
 
+Bottom navigation remains visible on those five primary destinations and is hidden in focused or nested flows: camera capture/review, Processing, the state-driven Document route, Organization, Case (`المعاملة`), Unclassified Documents, classification change, Organization/Case selection or creation, Create/Edit Task, and comparable focused subflows. Nested flows use explicit Back or Close navigation. Where practical, Back returns to the actual origin while preserving its prior UI state.
+
 The approved Analyze/Import entry states are: empty (camera capture, PDF/image/file selection, supported-format guidance, and explanation-language choice); PDF/file selected (summary, remove, language, and Analyze Document); and camera/multiple-image selected (ordered previews, individual/remove-all actions, and adding another page before analysis). The current UX design permits up to 10 pages/images per submission; this is a product/UI constraint, not a backend guarantee unless the backend independently enforces it. Camera capture is a launch requirement, and the agreed core capture/import experience is required for final release.
+
+The camera flow is Analyze -> Camera Capture -> single-page Review -> multi-page Review -> selected-pages state -> Analyze. Single-page Review supports retake, accept/use image, crop, and rotate. Multi-page Review supports thumbnails, selected-page preview, individual removal, adding another page, and continue within the 10-page constraint. Auto edge detection/perspective correction may be used only when a maintained reliable implementation supports it; advanced scanner filters such as black-and-white enhancement or shadow removal are not required for the initial release.
 
 Home is an actionable overview, not a second Documents library: action-required items come first, then currently processing analyses, then approximately three to five recent Documents, followed by a route to all Documents. Documents is the complete local library and browses Organization -> Case -> Documents, with unclassified documents in a separate section. Tasks uses Today, Upcoming, and Completed tabs. Settings owns language, privacy, notification, profile/account, and future plan functionality.
 
@@ -30,6 +34,12 @@ Processing is a user-facing staged timeline, not a raw technical log. A stage ha
 ### Import submission UX
 
 Analyze captures an immutable submission snapshot. Selected-file presentation is cleared or locked immediately when submission begins, and repeated taps cannot create duplicate logical analyses. The snapshot and existing idempotency lifecycle remain local integration concerns; this does not change the API contract.
+
+### Classification edit and contextual search
+
+Result -> Change Classification uses lightweight modal or bottom-sheet interactions for Organization and Case selection, not needless full navigation destinations. Creating an Organization requires only a name; category is not manually required. Creating a Case (`المعاملة`) happens under an already selected Organization, cannot create an orphan Case, and makes the new Case the current selection.
+
+Search is contextual: Documents root searches library-relevant content, Organization searches content belonging to that Organization, Unclassified searches only unclassified Documents, and Case searches Documents in that Case. A universal standalone Search Results screen is not required. An Unclassified Document has no confirmed Organization; Without Case has a confirmed Organization but no Case. These states are distinct.
 
 ### Result UX
 
@@ -91,6 +101,12 @@ Failed or unavailable analysis never means the Document was lost: the local Docu
 Retry Analysis never creates a duplicate local Document: it uses the same `client_document_id` and persisted Document/DocumentFile records, though it may create a new submission, operation, or attempt and retain retry history. Retry Analysis and Import as New Document are distinct actions. Invariant: `Retry × N != N Documents`.
 
 ### Release-quality boundary
+
+For technical analysis failure, the recovery action may be Retry analysis. For unreadable or insufficient input, the preferred action may instead be retake or reselect clearer source material; the UI must not blindly retry identical poor input when a better image/file is the actionable remedy.
+
+### Task create and edit
+
+Create/Edit Task is a focused full-screen flow, not a primary destination. Fields may include title, date, optional time or all-day, reminder, linked Document or Case, and optional note. If All Day is selected, time is inactive and not required. When created from a Document Result, the Document association is preserved and Organization is derived from the linked Document/Case rather than being a separately editable conflicting field. Tasks created from Tasks may be unlinked or linked to a Document/Case. Delete Task is destructive and requires confirmation; Complete Task normally does not.
 
 The intended final release requires the agreed core UX: camera/capture, coherent Analyze/import, usable Settings, classification/navigation, state-driven Result, and retry safety. This is separate from future Phase 3/4 work such as assistant, replies, quotas/billing, cloud sync, or speculative integrations.
 
