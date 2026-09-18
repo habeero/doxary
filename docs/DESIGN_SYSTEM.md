@@ -14,4 +14,6 @@ Processing progress uses semantic staged labels with active/completed states, ne
 
 ## Phase 1 implementation
 
+The primary navigation component uses Home, Documents, Analyze, Tasks, and Settings. The central Analyze affordance communicates document understanding, not merely file addition. Camera capture and the agreed import states are launch-quality design requirements. A selected multi-image flow supports ordered previews, per-page removal, remove-all, adding pages, and a maximum of 10 pages/images in the current UX design.
+
 The foundation provides a directional spacing scale, Material 3 light/dark semantic color schemes, accessible minimum-height primary actions, reusable section cards, status chips, empty states, and error states. User-visible UI strings are resolved through `AppLocalizations` for German and Arabic; widgets use directional Material layouts and do not contain hardcoded German/Arabic strings. Typography remains system-provided until a future font decision that supports both scripts is made.

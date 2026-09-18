@@ -24,6 +24,8 @@ The approved UX sequence treats Processing as a staged, truthful progress experi
 
 ## Product principles
 
+Primary navigation is Home, Documents, Analyze, Tasks, and Settings. Analyze expresses the user's intent to understand a document; importing or capturing is part of that flow. Settings contains profile/account functionality. Camera capture is required for the intended launch experience, as are the agreed PDF/image/file import states; the current wireframe constraint is up to 10 pages/images per submission, without implying a backend limit.
+
 - Be practical: surface the next action in seconds.
 - Be transparent: distinguish extracted facts, interpretation, uncertainty, and user edits.
 - Be private by default: keep originals on-device unless a future user choice says otherwise.
@@ -37,5 +39,7 @@ For Arabic product UI, Organization is **الجهة** or **المؤسسة** as c
 **Organization** is a sender/recipient body (for example, Jobcenter). **Case (Vorgang)** is a continuing matter with an organization. **Document** is the logical correspondence item; **DocumentFile** is an imported image or PDF. **Analysis** is structured, versioned interpretation. A **task**, **deadline**, **appointment**, **amount**, and **required document** are actionable facts associated with a document and normally visible within its case. A **conversation** is document/case-scoped assistant context.
 
 ## Boundaries
+
+Document understanding is presented through one stable Document route whose content changes with lifecycle state; the product does not require a redundant separate Document Detail screen followed by a Result screen. Final release requires the core capture/import experience and coherent state transitions, while assistant, quotas/billing, and other future features remain out of scope.
 
 The MVP explains and organizes documents; it does not determine eligibility, submit forms, automate government portals, or guarantee legal correctness. The temporary codename is not a user-facing brand decision.
