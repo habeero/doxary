@@ -1,4 +1,4 @@
-import 'package:doxary/app/routing/app_shell.dart';
+import 'package:doxary/app/routing/app_router.dart';
 import 'package:doxary/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,15 +33,20 @@ void main() {
     expect(theme.colorScheme.surface, AppColors.surface);
   });
 
-  test('only the Document detail location is focused in this batch', () {
-    expect(
-      isFocusedDocumentLocation(Uri.parse('/documents/document-1')),
-      isTrue,
-    );
-    expect(isFocusedDocumentLocation(Uri.parse('/documents')), isFalse);
-    expect(
-      isFocusedDocumentLocation(Uri.parse('/documents/organization/org-1')),
-      isFalse,
-    );
+  test('bottom navigation is visible only for primary root locations', () {
+    for (final location in AppRoutes.primaryRootLocations) {
+      expect(AppRoutes.isPrimaryRootLocation(Uri.parse(location)), isTrue);
+    }
+
+    for (final location in const [
+      '/documents/document-1',
+      '/documents/organization/organization-1',
+      '/documents/organization/organization-1/case/case-1',
+      '/import/review',
+      '/import/analysis',
+      '/tasks/task-1',
+    ]) {
+      expect(AppRoutes.isPrimaryRootLocation(Uri.parse(location)), isFalse);
+    }
   });
 }

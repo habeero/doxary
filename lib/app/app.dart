@@ -23,7 +23,7 @@ class ProjectApp extends ConsumerWidget {
     ],
     theme: AppTheme.light(),
     darkTheme: AppTheme.dark(),
-    themeMode: ThemeMode.system,
+    themeMode: ThemeMode.light,
     routerConfig: ref.watch(appRouterProvider),
   );
 }

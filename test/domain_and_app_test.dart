@@ -12,11 +12,14 @@ import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
 import 'package:doxary/features/documents/domain/repositories/document_repository.dart';
 import 'package:doxary/features/documents/presentation/documents_page.dart';
 import 'package:doxary/features/document_import/domain/document_import.dart';
+import 'package:doxary/features/document_import/presentation/import_page.dart';
 import 'package:doxary/core/errors/result.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_output_language.dart';
 import 'package:doxary/features/home/presentation/home_page.dart';
+import 'package:doxary/features/settings/presentation/profile_page.dart';
 import 'package:doxary/features/tasks/application/task_timeframes.dart';
 import 'package:doxary/features/tasks/domain/repositories/task_repository.dart';
+import 'package:doxary/features/tasks/presentation/tasks_page.dart';
 import 'package:doxary/features/settings/domain/settings_repository.dart';
 
 void main() {
@@ -200,6 +203,49 @@ void main() {
       ImportSource.pdfFile,
     );
     expect(result, isA<Failure<DocumentImportCandidate>>());
+  });
+
+  test('German bottom navigation labels are compact and localized', () {
+    final localizations = AppLocalizations(const Locale('de'));
+
+    expect(localizations.bottomNavigationHome, 'Start');
+    expect(localizations.bottomNavigationDocuments, 'Dokumente');
+    expect(localizations.bottomNavigationAnalyze, 'Analyse');
+    expect(localizations.bottomNavigationTasks, 'Aufgaben');
+    expect(localizations.bottomNavigationSettings, 'Einst.');
+  });
+
+  testWidgets('primary navigation preserves destination-to-branch mapping', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
+          taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+          organizationsProvider.overrideWithValue(const AsyncValue.data([])),
+          casesProvider.overrideWithValue(const AsyncValue.data([])),
+        ],
+        child: const ProjectApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final destinations = <(String, Type)>[
+      ('Start', HomePage),
+      ('Dokumente', DocumentsPage),
+      ('Analyse', ImportPage),
+      ('Aufgaben', TasksPage),
+      ('Einst.', ProfilePage),
+    ];
+
+    for (final destination in destinations) {
+      await tester.tap(find.text(destination.$1).last);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(destination.$2), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
+    }
   });
 
   testWidgets('empty home is localized and switches to RTL in Arabic', (

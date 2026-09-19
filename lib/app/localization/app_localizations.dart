@@ -10,13 +10,18 @@ class AppLocalizations {
 
   String get appTitle => _value('appTitle');
   String get home => _value('home');
+  String get bottomNavigationHome => _bottomNavigationValue('home');
   String get greeting => locale.languageCode == 'ar' ? 'مرحبًا' : 'Hallo';
   String get documents => _value('documents');
+  String get bottomNavigationDocuments => _bottomNavigationValue('documents');
   String get importDocument => _value('importDocument');
   String get analyze => _value('analyze');
+  String get bottomNavigationAnalyze => _bottomNavigationValue('analyze');
   String get tasks => _value('tasks');
+  String get bottomNavigationTasks => _bottomNavigationValue('tasks');
   String get profile => _value('profile');
   String get settings => _value('settings');
+  String get bottomNavigationSettings => _bottomNavigationValue('settings');
   String get scanImport => _value('scanImport');
   String get upcoming => _value('upcoming');
   String get recentDocuments => _value('recentDocuments');
@@ -151,7 +156,28 @@ class AppLocalizations {
       (_documentLibraryStrings[locale.languageCode] ??
           _documentLibraryStrings['de']!)[key] ??
       key;
+
+  String _bottomNavigationValue(String key) =>
+      (_bottomNavigationStrings[locale.languageCode] ??
+          _bottomNavigationStrings['de']!)[key]!;
 }
+
+const _bottomNavigationStrings = <String, Map<String, String>>{
+  'de': {
+    'home': 'Start',
+    'documents': 'Dokumente',
+    'analyze': 'Analyse',
+    'tasks': 'Aufgaben',
+    'settings': 'Einst.',
+  },
+  'ar': {
+    'home': 'الرئيسية',
+    'documents': 'المستندات',
+    'analyze': 'تحليل',
+    'tasks': 'المهام',
+    'settings': 'الإعدادات',
+  },
+};
 
 const _resultStrings = <String, Map<String, String>>{
   'de': {

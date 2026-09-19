@@ -17,55 +17,43 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final l10n = context.l10n;
     final documents = ref.watch(homeDocumentsProvider);
-    return Theme(
-      data: AppTheme.light(),
-      child: Material(
-        color: AppColors.background,
-        child: SafeArea(
-          child: Column(
-            children: [
-              const _HomeAppHeader(),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                    AppSpacing.lg,
-                    AppSpacing.md,
-                    AppSpacing.lg,
-                    AppSpacing.xl,
-                  ),
-                  children: [
-                    // Text(
-                    //   l10n.greeting,
-                    //   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    //     color: AppColors.textPrimary,
-                    //     fontWeight: FontWeight.w400,
-                    //     fontSize: 18,
-                    //     height: 1.2,
-                    //   ),
-                    // ),
-                    documents.when(
-                      loading: () => const Padding(
-                        padding: EdgeInsets.only(top: AppSpacing.xl),
-                        child: LinearProgressIndicator(),
-                      ),
-                      error: (error, _) => Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.xl),
-                        child: AppErrorState(message: error.toString()),
-                      ),
-                      data: (items) => _HomeOverview(
-                        query: _HomeOverviewQuery(items),
-                        onOpenDocument: (id) => _openDocument(context, id),
-                        onViewAll: () => _openDocuments(context),
-                        onImport: () => context.go(AppRoutes.importDocument),
-                      ),
-                    ),
-                  ],
+
+    return Material(
+      color: AppColors.background,
+      child: SafeArea(
+        child: Column(
+          children: [
+            const _HomeAppHeader(),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xl,
                 ),
+                children: [
+                  documents.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.only(top: AppSpacing.xl),
+                      child: LinearProgressIndicator(),
+                    ),
+                    error: (error, _) => Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xl),
+                      child: AppErrorState(message: error.toString()),
+                    ),
+                    data: (items) => _HomeOverview(
+                      query: _HomeOverviewQuery(items),
+                      onOpenDocument: (id) => _openDocument(context, id),
+                      onViewAll: () => _openDocuments(context),
+                      onImport: () => context.go(AppRoutes.importDocument),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -248,8 +236,8 @@ class _ActionRequiredItem extends StatelessWidget {
     final l10n = context.l10n;
     final analysis = entry.analysis!;
     const primary = AppColors.primary;
-    final detail = _firstMeaningful(analysis.nextActions) ??
-        l10n.actionRequiredBody;
+    final detail =
+        _firstMeaningful(analysis.nextActions) ?? l10n.actionRequiredBody;
     final deadline = _firstDeadline(analysis);
     final amount = analysis.amounts.isEmpty
         ? null
@@ -387,9 +375,8 @@ class _ProcessingItem extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         l10n.analysisInProgress,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -533,36 +520,34 @@ class _HomeDocumentEntry {
       documentDisplayTitle(document, l10n, analysis: analysis, file: file);
 }
 
-final _homeOverviewProvider =
-    FutureProvider.autoDispose.family<_HomeOverviewData, _HomeOverviewQuery>(
-      (ref, query) async {
-        final entries = await Future.wait(
-          query.documents.map((document) async {
-            DocumentAnalysis? analysis;
-            DocumentFile? file;
-            try {
-              ref.invalidate(latestAnalysisProvider(document.clientDocumentId));
-              analysis = await ref.read(
-                latestAnalysisProvider(document.clientDocumentId).future,
-              );
-            } catch (_) {}
-            try {
-              ref.invalidate(documentFilesProvider(document.clientDocumentId));
-              final files = await ref.read(
-                documentFilesProvider(document.clientDocumentId).future,
-              );
-              file = files.isEmpty ? null : files.first;
-            } catch (_) {}
-            return _HomeDocumentEntry(
-              document: document,
-              analysis: analysis,
-              file: file,
+final _homeOverviewProvider = FutureProvider.autoDispose
+    .family<_HomeOverviewData, _HomeOverviewQuery>((ref, query) async {
+      final entries = await Future.wait(
+        query.documents.map((document) async {
+          DocumentAnalysis? analysis;
+          DocumentFile? file;
+          try {
+            ref.invalidate(latestAnalysisProvider(document.clientDocumentId));
+            analysis = await ref.read(
+              latestAnalysisProvider(document.clientDocumentId).future,
             );
-          }),
-        );
-        return _HomeOverviewData(entries);
-      },
-    );
+          } catch (_) {}
+          try {
+            ref.invalidate(documentFilesProvider(document.clientDocumentId));
+            final files = await ref.read(
+              documentFilesProvider(document.clientDocumentId).future,
+            );
+            file = files.isEmpty ? null : files.first;
+          } catch (_) {}
+          return _HomeDocumentEntry(
+            document: document,
+            analysis: analysis,
+            file: file,
+          );
+        }),
+      );
+      return _HomeOverviewData(entries);
+    });
 
 String? _firstMeaningful(List<String> values) {
   for (final value in values) {
@@ -596,7 +581,6 @@ void _openDocuments(BuildContext context) {
     context.go(AppRoutes.documents);
     return;
   }
-  Navigator.of(
-    context,
-  ).push(MaterialPageRoute(builder: (_) => const DocumentsPage()));
+  Navigator.of(context)
+      .push(MaterialPageRoute(builder: (_) => const DocumentsPage()));
 }

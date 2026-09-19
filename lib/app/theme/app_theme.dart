@@ -94,12 +94,16 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
       ),
       navigationBarTheme: NavigationBarThemeData(
+        height: 68,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         elevation: 0,
         backgroundColor: surface,
         indicatorColor: dark ? surfaceAlt : AppColors.primaryLight,
+        indicatorShape: const StadiumBorder(),
         surfaceTintColor: Colors.transparent,
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
+            size: 22,
             color: states.contains(WidgetState.selected)
                 ? primary
                 : textSecondary,
@@ -107,6 +111,9 @@ abstract final class AppTheme {
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
+            fontSize: 11,
+            height: 1.1,
+            letterSpacing: 0,
             color: states.contains(WidgetState.selected)
                 ? primary
                 : textSecondary,
