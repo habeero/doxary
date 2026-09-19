@@ -4,22 +4,65 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
-import '../../../shared/design_system/app_widgets.dart';
+import '../../../core/errors/app_error.dart';
+import '../domain/analysis_output_language.dart';
+import '../domain/analysis_submission.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../../documents/domain/classification/classification_selection.dart';
 import '../../documents/presentation/document_display.dart';
 import 'analysis_result_page.dart';
 
-class DocumentDetailPage extends ConsumerWidget {
+class DocumentDetailPage extends ConsumerStatefulWidget {
   const DocumentDetailPage({required this.clientDocumentId, super.key});
   final String clientDocumentId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DocumentDetailPage> createState() => _DocumentDetailPageState();
+}
+
+class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
+  bool _retrying = false;
+  String? _actionMessage;
+
+  Future<void> _retryAnalysis(List<DocumentFile> files) async {
+    if (_retrying || files.isEmpty) return;
+    setState(() {
+      _retrying = true;
+      _actionMessage = null;
+    });
+    try {
+      final output = ref.read(analysisLanguageProvider);
+      final submission = AnalysisSubmission(
+        clientDocumentId: widget.clientDocumentId,
+        files: files,
+        language: output.explanationLanguage,
+        style: output.explanationStyle,
+        idempotencyKey: ref.read(idGeneratorProvider).newId(),
+      );
+      final workflow = ref.read(analysisWorkflowProvider);
+      final accepted = await workflow.submit(submission);
+      await workflow.poll(accepted.operationId, widget.clientDocumentId);
+      ref
+        ..invalidate(documentProvider(widget.clientDocumentId))
+        ..invalidate(latestAnalysisProvider(widget.clientDocumentId));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _actionMessage = error is RemoteApiError && error.retryable
+            ? context.l10n.operationRetryableError
+            : context.l10n.operationFailedError;
+      });
+    } finally {
+      if (mounted) setState(() => _retrying = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final document = ref.watch(documentProvider(clientDocumentId));
-    final files = ref.watch(documentFilesProvider(clientDocumentId));
-    final analysis = ref.watch(latestAnalysisProvider(clientDocumentId));
+    final document = ref.watch(documentProvider(widget.clientDocumentId));
+    final files = ref.watch(documentFilesProvider(widget.clientDocumentId));
+    final analysis = ref.watch(latestAnalysisProvider(widget.clientDocumentId));
     final organizations = ref.watch(organizationsProvider);
     final cases = ref.watch(casesProvider);
     final localDocument = _asyncValue(document);
@@ -36,10 +79,13 @@ class DocumentDetailPage extends ConsumerWidget {
     final hasUnresolvedOrganizationSuggestion =
         !hasConfirmedOrganization &&
         latest?.classification?.organizationName != null;
+    final suggestedClassification = hasUnresolvedOrganizationSuggestion
+        ? latest?.classification
+        : null;
     final title = documentDisplayTitle(
       localDocument ??
           LocalDocument(
-            clientDocumentId: clientDocumentId,
+            clientDocumentId: widget.clientDocumentId,
             classificationState: ClassificationState.unclassified,
             status: DocumentStatus.imported,
             createdAt: DateTime.now(),
@@ -50,118 +96,238 @@ class DocumentDetailPage extends ConsumerWidget {
       file: _first(_asyncValue(files)),
       organizationName: organizationName,
     );
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          AppSectionCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
-                if (localDocument != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    '${l10n.organization}: ${organizationName ?? (hasConfirmedOrganization ? l10n.organization : l10n.unclassified)}',
-                  ),
-                  Text(
-                    '${l10n.caseLabel}: ${caseName ?? l10n.caseNotAssigned}',
-                  ),
-                  if (hasUnresolvedOrganizationSuggestion) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(l10n.suggestedClassification),
-                    Text(latest!.classification!.organizationName!),
-                    if (latest.classification!.documentType != null)
-                      Text(latest.classification!.documentType!),
-                    const SizedBox(height: AppSpacing.xs),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      children: [
-                        FilledButton(
-                          onPressed: () => _saveClassification(
-                            ref,
-                            clientDocumentId,
-                            organizationName:
-                                latest.classification!.organizationName,
-                            organizations:
-                                _asyncValue(organizations) ?? const [],
-                            cases: _asyncValue(cases) ?? const [],
-                          ),
-                          child: Text(l10n.confirm),
-                        ),
-                        OutlinedButton(
-                          onPressed: () => _showClassificationEditor(
-                            context,
-                            ref,
-                            clientDocumentId,
-                            organizationId: organizationId,
-                            caseId: caseId,
-                            organizations:
-                                _asyncValue(organizations) ?? const [],
-                            cases: _asyncValue(cases) ?? const [],
-                          ),
-                          child: Text(l10n.change),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (!hasUnresolvedOrganizationSuggestion)
-                    TextButton(
-                      onPressed: () => _showClassificationEditor(
-                        context,
-                        ref,
-                        clientDocumentId,
-                        organizationId: organizationId,
-                        caseId: caseId,
-                        organizations: _asyncValue(organizations) ?? const [],
-                        cases: _asyncValue(cases) ?? const [],
-                      ),
-                      child: Text(l10n.editClassification),
-                    ),
-                  Text(
-                    '${l10n.analysisState}: ${_documentStatus(l10n, localDocument.status)}',
-                  ),
-                  Text(
-                    localDocument.documentDate == null
-                        ? '${l10n.receivedDate}: ${localDocument.createdAt.year}'
-                        : '${l10n.documentDate}: ${localDocument.documentDate!.year}',
-                  ),
-                ],
-              ],
+    final classificationSection = localDocument == null
+        ? null
+        : _ClassificationSection(
+            organizationName: organizationName,
+            caseName: caseName,
+            hasConfirmedOrganization: hasConfirmedOrganization,
+            suggestion: suggestedClassification,
+            onConfirm: hasUnresolvedOrganizationSuggestion
+                ? () => _saveClassification(
+                    ref,
+                    widget.clientDocumentId,
+                    organizationName: suggestedClassification!.organizationName,
+                    organizations: _asyncValue(organizations) ?? const [],
+                    cases: _asyncValue(cases) ?? const [],
+                  )
+                : null,
+            onChange: () => _showClassificationEditor(
+              context,
+              ref,
+              widget.clientDocumentId,
+              organizationId: organizationId,
+              caseId: caseId,
+              organizations: _asyncValue(organizations) ?? const [],
+              cases: _asyncValue(cases) ?? const [],
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppSectionCard(
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.insert_drive_file_outlined),
-              title: Text(l10n.originalDocument),
-              subtitle: files.when(
-                data: (items) => items.isEmpty
-                    ? Text(l10n.originalDocumentUnavailable)
-                    : Text(
-                        items.first.originalFilename ??
-                            l10n.originalDocumentUnavailable,
-                      ),
-                loading: () => const LinearProgressIndicator(),
-                error: (_, _) => Text(l10n.originalDocumentUnavailable),
+          );
+    final originalSection = _OriginalDocumentSection(files: files);
+    final fileItems = _asyncValue(files) ?? const <DocumentFile>[];
+    final body = switch (analysis) {
+      AsyncLoading() => const Center(child: CircularProgressIndicator()),
+      AsyncError() => DocumentResultView(
+        title: title,
+        technicalFailure: true,
+        classificationSection: classificationSection,
+        originalDocumentSection: originalSection,
+        onRetry: fileItems.isEmpty ? null : () => _retryAnalysis(fileItems),
+        actionInProgress: _retrying,
+        actionMessage: _actionMessage,
+      ),
+      AsyncData(value: final value) =>
+        value == null
+            ? localDocument?.status == DocumentStatus.needsReview
+                  ? DocumentResultView(
+                      title: title,
+                      technicalFailure: true,
+                      classificationSection: classificationSection,
+                      originalDocumentSection: originalSection,
+                      onRetry: fileItems.isEmpty
+                          ? null
+                          : () => _retryAnalysis(fileItems),
+                      actionInProgress: _retrying,
+                      actionMessage: _actionMessage,
+                    )
+                  : _NoAnalysisView(
+                      title: title,
+                      classificationSection: classificationSection,
+                      originalDocumentSection: originalSection,
+                    )
+            : DocumentResultView(
+                title: title,
+                analysis: value,
+                classificationSection: classificationSection,
+                originalDocumentSection: originalSection,
+                actionInProgress: _retrying,
+                actionMessage: _actionMessage,
               ),
-            ),
+    };
+    return Scaffold(
+      appBar: AppBar(),
+      body: SafeArea(top: false, child: body),
+    );
+  }
+}
+
+class _NoAnalysisView extends StatelessWidget {
+  const _NoAnalysisView({
+    required this.title,
+    required this.classificationSection,
+    required this.originalDocumentSection,
+  });
+  final String title;
+  final Widget? classificationSection;
+  final Widget originalDocumentSection;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(AppSpacing.lg),
+    children: [
+      Text(
+        context.l10n.productName,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      const SizedBox(height: AppSpacing.xs),
+      Text(
+        title,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.titleLarge
+            ?.copyWith(fontSize: 22, height: 1.25, fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      Text(context.l10n.noSavedAnalysis),
+      if (classificationSection != null) ...[
+        const SizedBox(height: AppSpacing.lg),
+        classificationSection!,
+      ],
+      const Divider(height: AppSpacing.xl),
+      originalDocumentSection,
+    ],
+  );
+}
+
+class _ClassificationSection extends StatelessWidget {
+  const _ClassificationSection({
+    required this.organizationName,
+    required this.caseName,
+    required this.hasConfirmedOrganization,
+    required this.suggestion,
+    required this.onConfirm,
+    required this.onChange,
+  });
+  final String? organizationName;
+  final String? caseName;
+  final bool hasConfirmedOrganization;
+  final ClassificationSuggestion? suggestion;
+  final VoidCallback? onConfirm;
+  final VoidCallback onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Column(
+      key: const Key('classification-section'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          suggestion == null ? l.classification : l.suggestedClassification,
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (suggestion != null) ...[
+          if (suggestion!.organizationName?.trim().isNotEmpty ?? false)
+            Text(suggestion!.organizationName!),
+          if (suggestion!.documentType?.trim().isNotEmpty ?? false)
+            Text(suggestion!.documentType!),
+        ] else ...[
+          Text(
+            '${l.organization}: ${organizationName ?? (hasConfirmedOrganization ? l.organization : l.unclassified)}',
           ),
-          const SizedBox(height: AppSpacing.sm),
-          const SizedBox(height: AppSpacing.sm),
-          SizedBox(
-            height: 520,
-            child: AnalysisResultPage(
-              clientDocumentId: clientDocumentId,
-              embedded: true,
+          Text('${l.caseLabel}: ${caseName ?? l.caseNotAssigned}'),
+        ],
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            if (onConfirm != null)
+              FilledButton(
+                key: const Key('classification-confirm'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 40),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.padded,
+                ),
+                onPressed: onConfirm,
+                child: Text(l.confirm),
+              ),
+            TextButton(
+              key: const Key('classification-change'),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 40),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.sm,
+                ),
+                tapTargetSize: MaterialTapTargetSize.padded,
+              ),
+              onPressed: onChange,
+              child: Text(suggestion == null ? l.editClassification : l.change),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _OriginalDocumentSection extends StatelessWidget {
+  const _OriginalDocumentSection({required this.files});
+  final AsyncValue<List<DocumentFile>> files;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    key: const Key('original-document-section'),
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        context.l10n.originalDocument,
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(fontWeight: FontWeight.w700),
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.insert_drive_file_outlined,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: files.when(
+              data: (items) => Text(
+                items.isEmpty
+                    ? context.l10n.originalDocumentUnavailable
+                    : context.l10n.originalDocumentSavedLocally,
+              ),
+              loading: () => const LinearProgressIndicator(),
+              error: (_, _) => Text(context.l10n.originalDocumentUnavailable),
             ),
           ),
         ],
       ),
-    );
-  }
+    ],
+  );
 }
 
 Future<void> _saveClassification(
@@ -371,13 +537,3 @@ String? _findCase(List<Case>? values, String id) {
   }
   return null;
 }
-
-String _documentStatus(AppLocalizations l10n, DocumentStatus status) =>
-    switch (status) {
-      DocumentStatus.imported => l10n.imported,
-      DocumentStatus.processing => l10n.analysisUploading,
-      DocumentStatus.analyzed => l10n.analysisComplete,
-      DocumentStatus.needsReview => l10n.analysisFailed,
-      DocumentStatus.archived => l10n.archived,
-      DocumentStatus.deleted => l10n.deleted,
-    };

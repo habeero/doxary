@@ -4,53 +4,66 @@ import 'package:go_router/go_router.dart';
 import '../localization/app_localizations.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.navigationShell});
+  const AppShell({
+    super.key,
+    required this.navigationShell,
+    required this.location,
+  });
   final StatefulNavigationShell navigationShell;
+  final Uri location;
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final focusedDocument = isFocusedDocumentLocation(location);
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == navigationShell.currentIndex,
-        ),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home),
-            label: l10n.home,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.folder_outlined),
-            selectedIcon: const Icon(Icons.folder),
-            label: l10n.documents,
-          ),
-          NavigationDestination(
-            icon: _ImportIcon(),
-            selectedIcon: const _ImportIcon(selected: true),
-            label: l10n.importDocument,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.checklist_outlined),
-            selectedIcon: const Icon(Icons.checklist),
-            label: l10n.tasks,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: const Icon(Icons.person),
-            label: l10n.profile,
-          ),
-        ],
-      ),
+      bottomNavigationBar: focusedDocument
+          ? null
+          : NavigationBar(
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: (index) => navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              ),
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home),
+                  label: l10n.home,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.folder_outlined),
+                  selectedIcon: const Icon(Icons.folder),
+                  label: l10n.documents,
+                ),
+                NavigationDestination(
+                  icon: _AnalyzeIcon(),
+                  selectedIcon: const _AnalyzeIcon(selected: true),
+                  label: l10n.analyze,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.checklist_outlined),
+                  selectedIcon: const Icon(Icons.checklist),
+                  label: l10n.tasks,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings),
+                  label: l10n.settings,
+                ),
+              ],
+            ),
     );
   }
 }
 
-class _ImportIcon extends StatelessWidget {
-  const _ImportIcon({this.selected = false});
+bool isFocusedDocumentLocation(Uri uri) {
+  final segments = uri.pathSegments;
+  return segments.length == 2 && segments.first == 'documents';
+}
+
+class _AnalyzeIcon extends StatelessWidget {
+  const _AnalyzeIcon({this.selected = false});
   final bool selected;
   @override
   Widget build(BuildContext context) => Container(
@@ -64,7 +77,7 @@ class _ImportIcon extends StatelessWidget {
           : Theme.of(context).colorScheme.primaryContainer,
     ),
     child: Icon(
-      Icons.add_a_photo_outlined,
+      Icons.document_scanner_outlined,
       size: 18,
       color: selected
           ? Theme.of(context).colorScheme.onPrimary

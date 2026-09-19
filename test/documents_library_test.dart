@@ -26,12 +26,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          recentDocumentsProvider.overrideWithValue(AsyncValue.data(documents)),
-          openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          homeDocumentsProvider.overrideWithValue(AsyncValue.data(documents)),
           for (final document in documents)
             ..._documentOverrides(document.clientDocumentId),
         ],
-        child: _app(const HomePage()),
+        child: _homeApp(const HomePage()),
       ),
     );
     await tester.pumpAndSettle();
@@ -193,7 +192,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Originaldokument'), findsOneWidget);
-      expect(find.text('letter.pdf'), findsWidgets);
+      expect(
+        find.text(
+          'Das Original ist lokal gespeichert. Öffnen ist noch nicht verfügbar.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('letter.pdf'), findsNothing);
       expect(find.text('Persisted summary'), findsOneWidget);
     },
   );
@@ -215,3 +220,5 @@ Widget _app(Widget home) => MaterialApp(
   ],
   home: home,
 );
+
+Widget _homeApp(Widget home) => _app(Scaffold(body: home));

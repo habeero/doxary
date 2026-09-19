@@ -12,11 +12,17 @@ class AppLocalizations {
   String get home => _value('home');
   String get documents => _value('documents');
   String get importDocument => _value('importDocument');
+  String get analyze => _value('analyze');
   String get tasks => _value('tasks');
   String get profile => _value('profile');
+  String get settings => _value('settings');
   String get scanImport => _value('scanImport');
   String get upcoming => _value('upcoming');
   String get recentDocuments => _value('recentDocuments');
+  String get processingDocuments => _value('processingDocuments');
+  String get analysisInProgress => _value('analysisInProgress');
+  String get openDocument => _value('openDocument');
+  String get viewAllDocuments => _value('viewAllDocuments');
   String get noUpcomingTasks => _value('noUpcomingTasks');
   String get noDocuments => _value('noDocuments');
   String get unclassified => _value('unclassified');
@@ -112,8 +118,32 @@ class AppLocalizations {
   String get qualityUnsupported => _value('qualityUnsupported');
   String get qualityCorrupt => _value('qualityCorrupt');
   String get qualityInsufficient => _value('qualityInsufficient');
+  String get productName => _value('productName');
+  String get summary => _value('summary');
+  String get importantFacts => _value('importantFacts');
+  String get classification => _value('classification');
+  String get noActionRequiredTitle => _value('noActionRequiredTitle');
+  String get noActionRequiredBody => _value('noActionRequiredBody');
+  String get actionRequiredBody => _value('actionRequiredBody');
+  String get reviewRequiredTitle => _value('reviewRequiredTitle');
+  String get reviewRequiredBody => _value('reviewRequiredBody');
+  String get technicalFailureTitle => _value('technicalFailureTitle');
+  String get technicalFailureBody => _value('technicalFailureBody');
+  String get retryAnalysis => _value('retryAnalysis');
+  String get unreadableResultTitle => _value('unreadableResultTitle');
+  String get unreadableResultBody => _value('unreadableResultBody');
+  String get chooseClearerDocument => _value('chooseClearerDocument');
+  String get addTaskReminder => _value('addTaskReminder');
+  String get analysisDetails => _value('analysisDetails');
+  String get suggestedTasks => _value('suggestedTasks');
+  String get deadline => _value('deadline');
+  String get appointment => _value('appointment');
+  String get amount => _value('amount');
+  String get originalDocumentSavedLocally =>
+      _value('originalDocumentSavedLocally');
   String _value(String key) =>
       (_strings[locale.languageCode] ?? _strings['de']!)[key] ??
+      (_resultStrings[locale.languageCode] ?? _resultStrings['de']!)[key] ??
       (_extraStrings[locale.languageCode] ?? _extraStrings['de']!)[key] ??
       (_analysisLanguageStrings[locale.languageCode] ??
           _analysisLanguageStrings['de']!)[key] ??
@@ -121,6 +151,62 @@ class AppLocalizations {
           _documentLibraryStrings['de']!)[key] ??
       key;
 }
+
+const _resultStrings = <String, Map<String, String>>{
+  'de': {
+    'productName': 'Doxary',
+    'summary': 'Zusammenfassung',
+    'importantFacts': 'Wichtige Angaben',
+    'classification': 'Zuordnung',
+    'noActionRequiredTitle': 'Keine Aktion erforderlich',
+    'noActionRequiredBody': 'Dieses Dokument erfordert derzeit keine Aktion.',
+    'actionRequiredBody': 'Dieses Dokument enthält eine erforderliche Aktion.',
+    'reviewRequiredTitle': 'Bitte prüfen',
+    'reviewRequiredBody': 'Die Analyse ist teilweise oder unsicher. Prüfe die markierten Angaben im Originaldokument.',
+    'technicalFailureTitle': 'Analyse nicht abgeschlossen',
+    'technicalFailureBody': 'Die Analyse ist technisch fehlgeschlagen. Das gespeicherte Dokument bleibt erhalten.',
+    'retryAnalysis': 'Analyse erneut starten',
+    'unreadableResultTitle': 'Dokument nicht ausreichend lesbar',
+    'unreadableResultBody': 'Für eine verlässliche Analyse wird ein vollständigeres oder klareres Dokument benötigt.',
+    'chooseClearerDocument': 'Klareres Dokument auswählen',
+    'addTaskReminder': 'Aufgabe oder Erinnerung hinzufügen',
+    'analysisDetails': 'Weitere Analysedetails',
+    'suggestedTasks': 'Vorgeschlagene Aufgaben',
+    'deadline': 'Frist',
+    'appointment': 'Termin',
+    'amount': 'Betrag',
+    'originalDocumentSavedLocally':
+        'Das Original ist lokal gespeichert. Öffnen ist noch nicht verfügbar.',
+  },
+  'ar': {
+    'productName': 'Doxary',
+    'summary': 'الملخص',
+    'importantFacts': 'المعلومات المهمة',
+    'classification': 'التصنيف',
+    'noActionRequiredTitle': 'لا يلزم اتخاذ إجراء',
+    'noActionRequiredBody': 'لا يتطلب هذا المستند أي إجراء حاليًا.',
+    'actionRequiredBody': 'يتضمن هذا المستند إجراءً مطلوبًا.',
+    'reviewRequiredTitle': 'يرجى المراجعة',
+    'reviewRequiredBody':
+        'التحليل جزئي أو غير مؤكد. راجع المعلومات المحددة في المستند الأصلي.',
+    'technicalFailureTitle': 'لم يكتمل التحليل',
+    'technicalFailureBody':
+        'تعذر إكمال التحليل بسبب مشكلة تقنية. يبقى المستند المحفوظ متاحًا.',
+    'retryAnalysis': 'إعادة التحليل',
+    'unreadableResultTitle': 'المستند غير واضح بما يكفي',
+    'unreadableResultBody':
+        'يلزم مستند أوضح أو أكثر اكتمالًا للحصول على تحليل موثوق.',
+    'chooseClearerDocument': 'اختيار مستند أوضح',
+    'addTaskReminder': 'إضافة مهمة أو تذكير',
+    'analysisDetails': 'تفاصيل التحليل الإضافية',
+    'suggestedTasks': 'المهام المقترحة',
+    'deadline': 'المهلة',
+    'appointment': 'الموعد',
+    'amount': 'المبلغ',
+    'originalDocumentSavedLocally':
+        'المستند الأصلي محفوظ محليًا. الفتح غير متاح بعد.',
+  },
+};
 
 const _analysisLanguageStrings = <String, Map<String, String>>{
   'de': {
@@ -143,38 +229,37 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'classificationConfirmed': 'Zugeordnet',
     'documentFallback': 'Dokument',
     'originalDocument': 'Originaldokument',
-    'originalDocumentUnavailable':
-        '\u00d6ffnen des Originals ist noch nicht verf\u00fcgbar.',
+    'originalDocumentUnavailable': 'Das Originaldokument ist nicht verfügbar.',
     'documentDate': 'Dokumentdatum',
     'receivedDate': 'Empfangen',
     'analysisState': 'Analysestatus',
     'viewAnalysis': 'Analyse ansehen',
     'imported': 'Importiert',
     'archived': 'Archiviert',
-    'deleted': 'Gel\u00f6scht',
+    'deleted': 'Gelöscht',
     'confirm': 'Bestätigen',
     'organization': 'Organisation',
     'caseLabel': 'Vorgang',
     'caseNotAssigned': 'Nicht zugeordnet',
     'suggestedClassification': 'Vorgeschlagene Zuordnung',
-    'change': 'Aendern',
+    'change': 'Ändern',
     'editClassification': 'Zuordnung bearbeiten',
     'save': 'Speichern',
     'cancel': 'Abbrechen',
-    'chooseOrganization': 'Organisation waehlen',
+    'chooseOrganization': 'Organisation wählen',
     'organizationName': 'Name der Organisation',
     'caseName': 'Name des Vorgangs',
     'clearCase': 'Vorgang entfernen',
-    'cases': 'Vorgaenge',
+    'cases': 'Vorgänge',
     'organizationDocuments': 'Dokumente ohne Vorgang',
   },
   'ar': {
-    'unclassified': '\u063a\u064a\u0631 \u0645\u0635\u0646\u0641',
+    'unclassified': 'غير مصنف',
     'classificationSuggested': '\u0627\u0642\u062a\u0631\u0627\u062d \u2013 \u064a\u0631\u062c\u0649 \u0627\u0644\u062a\u0623\u0643\u064a\u062f',
     'classificationConfirmed': '\u0645\u0635\u0646\u0641',
     'documentFallback': '\u0645\u0633\u062a\u0646\u062f',
-    'originalDocument': '\u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a',
-    'originalDocumentUnavailable': '\u0641\u062a\u062d \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u0628\u0639\u062f.',
+    'originalDocument': 'المستند الأصلي',
+    'originalDocumentUnavailable': 'المستند الأصلي غير متاح.',
     'documentDate': '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0645\u0633\u062a\u0646\u062f',
     'receivedDate': '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0633\u062a\u0644\u0627\u0645',
     'analysisState':
@@ -185,24 +270,21 @@ const _documentLibraryStrings = <String, Map<String, String>>{
         '\u062a\u0645 \u0627\u0644\u0627\u0633\u062a\u064a\u0631\u0627\u062f',
     'archived': '\u0645\u0624\u0631\u0634\u0641',
     'deleted': '\u0645\u062d\u0630\u0648\u0641',
-    'confirm': '\u062a\u0623\u0643\u064a\u062f',
-    'organization': '\u0627\u0644\u0645\u0624\u0633\u0633\u0629',
-    'caseLabel': '\u0627\u0644\u0645\u0639\u0627\u0645\u0644\u0629',
-    'caseNotAssigned': '\u063a\u064a\u0631 \u0645\u062d\u062f\u062f\u0629',
-    'suggestedClassification': '\u0627\u0644\u062a\u0635\u0646\u064a\u0641 \u0627\u0644\u0645\u0642\u062a\u0631\u062d',
-    'change': '\u062a\u063a\u064a\u064a\u0631',
-    'editClassification': '\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062a\u0635\u0646\u064a\u0641',
+    'confirm': 'تأكيد',
+    'organization': 'الجهة',
+    'caseLabel': 'المعاملة',
+    'caseNotAssigned': 'غير محددة',
+    'suggestedClassification': 'التصنيف المقترح',
+    'change': 'تغيير',
+    'editClassification': 'تعديل التصنيف',
     'save': '\u062d\u0641\u0638',
     'cancel': '\u0625\u0644\u063a\u0627\u0621',
-    'chooseOrganization':
-        '\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0624\u0633\u0633\u0629',
-    'organizationName':
-        '\u0627\u0633\u0645 \u0627\u0644\u0645\u0624\u0633\u0633\u0629',
-    'caseName': '\u0627\u0633\u0645 \u0627\u0644\u0645\u0644\u0641',
-    'clearCase':
-        '\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0645\u0644\u0641',
-    'cases': '\u0627\u0644\u0645\u0644\u0641\u0627\u062a',
-    'organizationDocuments': '\u0645\u0633\u062a\u0646\u062f\u0627\u062a \u0628\u062f\u0648\u0646 \u0645\u0644\u0641',
+    'chooseOrganization': 'اختر الجهة',
+    'organizationName': 'اسم الجهة',
+    'caseName': 'اسم المعاملة',
+    'clearCase': 'إزالة المعاملة',
+    'cases': 'المعاملات',
+    'organizationDocuments': 'مستندات بلا معاملة',
   },
 };
 
@@ -248,24 +330,22 @@ const _extraStrings = <String, Map<String, String>>{
         'Möglicherweise sind nicht genügend Inhalte vorhanden.',
   },
   'ar': {
-    'analysisTitle': '\u0627\u0644\u062a\u062d\u0644\u064a\u0644',
-    'analysisReadError': '\u062a\u0639\u0630\u0631 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u062a\u062d\u0644\u064a\u0644 \u0627\u0644\u0645\u062d\u0641\u0648\u0638.',
-    'noSavedAnalysis': '\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u062d\u0644\u064a\u0644 \u0645\u062d\u0641\u0648\u0638 \u0628\u0639\u062f.',
+    'analysisTitle': 'التحليل',
+    'analysisReadError': 'تعذر قراءة التحليل المحفوظ.',
+    'noSavedAnalysis': 'لا يوجد تحليل محفوظ بعد.',
     'suggestion': '\u0627\u0642\u062a\u0631\u0627\u062d',
-    'explanation': '\u0627\u0644\u0634\u0631\u062d',
+    'explanation': 'الشرح',
     'outputStyle': '\u0623\u0633\u0644\u0648\u0628 \u0627\u0644\u0625\u062e\u0631\u0627\u062c',
     'whatToDo': '\u0645\u0627 \u0627\u0644\u0630\u064a \u064a\u062c\u0628 \u0641\u0639\u0644\u0647؟',
-    'actionRequired': '\u0627\u0644\u0625\u062c\u0631\u0627\u0621 \u0645\u0637\u0644\u0648\u0628',
+    'actionRequired': 'الإجراء مطلوب',
     'urgency': '\u0627\u0644\u0623\u0648\u0644\u0648\u064a\u0629',
     'deadlines': '\u0627\u0644\u0645\u0648\u0627\u0639\u064a\u062f \u0627\u0644\u0646\u0647\u0627\u0626\u064a\u0629',
     'appointments': '\u0627\u0644\u0645\u0648\u0627\u0639\u064a\u062f',
     'amounts': '\u0627\u0644\u0645\u0628\u0627\u0644\u063a',
-    'requiredDocuments': '\u0627\u0644\u0645\u0633\u062a\u0646\u062f\u0627\u062a \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629',
-    'nextActions': '\u0627\u0644\u062e\u0637\u0648\u0627\u062a \u0627\u0644\u062a\u0627\u0644\u064a\u0629',
-    'documentQuality':
-        '\u062c\u0648\u062f\u0629 \u0627\u0644\u0645\u0633\u062a\u0646\u062f',
-    'pleaseVerify':
-        '\u064a\u0631\u062c\u0649 \u0627\u0644\u062a\u062d\u0642\u0642',
+    'requiredDocuments': 'المستندات المطلوبة',
+    'nextActions': 'الخطوات التالية',
+    'documentQuality': 'جودة المستند',
+    'pleaseVerify': 'يرجى التحقق',
     'evidence': '\u0627\u0644\u0623\u062f\u0644\u0629',
     'sourceReferences': '\u0627\u0644\u0645\u0631\u0627\u062c\u0639',
     'standard': '\u0642\u064a\u0627\u0633\u064a',
@@ -280,13 +360,13 @@ const _extraStrings = <String, Map<String, String>>{
     'normal': '\u0639\u0627\u062f\u064a',
     'high': '\u0645\u0631\u062a\u0641\u0639',
     'critical': '\u062d\u0631\u062c',
-    'qualityBlurry': '\u0642\u062f \u062a\u0643\u0648\u0646 \u0627\u0644\u0635\u0648\u0631\u0629 \u063a\u064a\u0631 \u0648\u0627\u0636\u062d\u0629.',
-    'qualityCutOff': '\u0642\u062f \u062a\u0643\u0648\u0646 \u0627\u0644\u0635\u0641\u062d\u0629 \u0645\u0642\u0635\u0648\u0635\u0629.',
-    'qualityUnreadable': '\u0628\u0639\u0636 \u0627\u0644\u0646\u0635 \u063a\u064a\u0631 \u0645\u0642\u0631\u0648\u0621.',
-    'qualityMissing': '\u0642\u062f \u062a\u0643\u0648\u0646 \u0647\u0646\u0627\u0643 \u0635\u0641\u062d\u0627\u062a \u0645\u0641\u0642\u0648\u062f\u0629.',
-    'qualityUnsupported': '\u0635\u064a\u063a\u0629 \u0627\u0644\u0645\u0644\u0641 \u063a\u064a\u0631 \u0645\u062f\u0639\u0648\u0645\u0629.',
-    'qualityCorrupt': '\u0642\u062f \u064a\u0643\u0648\u0646 \u0627\u0644\u0645\u0644\u0641 \u062a\u0627\u0644\u0641\u0627.',
-    'qualityInsufficient': '\u0642\u062f \u0644\u0627 \u064a\u0643\u0648\u0646 \u0627\u0644\u0645\u062d\u062a\u0648\u0649 \u0643\u0627\u0641\u064a\u0627ً.',
+    'qualityBlurry': 'قد تكون الصورة غير واضحة.',
+    'qualityCutOff': 'قد تكون الصفحة مقصوصة.',
+    'qualityUnreadable': 'بعض النص غير مقروء.',
+    'qualityMissing': 'قد تكون هناك صفحات مفقودة.',
+    'qualityUnsupported': 'صيغة الملف غير مدعومة.',
+    'qualityCorrupt': 'قد يكون الملف تالفًا.',
+    'qualityInsufficient': 'قد لا يكون المحتوى كافيًا.',
   },
 };
 
@@ -296,11 +376,17 @@ const _strings = <String, Map<String, String>>{
     'home': 'Start',
     'documents': 'Dokumente',
     'importDocument': 'Neu',
+    'analyze': 'Analysieren',
     'tasks': 'Aufgaben',
     'profile': 'Profil',
+    'settings': 'Einstellungen',
     'scanImport': 'Dokument importieren',
     'upcoming': 'Anstehende Aufgaben',
     'recentDocuments': 'Letzte Dokumente',
+    'processingDocuments': 'In Bearbeitung',
+    'analysisInProgress': 'Analyse läuft',
+    'openDocument': 'Dokument öffnen',
+    'viewAllDocuments': 'Alle Dokumente anzeigen',
     'noUpcomingTasks': 'Keine anstehenden Aufgaben',
     'noDocuments': 'Noch keine Dokumente',
     'today': 'Heute',
@@ -335,11 +421,17 @@ const _strings = <String, Map<String, String>>{
     'home': 'الرئيسية',
     'documents': 'المستندات',
     'importDocument': 'إضافة',
+    'analyze': 'تحليل',
     'tasks': 'المهام',
     'profile': 'الملف الشخصي',
+    'settings': 'الإعدادات',
     'scanImport': 'استيراد مستند',
     'upcoming': 'المهام القادمة',
     'recentDocuments': 'أحدث المستندات',
+    'processingDocuments': 'قيد التحليل',
+    'analysisInProgress': 'جارٍ التحليل',
+    'openDocument': 'فتح المستند',
+    'viewAllDocuments': 'عرض كل المستندات',
     'noUpcomingTasks': 'لا توجد مهام قادمة',
     'noDocuments': 'لا توجد مستندات بعد',
     'today': 'اليوم',

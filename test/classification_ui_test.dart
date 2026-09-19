@@ -31,13 +31,34 @@ void main() {
       expect(find.textContaining(l10n.caseNotAssigned), findsOneWidget);
     },
   );
+
+  testWidgets('suggested classification actions stay visually secondary', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _pump(tester, const Locale('de'), confirmed: false);
+
+    final confirm = find.byKey(const Key('classification-confirm'));
+    final change = find.byKey(const Key('classification-change'));
+    expect(confirm, findsOneWidget);
+    expect(change, findsOneWidget);
+    expect(tester.getSize(confirm).width, lessThan(216));
+    expect(tester.widget<TextButton>(change), isA<TextButton>());
+  });
 }
 
-Future<void> _pump(WidgetTester tester, Locale locale) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Locale locale, {
+  bool confirmed = true,
+}) async {
   final document = LocalDocument(
     clientDocumentId: 'doc',
-    organizationId: 'org',
-    classificationState: ClassificationState.confirmed,
+    organizationId: confirmed ? 'org' : null,
+    classificationState: confirmed
+        ? ClassificationState.confirmed
+        : ClassificationState.suggested,
     status: DocumentStatus.analyzed,
     createdAt: DateTime(2026),
     updatedAt: DateTime(2026),

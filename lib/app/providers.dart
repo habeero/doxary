@@ -92,6 +92,9 @@ final entitlementServiceProvider = Provider<EntitlementService>(
 final recentDocumentsProvider = StreamProvider<List<LocalDocument>>(
   (ref) => ref.watch(documentRepositoryProvider).watchRecent(),
 );
+final homeDocumentsProvider = StreamProvider<List<LocalDocument>>(
+  (ref) => ref.watch(documentRepositoryProvider).watchAll(),
+);
 final allDocumentsProvider = StreamProvider<List<LocalDocument>>(
   (ref) => ref.watch(documentRepositoryProvider).watchAll(),
 );

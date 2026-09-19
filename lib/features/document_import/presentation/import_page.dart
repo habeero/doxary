@@ -9,7 +9,7 @@ import '../../../core/logging/debug_log.dart';
 import '../../../shared/design_system/app_widgets.dart';
 import '../../document_analysis/domain/analysis_submission.dart';
 import '../../document_analysis/domain/analysis_output_language.dart';
-import '../../document_analysis/presentation/analysis_result_page.dart';
+import '../../document_analysis/presentation/document_detail_page.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../domain/document_import.dart';
 
@@ -64,7 +64,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
           setState(() => _busy = false);
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => AnalysisResultPage(
+              builder: (_) => DocumentDetailPage(
                 clientDocumentId: terminal.result!.clientDocumentId,
               ),
             ),
@@ -107,7 +107,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         setState(() => _busy = false);
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => AnalysisResultPage(
+            builder: (_) => DocumentDetailPage(
               clientDocumentId: submission.clientDocumentId,
             ),
           ),
