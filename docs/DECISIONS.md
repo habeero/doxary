@@ -1,6 +1,6 @@
 # Architecture decisions
 
-Each entry is an ADR-style confirmed decision. Open product/commercial choices remain open unless stated.
+Each entry is an ADR-style record of a confirmed decision, its historical rationale, alternatives, and consequences. Current authoritative specifications live in the relevant documentation domains. If an ADR and a current domain specification differ, the current specification governs implementation unless a newer ADR explicitly changes it. Open product/commercial choices remain open unless stated.
 
 ## D-001 Flutter, Riverpod, GoRouter, and feature-first Clean Architecture
 
@@ -89,4 +89,4 @@ Every release follows: feature complete -> independent cross-repository audit ->
 
 ## D-020 Design-first UX architecture before further feature expansion
 
-**Context:** The analysis pipeline and document organization work end-to-end, but their screens are not yet a coherent product-ready experience. **Decision:** Phase 2.6.3 defines and approves UX architecture, information hierarchy, and wireframes before substantial new product UI is implemented. **Consequences:** implementation follows approved screen designs; Tasks, assistant/questions/reply drafting, quotas/billing, and release hardening remain unimplemented. Analysis latency is instrumented and optimized only from measured timing evidence. The Import/Processing design must eliminate accidental duplicate submission by clearing or locking transient selected files once analysis starts. **Alternative:** continued incremental widget changes without a coherent UX plan was rejected.
+**Context:** The analysis pipeline and document organization work end-to-end, but their screens are not yet a coherent product-ready experience. **Decision:** the approved screen designs, information hierarchy, wireframes, and duplicate-submission interaction requirement are maintained in the authoritative [UI/UX documentation](ui-ux/README.md). **Consequences:** implementation follows approved screen designs; Tasks, assistant/questions/reply drafting, quotas/billing, and release hardening remain unimplemented. Analysis latency is instrumented and optimized only from measured timing evidence. **Alternative:** continued incremental widget changes without a coherent UX plan was rejected.

@@ -2,28 +2,96 @@
 
 ## Before changing anything
 
-1. Read every applicable `AGENTS.md`, the relevant files in `docs/`, and `README.md`.
-2. Treat documented decisions as authoritative. Do not change architecture silently; record material changes in `docs/DECISIONS.md` and update affected documentation in the same change.
-3. Keep code and documentation synchronized. Resolve ambiguity by documenting it, not by inventing a product requirement.
+1. Read this `AGENTS.md`.
+2. Determine the documentation domain relevant to the requested task.
+3. Read only that domain under `docs/`.
+4. Do not read unrelated domains unless the task has a real cross-domain dependency.
+5. Treat the relevant domain documentation as authoritative.
+6. Do not invent product requirements when documentation is ambiguous.
 
-## Architecture rules
+## Documentation routing
 
-- Keep Flutter UI free of business logic. Domain code must be independent of Flutter and infrastructure.
-- Use feature-first Clean Architecture; keep features modular and avoid duplicated business rules.
-- Persist typed domain concepts, not loose maps. Do not leak persistence or API models into UI.
-- Flutter must never call OpenAI or any AI provider directly. Provider-specific code stays behind backend abstractions.
-- Preserve the Organization -> Case -> Document model. Do not remove future-facing boundaries merely because the first implementation is small; equally, do not add abstraction without an identified purpose.
-- Keep API changes backward compatible when practical and version API routes. Do not add dependencies without a clear reason.
+- UI / UX -> `docs/ui-ux/`
+- Application logic -> `docs/app-logic/`
+- App / backend integration -> `docs/app-backend/`
+- AI -> `docs/ai/`
+- Monetization -> `docs/monetization/`
 
-## Data, privacy, and operations
+For cross-domain work, inspect only the additional domain required.
 
-- Never commit secrets. Do not log raw document content, identifiers, addresses, income, or other sensitive values.
-- Treat document data as privacy-sensitive. Follow `docs/SECURITY_PRIVACY.md` for retention, deletion, and telemetry.
-- Use forward database migrations only. Never reset or delete a production database to solve migration problems.
-- Add tests for business rules and regression fixes.
+## Root-level cross-domain documentation
 
-## Application identity
+- Product definition -> `docs/PRODUCT.md`
+- MVP scope -> `docs/MVP_SCOPE.md`
+- Cross-domain architecture -> `docs/ARCHITECTURE.md`
+- Decision history / ADRs -> `docs/DECISIONS.md`
+- Roadmap / planning -> `docs/ROADMAP.md`
+- Release governance -> `docs/RELEASE.md`
+- Security / privacy governance -> `docs/SECURITY_PRIVACY.md`
+- Repository-wide testing governance -> `docs/TESTING.md`
 
-- Doxary uses `de.habeero.doxary` for Android and iOS application identity.
-- Do not introduce alternative package, bundle, or application IDs without an explicit documented decision.
-- Temporary project/product names must not silently become external identifiers.
+Read these root documents only when a task directly concerns their purpose or a real cross-domain dependency requires them. Do not read them by default for ordinary UI/UX, application-logic, app/backend, AI, or monetization work.
+
+ADRs preserve historical rationale. Current domain documentation remains authoritative for current implementation behavior.
+
+## Scope discipline
+
+Stay within the requested scope.
+
+Do not expand work into unrelated:
+- features,
+- refactors,
+- architecture changes,
+- documentation domains.
+
+If another domain is genuinely required, identify that dependency before expanding the implementation unless the task explicitly authorizes it.
+
+## Documentation ownership
+
+Each durable rule, decision, contract, or behavior must have one authoritative documentation location.
+
+Do not duplicate authoritative documentation across domains.
+
+When durable behavior changes:
+- update the affected domain documentation;
+- update that domain's `CHANGELOG.md`.
+
+Do not update the root `CHANGELOG.md` unless explicitly requested.
+
+## Validation policy
+
+Do not run slow or expensive Flutter commands unless explicitly requested.
+
+Do not run by default:
+- `flutter analyze`
+- `flutter test`
+- `flutter run`
+- `flutter build`
+- emulator/device/debug operations
+- full generators
+
+Allowed by default:
+- inspect/edit files
+- `dart format` on touched Dart files
+- `git diff --check`
+- lightweight targeted inspection
+
+Report the exact heavier validation commands the user should run manually when needed.
+
+## General repository safety
+
+- Never commit secrets.
+- Do not modify generated files manually unless explicitly required.
+- Preserve behavior outside the requested scope.
+- Do not add dependencies without a clear reason.
+- Do not claim commands were run if they were not run.
+
+## Completion report
+
+Report concisely:
+- what changed,
+- which domain was affected,
+- important files changed,
+- documentation updated,
+- validation actually performed,
+- manual validation still recommended.

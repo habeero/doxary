@@ -1,7 +1,11 @@
-# Release principles
+# Release governance
 
-Use separate development, test/staging, and production environments with isolated credentials/data. Version Android/iOS releases independently from the versioned API; define a minimum supported app version and a supported API compatibility window before public release. Prefer additive API/schema changes and explicit deprecation periods.
+## Environments and progression
 
-Database changes use reviewed, forward-only migrations, tested on representative non-production data. Rollback plans favor application rollback compatible with migrated data; do not erase production data to recover from a migration issue. Feature flags and remote configuration allow controlled rollout, kill switches, and experiments without embedding provider credentials in clients.
+Use separate development, test/staging, and production environments with isolated credentials and data. Progress releases through readiness review, a release candidate, and final release. Rollout and recovery ownership must be defined before public release.
 
-Releases need privacy/security review, redacted observability, contract and regression checks, store compliance review, changelog/release notes, and recovery ownership. Hosting and deployment provider choices remain open and must not change the mobile-domain contract.
+## Release readiness
+
+Each release requires privacy/security review, redacted observability, cross-domain contract and regression validation, store-compliance review, changelog/release notes, and a recovery plan. The pre-release audit gate is defined in [DECISIONS.md](DECISIONS.md).
+
+Detailed migration, API compatibility, configuration, and validation requirements remain in their owning domains. Hosting and deployment-provider choices remain open and must not change established product or domain contracts.

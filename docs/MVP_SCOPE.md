@@ -2,15 +2,14 @@
 
 ## Included
 
-- Camera, image, and PDF import architecture; later implementation will analyze imported German documents.
-- Structured vision analysis first: sender, type, language, extracted facts, separate explanation, action state, urgency, dates, appointments, amounts, requested documents, tasks, warnings, typed quality reasons, evidence, and confidence. On-device OCR is not required.
-- Document/case questions, simpler explanations, German reply drafts, and access to original German text.
-- Automatic and manual tasks, deadlines, appointments, local reminders, and Today/Upcoming/Completed views.
-- Browsing by Organization -> Case -> Documents, correction of suggestions, simple search-ready metadata, Arabic explanation/UI architecture with RTL.
+- Import and understanding of German administrative documents.
+- Structured document results with practical next-step support.
+- Organization of related documents and user-controlled correction of suggestions.
+- Action tracking, reminders, and access to original source material.
 
 ## Product acceptance criteria
 
-A user can import and save one document even when classification fails, receive a structured actionable result, correct or accept its organization/case, create or accept tasks, receive a local reminder, mark work complete, and later find a confirmed document under its case. The system never requires hierarchy creation before import, and unclear facts are marked rather than invented.
+A user can import and retain a document, receive an understandable structured result, review or correct suggested organization, create or accept follow-up work, receive a local reminder, complete that work, and later find the document again in its relevant context. Unclear information is identified rather than presented as certain.
 
 ## Post-MVP candidates
 
@@ -18,4 +17,4 @@ Cloud sync/storage, accounts, push notifications, multilingual launch including 
 
 ## Explicitly excluded from MVP
 
-Legal/tax advice, automatic legal decisions, government portal automation, email inbox integration, cloud drive, family accounts, push infrastructure, full multi-device sync, advertising, and a full calendar product.
+Legal/tax advice, automatic legal decisions, government portal automation, email inbox integration, cloud drive, family accounts, push infrastructure, full multi-device sync, and a full calendar product.

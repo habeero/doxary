@@ -1,12 +1,8 @@
 # Architecture
 
-## Shape and dependency direction
+## System topology and dependency direction
 
-The planned Flutter client is Android-first and iOS-ready, local-first, using Riverpod for application state/DI, GoRouter for navigation, and Drift/SQLite for local persistence. It is feature-first Clean Architecture: presentation depends on application/domain; application depends on domain; data/infrastructure implements domain repository ports. Domain depends on neither Flutter nor database/network libraries.
-
-`lib/app/` owns bootstrap, routing, theme, localization, and config; `lib/core/` owns replaceable cross-cutting adapters (database, networking, storage, notifications, security, logging); `lib/features/<feature>/` owns domain, data, application, and presentation slices; `lib/shared/` holds only genuinely cross-feature design-system/widgets. Complex features use `domain/{entities,repositories,usecases}`, `data/{models,datasources,repositories}`, `application/{providers,controllers}`, and `presentation/{pages,widgets,state}`.
-
-The later Flask backend uses versioned REST routes, with API, services, repositories, models, schemas, auth, AI, billing, extensions, and common concerns separated. SQLAlchemy/PostgreSQL are backend persistence concerns; Alembic migrations are introduced only in Phase 2.
+Doxary is a mobile-first Flutter client paired with a backend service. The client owns local user-facing use cases and local data; the backend owns remote processing and server concerns. Detailed application behavior, API contracts, and AI processing are documented in their respective domains.
 
 ```mermaid
 flowchart LR
@@ -21,26 +17,8 @@ flowchart LR
  S --> PG[(PostgreSQL later)]
 ```
 
-## Local-first and ownership
+## Ownership and infrastructure boundaries
 
-The device owns the user's local documents, structured analysis, corrections, tasks, and reminder schedule. Original files remain local by default. The backend temporarily processes uploads and returns validated structured output; permanent server originals are not required for V1. Remote identity, quota, and sync are future bounded contexts, not prerequisites for core local use.
+Flutter and backend communicate only through the documented integration boundary. The backend does not imply ownership of a user's local originals or local application state. Infrastructure adapters remain replaceable, and hosting is deliberately unspecified.
 
-Document-first processing is the intended flow: import and save the local Document, submit selected files for vision-capable analysis, then show the result before any document-scoped assistant action. On-device OCR is not required for the MVP.
-
-Assistant operations are also local-first. The client sends a minimum scoped context envelope for a question or reply draft: its `client_document_id`, validated local analysis, and only the source text/evidence and conversation turns needed for that operation. The backend processes that request context temporarily under the retention policy; it does not resolve the client ID to a permanent server document or require an account/cloud sync. A future sync service may map a local document to a `server_resource_id`, but that is an optional infrastructure capability and does not change the domain model or MVP assistant contract.
-
-No bidirectional sync protocol is defined yet. If introduced, local entities need stable client-generated IDs, `created_at`, `updated_at`, deletion tombstones, revision/version metadata, and explicit conflict rules; sync must not silently overwrite user corrections.
-
-## Responsibility boundaries
-
-Client: capture/import, encrypted-at-rest evaluation, local storage, offline views, local reminders, rendering localized content, classification acceptance/correction, and construction of minimum assistant context. Backend: provider credentials, upload/request-context validation and temporary lifecycle, AI routing/prompts/schema validation, quotas, abuse controls, normalized errors, cost records, remote config, and future account/sync/billing. Flutter receives product operations, never provider credentials or provider/model names.
-
-Infrastructure and repository implementations are replaceable via ports. Hosting is deliberately unspecified.
-
-## Phase 1 implementation
-
-The Flutter foundation is implemented under `lib/`: `app/` owns bootstrap, localization, routing, theme, and Riverpod composition; `core/` owns typed errors, Drift database, reminder capability, and IDs; `features/` owns domain contracts, local data adapters, application task bucketing, and presentation pages; `shared/design_system/` provides small reusable UI primitives. Drift mapping code is generated beside `core/database/app_database.dart` and is not used outside data adapters.
-
-Phase 2.6 implements the document-analysis remote port with a focused `http` transport, versioned backend DTO mapping, and a bounded polling workflow. Configuration is centralized in `DoxaryApiConfig`; widgets do not construct requests or parse API errors. The backend DTO is mapped at the data boundary into Flutter domain entities, then persisted through the local repository. `FilePickerDocumentImportGateway` implements PDF and multi-image local-file selection behind the existing import port; it preserves picker order and does not copy or parse files. Direct camera/scanner capture remains deferred.
-
-The result presentation path is local-first: `AnalysisResultPage` depends on the `AnalysisRepository` read port, which maps the latest typed Drift row back to the existing `DocumentAnalysis` entity. Navigation from Documents uses this route, so reopening a document does not contact the backend.
+See [Application logic](app-logic/README.md), [App/backend integration](app-backend/README.md), and [AI](ai/README.md) for the corresponding current specifications.
