@@ -10,6 +10,7 @@ class AppLocalizations {
 
   String get appTitle => _value('appTitle');
   String get home => _value('home');
+  String get greeting => locale.languageCode == 'ar' ? 'مرحبًا' : 'Hallo';
   String get documents => _value('documents');
   String get importDocument => _value('importDocument');
   String get analyze => _value('analyze');

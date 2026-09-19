@@ -17,43 +17,107 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
+    // final l10n = context.l10n;
     final documents = ref.watch(homeDocumentsProvider);
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.xl,
+    return Theme(
+      data: AppTheme.light(),
+      child: Material(
+        color: AppColors.background,
+        child: SafeArea(
+          child: Column(
+            children: [
+              const _HomeAppHeader(),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.xl,
+                  ),
+                  children: [
+                    // Text(
+                    //   l10n.greeting,
+                    //   style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    //     color: AppColors.textPrimary,
+                    //     fontWeight: FontWeight.w400,
+                    //     fontSize: 18,
+                    //     height: 1.2,
+                    //   ),
+                    // ),
+                    documents.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.only(top: AppSpacing.xl),
+                        child: LinearProgressIndicator(),
+                      ),
+                      error: (error, _) => Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xl),
+                        child: AppErrorState(message: error.toString()),
+                      ),
+                      data: (items) => _HomeOverview(
+                        query: _HomeOverviewQuery(items),
+                        onOpenDocument: (id) => _openDocument(context, id),
+                        onViewAll: () => _openDocuments(context),
+                        onImport: () => context.go(AppRoutes.importDocument),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _HomeAppHeader extends StatelessWidget {
+  const _HomeAppHeader();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    header: true,
+    label: context.l10n.productName,
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xffE2E8F0))),
+      ),
+      child: Row(
         children: [
-          Text(
-            l10n.productName,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+          Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            child: const Icon(
+              Icons.description_outlined,
+              color: Colors.white,
+              size: 18,
             ),
           ),
-          documents.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.only(top: AppSpacing.xl),
-              child: LinearProgressIndicator(),
-            ),
-            error: (error, _) => Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.xl),
-              child: AppErrorState(message: error.toString()),
-            ),
-            data: (items) => _HomeOverview(
-              query: _HomeOverviewQuery(items),
-              onOpenDocument: (id) => _openDocument(context, id),
-              onViewAll: () => _openDocuments(context),
-              onImport: () => context.go(AppRoutes.importDocument),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            context.l10n.productName,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _HomeOverview extends ConsumerWidget {
@@ -104,7 +168,7 @@ class _HomeOverview extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (data.actionRequired.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.md),
               _SectionTitle(title: l10n.actionRequired),
               const SizedBox(height: AppSpacing.sm),
               for (final entry in data.actionRequired) ...[
@@ -116,7 +180,7 @@ class _HomeOverview extends ConsumerWidget {
               ],
             ],
             if (data.processing.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
               _SectionTitle(title: l10n.processingDocuments),
               const SizedBox(height: AppSpacing.sm),
               for (final entry in data.processing) ...[
@@ -128,7 +192,7 @@ class _HomeOverview extends ConsumerWidget {
               ],
             ],
             if (data.recent.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
               _SectionTitle(title: l10n.recentDocuments),
               const SizedBox(height: AppSpacing.sm),
               for (var index = 0; index < data.recent.length; index++) ...[
@@ -141,11 +205,12 @@ class _HomeOverview extends ConsumerWidget {
                 if (index < data.recent.length - 1) const Divider(),
               ],
             ],
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 onPressed: onViewAll,
+                style: TextButton.styleFrom(foregroundColor: AppColors.primary),
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(l10n.viewAllDocuments),
               ),
@@ -165,7 +230,10 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Text(
     title,
     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+      color: AppColors.textPrimary,
+      fontSize: 17,
       fontWeight: FontWeight.w600,
+      height: 1.2,
     ),
   );
 }
@@ -179,7 +247,7 @@ class _ActionRequiredItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final analysis = entry.analysis!;
-    final primary = Theme.of(context).colorScheme.primary;
+    const primary = AppColors.primary;
     final detail = _firstMeaningful(analysis.nextActions) ??
         l10n.actionRequiredBody;
     final deadline = _firstDeadline(analysis);
@@ -190,13 +258,13 @@ class _ActionRequiredItem extends StatelessWidget {
       button: true,
       label: '${l10n.actionRequired}: ${entry.title(l10n)}',
       child: Material(
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: AppColors.primaryLight,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -208,13 +276,19 @@ class _ActionRequiredItem extends StatelessWidget {
                       child: Text(
                         entry.title(l10n),
                         style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                            ?.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Text(detail),
+                Text(
+                  detail,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                ),
                 if (deadline != null || amount != null) ...[
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
@@ -239,6 +313,7 @@ class _ActionRequiredItem extends StatelessWidget {
                   alignment: AlignmentDirectional.centerStart,
                   child: TextButton(
                     onPressed: onTap,
+                    style: TextButton.styleFrom(foregroundColor: primary),
                     child: Text(l10n.openDocument),
                   ),
                 ),
@@ -279,38 +354,51 @@ class _ProcessingItem extends StatelessWidget {
       button: true,
       label: '${l10n.processingDocuments}: ${entry.title(l10n)}',
       child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainer,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             child: Row(
               children: [
                 const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
                         entry.title(l10n),
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: AppColors.textPrimary),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         l10n.analysisInProgress,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
           ),
@@ -333,31 +421,49 @@ class _RecentDocumentItem extends StatelessWidget {
       button: true,
       label: entry.title(l10n),
       child: InkWell(
+        key: Key('home-recent-document-${entry.document.clientDocumentId}'),
         borderRadius: BorderRadius.circular(8),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           child: Row(
             children: [
-              const Icon(Icons.description_outlined),
-              const SizedBox(width: AppSpacing.md),
+              const Icon(
+                Icons.description_outlined,
+                size: 20,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
                       entry.title(l10n),
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        height: 1.2,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       MaterialLocalizations.of(context).formatMediumDate(date),
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                        height: 1.2,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right),
+              const Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),

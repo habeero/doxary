@@ -34,7 +34,18 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Dokument'), findsNWidgets(5));
+    expect(
+      find.byKey(const Key('home-recent-document-recent-0')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('home-recent-document-recent-4')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('home-recent-document-recent-5')),
+      findsNothing,
+    );
   });
 
   testWidgets('Documents library shows all records and no opaque IDs', (
