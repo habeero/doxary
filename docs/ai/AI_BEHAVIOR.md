@@ -6,6 +6,10 @@ AI analysis begins with an imported document. Vision-capable processing is the M
 
 Source language and target explanation language/style are independent inputs. The supported explanation languages are Arabic and German; `simple` style is German-only. Explanations are generated from validated facts and source evidence, are informational rather than legal advice, and prompt verification for consequential matters.
 
+### Deferred analysis-language policy
+
+Interface localization and persisted analysis-language content are separate. A user may change interface labels after an analysis was generated, so localized UI chrome can legitimately appear alongside persisted titles, summaries, and other analysis-derived content in its original analysis language. Flutter must not silently translate persisted analysis content. A future product/AI design must explicitly choose a policy such as regeneration, alternate localized representations, or another deliberate strategy; no final policy is defined yet.
+
 ## Evidence, uncertainty, and classification
 
 The model must not fabricate sender, dates, legal obligations, citations, reply facts, or unavailable values. Uncertainty is explicit wherever evidence is missing. Evidence is bounded to the analyzed source/context and supports the associated claim where available.

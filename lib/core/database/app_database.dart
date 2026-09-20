@@ -70,6 +70,11 @@ class Analyses extends Table {
   TextColumn get state => text()();
   TextColumn get analysisStatus =>
       text().withDefault(const Constant('complete'))();
+  TextColumn get actionRequired => text().nullable()();
+  TextColumn get documentDate => text().nullable()();
+  TextColumn get detectedLanguage => text().withDefault(const Constant('undetermined'))();
+  TextColumn get urgency => text().withDefault(const Constant('uncertain'))();
+  RealColumn get confidence => real().nullable()();
   TextColumn get explanationStyle =>
       text().withDefault(const Constant('standard'))();
   // Classification is analysis provenance, not a confirmed document relation.
@@ -86,6 +91,52 @@ class AnalysisQualityReasons extends Table {
   TextColumn get reason => text()();
   @override
   Set<Column<Object>> get primaryKey => {id};
+}
+
+class AnalysisNextActions extends Table {
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get value => text()();
+  @override Set<Column<Object>> get primaryKey => {id};
+}
+class AnalysisUncertainties extends Table {
+  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()(); TextColumn get message => text()();
+  @override Set<Column<Object>> get primaryKey => {id};
+}
+class AnalysisPracticalStates extends Table {
+  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()(); TextColumn get state => text()();
+  @override Set<Column<Object>> get primaryKey => {id};
+}
+class AnalysisDeadlines extends Table {
+  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
+  TextColumn get label => text()(); TextColumn get dateOrRange => text().nullable()(); RealColumn get confidence => real().nullable()();
+  TextColumn get time => text().nullable()(); TextColumn get timezone => text().nullable()(); TextColumn get consequence => text().nullable()(); TextColumn get sourceReference => text().nullable()();
+  @override Set<Column<Object>> get primaryKey => {id};
+}
+class AnalysisAppointments extends Table {
+  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
+  TextColumn get label => text()(); TextColumn get startOrDate => text().nullable()(); RealColumn get confidence => real().nullable()();
+  TextColumn get end => text().nullable()(); TextColumn get location => text().nullable()(); TextColumn get preparation => text().nullable()(); TextColumn get sourceReference => text().nullable()();
+  @override Set<Column<Object>> get primaryKey => {id};
+}
+class AnalysisAmounts extends Table {
+  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
+  TextColumn get value => text()(); TextColumn get currency => text()(); TextColumn get direction => text()(); RealColumn get confidence => real().nullable()();
+  TextColumn get dueDate => text().nullable()(); TextColumn get purpose => text().nullable()(); TextColumn get sourceReference => text().nullable()();
+  @override Set<Column<Object>> get primaryKey => {id};
+}
+class AnalysisRequiredDocuments extends Table {
+  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
+  TextColumn get description => text()(); RealColumn get confidence => real().nullable()(); TextColumn get dueDate => text().nullable()(); TextColumn get submissionMethod => text().nullable()(); TextColumn get sourceReference => text().nullable()();
+  @override Set<Column<Object>> get primaryKey => {id};
+}
+class AnalysisSuggestedTasks extends Table {
+  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
+  TextColumn get title => text()(); RealColumn get confidence => real().nullable()(); TextColumn get dueDate => text().nullable()(); TextColumn get instructions => text().nullable()(); TextColumn get sourceReference => text().nullable()();
+  @override Set<Column<Object>> get primaryKey => {id};
 }
 
 class SourceReferences extends Table {
@@ -186,6 +237,7 @@ class UserSettings extends Table {
     DocumentFiles,
     Analyses,
     AnalysisQualityReasons,
+    AnalysisNextActions, AnalysisUncertainties, AnalysisPracticalStates, AnalysisDeadlines, AnalysisAppointments, AnalysisAmounts, AnalysisRequiredDocuments, AnalysisSuggestedTasks,
     SourceReferences,
     Tasks,
     Deadlines,
@@ -200,7 +252,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -220,6 +272,18 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4) {
         await m.addColumn(analyses, analyses.suggestedOrganizationName);
         await m.addColumn(analyses, analyses.suggestedDocumentType);
+      }
+      if (from < 5) {
+        await m.addColumn(analyses, analyses.actionRequired);
+      }
+      if (from < 6) {
+        await m.addColumn(analyses, analyses.documentDate);
+        await m.addColumn(analyses, analyses.detectedLanguage);
+        await m.addColumn(analyses, analyses.urgency);
+        await m.addColumn(analyses, analyses.confidence);
+        await m.createTable(analysisNextActions); await m.createTable(analysisUncertainties); await m.createTable(analysisPracticalStates);
+        await m.createTable(analysisDeadlines); await m.createTable(analysisAppointments); await m.createTable(analysisAmounts);
+        await m.createTable(analysisRequiredDocuments); await m.createTable(analysisSuggestedTasks);
       }
     },
   );

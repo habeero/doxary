@@ -14,7 +14,7 @@ Platform-dependent import and reminder capabilities are accessed through typed a
 
 Document-first processing saves the local Document and its selected file references before analysis. Import does not require a prior Organization or Case. A document may progress through imported, processing, analyzed, needs-review, archived, and deleted states; classification is tracked independently as unclassified, suggested, or confirmed.
 
-Analysis results are persisted as a new typed local analysis version. Existing results are read locally; reopening a result must not itself initiate another analysis. Optional result sections may be absent, but complete, partial, and unavailable remain explicit outcomes.
+Analysis results are persisted as a new typed local analysis version. Existing results are read locally; reopening a result must not itself initiate another analysis. Optional result sections may be absent, but complete, partial, and unavailable remain explicit outcomes. Result presentation selects `partial` before action state; a complete result with `action_required: uncertain` remains complete and receives action-specific review guidance. An unavailable result is corrective-input recovery only for `blurry_image`, `page_cut_off`, `unreadable_text`, `missing_pages`, or `insufficient_content`; `unsupported_file` and `corrupt_file` use a distinct truthful input-problem state.
 
 If analysis is unavailable, partial, or fails, the local Document and its originals remain available. Classification failure leaves the Document unclassified and analyzable. A terminal failure moves the Document to needs review and is surfaced as a typed, user-safe error. Failure never deletes a local Document or invents classification data.
 

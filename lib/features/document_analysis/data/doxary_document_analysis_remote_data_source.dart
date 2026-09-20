@@ -63,6 +63,12 @@ class DoxaryDocumentAnalysisRemoteDataSource
         ),
       );
     }
+    analysisDebugLog(
+      'upload',
+      'multipart_ready uri=${request.url} files=${ordered.length} '
+          'input_kind=${submission.isPdf ? 'pdf' : 'images'} '
+          'declared_sizes=${ordered.map((file) => file.byteSize ?? -1).join(',')}',
+    );
     final response = await _api.send(request);
     final body = await _api.readJson(response);
     analysisDebugLog('accepted_parsing', 'status=${response.statusCode}');

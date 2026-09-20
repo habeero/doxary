@@ -30,6 +30,8 @@ Required-action content receives stronger prominence than secondary explanation.
 
 Bottom sheets are preferred for lightweight selection and small contextual creation forms, including choosing or minimally creating an Organization/Case. Confirmation dialogs are used for consequential or destructive actions. Create/Edit Task is a focused full-screen flow rather than a primary destination.
 
+Use the smallest interaction surface that preserves clarity and task completion. Lightweight contextual selection uses a Bottom Sheet or modal; small contextual creation/edit forms use a Bottom Sheet where appropriate; consequential or destructive confirmation uses a Dialog; and multi-step, information-dense, interruption-sensitive, or task-focused work uses a focused full-screen flow. In Doxary, Organization/Case selection and minimal Organization/Case creation use Bottom Sheets, classification correction uses a Bottom Sheet/modal, delete confirmation uses a Dialog, and Document Detail/Result, Processing, camera review, and Create/Edit Task remain focused full-screen flows. Do not create a full-screen route for a lightweight contextual interaction solely because navigation is convenient.
+
 Create/Edit Task may include title, date, optional time or all-day, reminder, linked Document or Case, and optional note. When All Day is selected, time is inactive and not required. When created from a Document Result, the Document association is preserved and Organization is derived from the linked Document/Case rather than becoming a conflicting editable field. Delete Task requires confirmation; completing a task normally does not.
 
 ## Settings and notifications

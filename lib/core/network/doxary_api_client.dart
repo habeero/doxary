@@ -21,18 +21,49 @@ class DoxaryApiClient {
   final Duration timeout;
 
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    analysisDebugLog('http', '${request.method} ${request.url.path}');
+    final stopwatch = Stopwatch()..start();
+    analysisDebugLog(
+      'http',
+      'send_start method=${request.method} uri=${request.url} '
+          'timeout_ms=${timeout.inMilliseconds} '
+          'content_length=${request.contentLength ?? 'unknown'}',
+    );
     try {
       final response = await _client.send(request).timeout(timeout);
-      analysisDebugLog('http', 'status=${response.statusCode}');
+      analysisDebugLog(
+        'http',
+        'send_response status=${response.statusCode} '
+            'elapsed_ms=${stopwatch.elapsedMilliseconds}',
+      );
       return response;
     } on TimeoutException catch (error) {
+      analysisDebugLog(
+        'http',
+        'send_timeout stage=send_or_response_headers '
+            'elapsed_ms=${stopwatch.elapsedMilliseconds} '
+            'type=${error.runtimeType} uri=${request.url}',
+      );
       throw RemoteUnavailableError('The connection timed out.', cause: error);
     } on http.ClientException catch (error) {
+      analysisDebugLog(
+        'http',
+        'send_client_exception stage=connect_or_send '
+            'elapsed_ms=${stopwatch.elapsedMilliseconds} '
+            'type=${error.runtimeType} uri=${request.url} '
+            'message=${error.message}',
+      );
       throw RemoteUnavailableError(
         'No connection to Doxary is available.',
         cause: error,
       );
+    } catch (error) {
+      analysisDebugLog(
+        'http',
+        'send_exception stage=send_or_response_headers '
+            'elapsed_ms=${stopwatch.elapsedMilliseconds} '
+            'type=${error.runtimeType} uri=${request.url}',
+      );
+      rethrow;
     }
   }
 

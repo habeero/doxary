@@ -4,17 +4,17 @@ All schemas are JSON objects with an explicit `schema_version`, typed values, an
 
 ## Common analysis constraints
 
-`analysis_status` is `complete`, `partial`, or `unavailable`. All analysis output includes confidence from 0 to 1, `uncertainties[]`, and evidence references whenever source material supports a claim. An unavailable fact must not be replaced with a guess.
+`analysis_status` is `complete`, `partial`, or `unavailable`. All analysis output includes `uncertainties[]`, and evidence references whenever source material supports a claim. An unavailable fact must not be replaced with a guess.
 
 Facts, explanation, evidence, and quality/uncertainty are distinct values. A Document identifier is only an opaque correlation value, never proof of a permanent server resource. Organization and Case outputs are suggestions/provenance, not confirmed relationships.
 
 ## DocumentAnalysis v1
 
-Required fields are `client_document_id`, `analysis_status`, `detected_language` (or `undetermined`), `action_required` (`yes|no|uncertain`), `urgency` (`low|normal|high|critical|uncertain`), `confidence`, `warnings[]`, `uncertainties[]`, and typed `quality_reasons[]`.
+The current `analysis_result.v1` model-facing required fields are `analysis_status`, `detected_language`, `classification`, `action_required` (`yes|no|uncertain`), `urgency` (`low|normal|high|critical|uncertain`), `practical_states[]`, `extracted_facts`, `explanation`, `source_references[]`, `uncertainties[]`, and typed `quality_issues[]`. The backend injects the server-owned `client_document_id` and `schema_version` before authoritative validation.
 
-`extracted_facts` and `explanation` are separate. Explanation includes `output_language` (`arabic|german`) and `explanation_style` (`standard|simple`). Optional typed fields include `summary`, Organization/Case suggestions, document facts, action facts, and `source_references[]` with `reference_id`, `page_number?`, `file_id?`, and `excerpt_label?`.
+`extracted_facts` and `explanation` are separate. Explanation includes `language` and `style` (`standard|simple`), plus `summary`, `body`, and `next_actions[]`. Classification provides Organization and document-type suggestions; Case suggestion is not in the current schema. Evidence references use `reference_id`, `file_id?`, `page_number?`, `page_index?`, `location?`, `excerpt?`, and `provenance`.
 
-`quality_reasons` is limited to `blurry_image`, `page_cut_off`, `unreadable_text`, `missing_pages`, `unsupported_file`, `corrupt_file`, and `insufficient_content`. These are semantic quality outcomes, distinct from technical processing failures. `practical_states` is a non-exclusive set of `informational`, `action_required`, `appointment`, `payment`, and `documents_required`.
+`quality_issues[].reason` is limited to `blurry_image`, `page_cut_off`, `unreadable_text`, `missing_pages`, `unsupported_file`, `corrupt_file`, and `insufficient_content`. These are semantic quality outcomes, distinct from technical processing failures. `practical_states` is a non-exclusive set of `informational`, `action_required`, `appointment`, `payment`, and `documents_required`.
 
 ## Nested values
 

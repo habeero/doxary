@@ -60,6 +60,14 @@ class AppLocalizations {
   String get clearCase => _value('clearCase');
   String get cases => _value('cases');
   String get organizationDocuments => _value('organizationDocuments');
+  String get organizations => _value('organizations');
+  String get withoutCase => _value('withoutCase');
+  String get searchDocuments => _value('searchDocuments');
+  String get searchCases => _value('searchCases');
+  String get gridView => _value('gridView');
+  String get listView => _value('listView');
+  String get noMatchingOrganizations => _value('noMatchingOrganizations');
+  String get noMatchingCases => _value('noMatchingCases');
   String get today => _value('today');
   String get completed => _value('completed');
   String get noTasks => _value('noTasks');
@@ -95,6 +103,8 @@ class AppLocalizations {
   String get outputStyle => _value('outputStyle');
   String get whatToDo => _value('whatToDo');
   String get actionRequired => _value('actionRequired');
+  String get actionQuestion => _value('actionQuestion');
+  String get actionUncertainTitle => _value('actionUncertainTitle');
   String get urgency => _value('urgency');
   String get deadlines => _value('deadlines');
   String get appointments => _value('appointments');
@@ -138,7 +148,11 @@ class AppLocalizations {
   String get retryAnalysis => _value('retryAnalysis');
   String get unreadableResultTitle => _value('unreadableResultTitle');
   String get unreadableResultBody => _value('unreadableResultBody');
+  String get documentRetainedMessage => _value('documentRetainedMessage');
   String get chooseClearerDocument => _value('chooseClearerDocument');
+  String get unavailableInputTitle => _value('unavailableInputTitle');
+  String get unavailableInputBody => _value('unavailableInputBody');
+  String get chooseAnotherDocument => _value('chooseAnotherDocument');
   String get addTaskReminder => _value('addTaskReminder');
   String get analysisDetails => _value('analysisDetails');
   String get suggestedTasks => _value('suggestedTasks');
@@ -155,6 +169,8 @@ class AppLocalizations {
           _analysisLanguageStrings['de']!)[key] ??
       (_documentLibraryStrings[locale.languageCode] ??
           _documentLibraryStrings['de']!)[key] ??
+      (_documentBrowserStrings[locale.languageCode] ??
+          _documentBrowserStrings['de']!)[key] ??
       key;
 
   String _bottomNavigationValue(String key) =>
@@ -182,12 +198,18 @@ const _bottomNavigationStrings = <String, Map<String, String>>{
 const _resultStrings = <String, Map<String, String>>{
   'de': {
     'productName': 'Doxary',
+    'unavailableInputTitle': 'Dokument kann nicht verarbeitet werden',
+    'unavailableInputBody':
+        'Dieses Dokument kann in seinem aktuellen Format oder Zustand nicht analysiert werden.',
+    'chooseAnotherDocument': 'Anderes Dokument auswÃ¤hlen',
     'summary': 'Zusammenfassung',
     'importantFacts': 'Wichtige Angaben',
     'classification': 'Zuordnung',
     'noActionRequiredTitle': 'Keine Aktion erforderlich',
     'noActionRequiredBody': 'Dieses Dokument erfordert derzeit keine Aktion.',
     'actionRequiredBody': 'Dieses Dokument enthält eine erforderliche Aktion.',
+    'actionQuestion': 'Muss etwas getan werden?',
+    'actionUncertainTitle': 'Nicht sicher feststellbar',
     'reviewRequiredTitle': 'Bitte prüfen',
     'reviewRequiredBody': 'Die Analyse ist teilweise oder unsicher. Prüfe die markierten Angaben im Originaldokument.',
     'technicalFailureTitle': 'Analyse nicht abgeschlossen',
@@ -195,6 +217,7 @@ const _resultStrings = <String, Map<String, String>>{
     'retryAnalysis': 'Analyse erneut starten',
     'unreadableResultTitle': 'Dokument nicht ausreichend lesbar',
     'unreadableResultBody': 'Für eine verlässliche Analyse wird ein vollständigeres oder klareres Dokument benötigt.',
+    'documentRetainedMessage': 'Das importierte Dokument bleibt in Doxary erhalten.',
     'chooseClearerDocument': 'Klareres Dokument auswählen',
     'addTaskReminder': 'Aufgabe oder Erinnerung hinzufügen',
     'analysisDetails': 'Weitere Analysedetails',
@@ -207,12 +230,17 @@ const _resultStrings = <String, Map<String, String>>{
   },
   'ar': {
     'productName': 'Doxary',
+    'unavailableInputTitle': 'تعذر معالجة المستند',
+    'unavailableInputBody': 'لا يمكن تحليل هذا المستند بصيغته أو حالته الحالية.',
+    'chooseAnotherDocument': 'اختر مستندًا آخر',
     'summary': 'الملخص',
     'importantFacts': 'المعلومات المهمة',
     'classification': 'التصنيف',
     'noActionRequiredTitle': 'لا يلزم اتخاذ إجراء',
     'noActionRequiredBody': 'لا يتطلب هذا المستند أي إجراء حاليًا.',
     'actionRequiredBody': 'يتضمن هذا المستند إجراءً مطلوبًا.',
+    'actionQuestion': 'هل يلزم اتخاذ إجراء؟',
+    'actionUncertainTitle': 'لا يمكن تحديد ذلك بثقة',
     'reviewRequiredTitle': 'يرجى المراجعة',
     'reviewRequiredBody':
         'التحليل جزئي أو غير مؤكد. راجع المعلومات المحددة في المستند الأصلي.',
@@ -223,6 +251,7 @@ const _resultStrings = <String, Map<String, String>>{
     'unreadableResultTitle': 'المستند غير واضح بما يكفي',
     'unreadableResultBody':
         'يلزم مستند أوضح أو أكثر اكتمالًا للحصول على تحليل موثوق.',
+    'documentRetainedMessage': 'يبقى المستند المستورد محفوظًا في Doxary.',
     'chooseClearerDocument': 'اختيار مستند أوضح',
     'addTaskReminder': 'إضافة مهمة أو تذكير',
     'analysisDetails': 'تفاصيل التحليل الإضافية',
@@ -312,6 +341,29 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'clearCase': 'إزالة المعاملة',
     'cases': 'المعاملات',
     'organizationDocuments': 'مستندات بلا معاملة',
+  },
+};
+
+const _documentBrowserStrings = <String, Map<String, String>>{
+  'de': {
+    'organizations': 'Organisationen',
+    'withoutCase': 'Ohne Vorgang',
+    'searchDocuments': 'Dokumente suchen',
+    'searchCases': 'Vorgänge suchen',
+    'gridView': 'Rasteransicht',
+    'listView': 'Listenansicht',
+    'noMatchingOrganizations': 'Keine passenden Organisationen',
+    'noMatchingCases': 'Keine passenden Vorgänge',
+  },
+  'ar': {
+    'organizations': '\u0627\u0644\u062c\u0647\u0627\u062a',
+    'withoutCase': '\u0628\u0644\u0627 \u0645\u0639\u0627\u0645\u0644\u0629',
+    'searchDocuments': '\u0627\u0628\u062d\u062b \u0639\u0646 \u0627\u0644\u0645\u0633\u062a\u0646\u062f\u0627\u062a',
+    'searchCases': '\u0627\u0628\u062d\u062b \u0639\u0646 \u0627\u0644\u0645\u0639\u0627\u0645\u0644\u0627\u062a',
+    'gridView': '\u0639\u0631\u0636 \u0634\u0628\u0643\u064a',
+    'listView': '\u0639\u0631\u0636 \u0642\u0627\u0626\u0645\u0629',
+    'noMatchingOrganizations': '\u0644\u0627 \u062a\u0648\u062c\u062f \u062c\u0647\u0627\u062a \u0645\u0637\u0627\u0628\u0642\u0629',
+    'noMatchingCases': '\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0639\u0627\u0645\u0644\u0627\u062a \u0645\u0637\u0627\u0628\u0642\u0629',
   },
 };
 

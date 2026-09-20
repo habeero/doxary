@@ -164,7 +164,15 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
               ),
     };
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          key: const Key('document-detail-back'),
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          onPressed: () => Navigator.of(context).maybePop(),
+          icon: const BackButtonIcon(),
+        ),
+      ),
       body: SafeArea(top: false, child: body),
     );
   }
@@ -230,64 +238,137 @@ class _ClassificationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
     return Column(
       key: const Key('classification-section'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          suggestion == null ? l.classification : l.suggestedClassification,
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        if (suggestion != null) ...[
-          if (suggestion!.organizationName?.trim().isNotEmpty ?? false)
-            Text(suggestion!.organizationName!),
-          if (suggestion!.documentType?.trim().isNotEmpty ?? false)
-            Text(suggestion!.documentType!),
-        ] else ...[
-          Text(
-            '${l.organization}: ${organizationName ?? (hasConfirmedOrganization ? l.organization : l.unclassified)}',
-          ),
-          Text('${l.caseLabel}: ${caseName ?? l.caseNotAssigned}'),
-        ],
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            if (onConfirm != null)
-              FilledButton(
-                key: const Key('classification-confirm'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 40),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  tapTargetSize: MaterialTapTargetSize.padded,
-                ),
-                onPressed: onConfirm,
-                child: Text(l.confirm),
-              ),
-            TextButton(
-              key: const Key('classification-change'),
-              style: TextButton.styleFrom(
-                minimumSize: const Size(0, 40),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.sm,
-                ),
-                tapTargetSize: MaterialTapTargetSize.padded,
-              ),
-              onPressed: onChange,
-              child: Text(suggestion == null ? l.editClassification : l.change),
+        DecoratedBox(
+          key: const Key('classification-card'),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: 0.75),
             ),
-          ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      suggestion == null
+                          ? Icons.folder_outlined
+                          : Icons.auto_awesome_outlined,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        suggestion == null
+                            ? l.classification
+                            : l.suggestedClassification,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                if (suggestion != null) ...[
+                  if (suggestion!.organizationName?.trim().isNotEmpty ?? false)
+                    _ClassificationValue(
+                      label: l.organization,
+                      value: suggestion!.organizationName!,
+                    ),
+                  if (suggestion!.documentType?.trim().isNotEmpty ?? false)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        top: AppSpacing.xs,
+                      ),
+                      child: Text(
+                        suggestion!.documentType!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                ] else ...[
+                  _ClassificationValue(
+                    label: l.organization,
+                    value:
+                        organizationName ??
+                        (hasConfirmedOrganization
+                            ? l.organization
+                            : l.unclassified),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  _ClassificationValue(
+                    label: l.caseLabel,
+                    value: caseName ?? l.caseNotAssigned,
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    if (onConfirm != null)
+                      FilledButton(
+                        key: const Key('classification-confirm'),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 40),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.padded,
+                        ),
+                        onPressed: onConfirm,
+                        child: Text(l.confirm),
+                      ),
+                    TextButton(
+                      key: const Key('classification-change'),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(0, 40),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.sm,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.padded,
+                      ),
+                      onPressed: onChange,
+                      child: Text(
+                        suggestion == null ? l.editClassification : l.change,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
+}
+
+class _ClassificationValue extends StatelessWidget {
+  const _ClassificationValue({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    '$label: $value',
+    style: Theme.of(context).textTheme.bodyMedium
+        ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+  );
 }
 
 class _OriginalDocumentSection extends StatelessWidget {
@@ -407,8 +488,10 @@ Future<void> _showClassificationEditor(
   var selectedOrganizationId = organizationId;
   var selectedCaseId = caseId;
   var clearCase = false;
-  await showDialog<void>(
+  await showModalBottomSheet<void>(
     context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
         final visibleCases = cases

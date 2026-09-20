@@ -42,3 +42,11 @@ Every approved screen design defines its primary goal, information hierarchy, pr
 - Use visual/manual checks for hierarchy, spacing, restrained card usage, and application-header/brand treatment without relying on wireframe pixel coordinates.
 
 Tests use synthetic or redacted data and must not expose raw document text, identifiers, addresses, income, or other sensitive values in logs or telemetry.
+
+## Documents folder browsing checks
+
+- Verify the Documents root defaults to a responsive three-column Organization folder grid on a representative phone width and switches to a compact List presentation for the active UI session.
+- Verify Organization and Case folder affordances, compact Case document rows, and contextual browsing search.
+- Verify Unclassified and Without Case remain visually and semantically distinct from normal Organizations/Cases in LTR and Arabic RTL layouts.
+- Verify Organization contextual search filters that Organization's Cases, Without Case and Case searches remain scoped to their own Documents, Organization-to-Case navigation enters a focused flow, and primary bottom navigation remains hidden there.
+- Verify normal Documents root browsing renders only the Unclassified special entry rather than duplicate Unclassified document rows; its focused screen owns the document list. Verify empty search-result sections omit their headings.

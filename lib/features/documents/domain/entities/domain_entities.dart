@@ -155,7 +155,7 @@ class DocumentAnalysis {
     this.qualityReasons = const [],
     this.sourceReferences = const [],
     this.detectedLanguage = 'undetermined',
-    this.actionRequired = ActionRequirement.uncertain,
+    this.actionRequired,
     this.urgency = AnalysisUrgency.uncertain,
     this.confidence,
     this.practicalStates = const [],
@@ -182,7 +182,8 @@ class DocumentAnalysis {
   final List<DocumentQualityReason> qualityReasons;
   final List<SourceReference> sourceReferences;
   final String detectedLanguage;
-  final ActionRequirement actionRequired;
+  /// Null is retained only for analyses created before action state persistence.
+  final ActionRequirement? actionRequired;
   final AnalysisUrgency urgency;
   final double? confidence;
   final List<PracticalState> practicalStates;

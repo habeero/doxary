@@ -3,7 +3,13 @@ import 'package:drift/native.dart';
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
 import 'package:doxary/app/theme/app_theme.dart';
-import 'package:doxary/core/database/app_database.dart';
+import 'package:doxary/core/database/app_database.dart'
+    hide
+        AnalysisAmount,
+        AnalysisAppointment,
+        AnalysisDeadline,
+        AnalysisRequiredDocument,
+        AnalysisSuggestedTask;
 import 'package:doxary/core/utils/id_generator.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
 import 'package:doxary/features/document_analysis/presentation/analysis_result_page.dart';
@@ -22,11 +28,17 @@ void main() {
     await _pumpAnalysis(tester, _analysis());
 
     expect(find.byKey(const Key('no-action-state')), findsOneWidget);
+    expect(find.text('Muss etwas getan werden?'), findsOneWidget);
     expect(find.text('Keine Aktion erforderlich'), findsOneWidget);
     expect(find.text('A clear summary'), findsOneWidget);
     expect(find.text('Wichtige Angaben'), findsOneWidget);
+    expect(find.byKey(const Key('important-facts-group')), findsOneWidget);
     expect(find.text('Reply'), findsOneWidget);
     expect(find.text('2026-10-01'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('no-action-state'))).height,
+      lessThan(100),
+    );
     expect(
       tester.getTopLeft(find.text('A clear summary')).dy,
       lessThan(tester.getTopLeft(find.byKey(const Key('no-action-state'))).dy),
@@ -57,7 +69,7 @@ void main() {
     final classificationY = tester
         .getTopLeft(find.text('Classification slot'))
         .dy;
-    final detailsY = tester.getTopLeft(find.text('Weitere Analysedetails')).dy;
+    final detailsY = tester.getTopLeft(find.text('Erklärung')).dy;
     final originalY = tester.getTopLeft(find.text('Original slot')).dy;
 
     expect(titleY, lessThan(summaryY));
@@ -113,10 +125,174 @@ void main() {
     );
 
     expect(find.byKey(const Key('action-required-state')), findsOneWidget);
-    expect(find.text('Reply to the letter'), findsWidgets);
+    expect(find.text('Muss etwas getan werden?'), findsOneWidget);
+    expect(find.byKey(const Key('action-required-context')), findsNothing);
+    expect(find.text('Reply to the letter'), findsOneWidget);
     await tester.tap(find.text('Aufgabe oder Erinnerung hinzufügen'));
     expect(added, isTrue);
   });
+
+  testWidgets('action-required result omits a CTA without a supported action', (
+    tester,
+  ) async {
+    await _pumpWidget(
+      tester,
+      DocumentResultView(
+        title: 'Bescheid',
+        analysis: _analysis(action: ActionRequirement.yes),
+      ),
+    );
+
+    expect(find.byKey(const Key('action-required-state')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('action-required-state')),
+        matching: find.byType(FilledButton),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('action-required prefers one concrete next action', (
+    tester,
+  ) async {
+    await _pumpAnalysis(
+      tester,
+      _analysis(
+        action: ActionRequirement.yes,
+        nextActions: const ['Reply to the letter'],
+        suggestedTasks: const [
+          AnalysisSuggestedTask(title: 'Pay the invoice', confidence: 0.9),
+        ],
+        requiredDocuments: const [
+          AnalysisRequiredDocument(
+            description: 'Upload proof of payment',
+            confidence: 0.9,
+          ),
+        ],
+      ),
+    );
+
+    expect(find.text('Reply to the letter'), findsOneWidget);
+    expect(find.text('Pay the invoice'), findsNothing);
+    expect(find.text('Upload proof of payment'), findsNothing);
+  });
+
+  testWidgets('suggested task remains labeled as a suggestion', (tester) async {
+    await _pumpAnalysis(
+      tester,
+      _analysis(
+        action: ActionRequirement.yes,
+        suggestedTasks: const [
+          AnalysisSuggestedTask(title: 'Pay the invoice', confidence: 0.9),
+        ],
+      ),
+    );
+
+    expect(
+      find.text('Vorgeschlagene Aufgaben: Pay the invoice'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'Important Information is bounded and exposes overflow in details',
+    (tester) async {
+      await _pumpAnalysis(
+        tester,
+        _analysis(
+          documentDate: '2026-09-15',
+          deadlines: const [
+            AnalysisDeadline(
+              label: 'First deadline',
+              dateOrRange: '2026-10-01',
+              confidence: 0.9,
+            ),
+            AnalysisDeadline(
+              label: 'Second deadline',
+              dateOrRange: '2026-10-02',
+              confidence: 0.9,
+            ),
+            AnalysisDeadline(
+              label: 'Third deadline',
+              dateOrRange: '2026-10-03',
+              confidence: 0.9,
+            ),
+          ],
+          amounts: const [
+            AnalysisAmount(
+              value: '100',
+              currency: 'EUR',
+              direction: AmountDirection.pay,
+              confidence: 0.9,
+            ),
+            AnalysisAmount(
+              value: '200',
+              currency: 'EUR',
+              direction: AmountDirection.pay,
+              confidence: 0.9,
+            ),
+            AnalysisAmount(
+              value: '300',
+              currency: 'EUR',
+              direction: AmountDirection.pay,
+              confidence: 0.9,
+            ),
+          ],
+        ),
+      );
+
+      expect(find.byKey(const Key('important-fact-0')), findsOneWidget);
+      expect(find.byKey(const Key('important-fact-4')), findsOneWidget);
+      expect(find.byKey(const Key('important-fact-5')), findsNothing);
+      expect(find.textContaining('300 EUR'), findsNothing);
+      await tester.tap(find.text('Weitere Analysedetails'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('300 EUR'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'action context does not repeat its deadline or amount as facts',
+    (tester) async {
+      await _pumpAnalysis(
+        tester,
+        _analysis(
+          action: ActionRequirement.yes,
+          suggestedTasks: const [
+            AnalysisSuggestedTask(
+              title: 'Pay the invoice',
+              confidence: 0.9,
+              dueDate: '2026-10-01',
+              sourceReference: 'invoice',
+            ),
+          ],
+          deadlines: const [
+            AnalysisDeadline(
+              label: 'Invoice due',
+              dateOrRange: '2026-10-01',
+              confidence: 0.9,
+              sourceReference: 'invoice',
+            ),
+          ],
+          amounts: const [
+            AnalysisAmount(
+              value: '128.40',
+              currency: 'EUR',
+              direction: AmountDirection.pay,
+              confidence: 0.9,
+              sourceReference: 'invoice',
+            ),
+          ],
+        ),
+      );
+
+      expect(find.byKey(const Key('action-required-context')), findsOneWidget);
+      expect(find.textContaining('2026-10-01'), findsOneWidget);
+      expect(find.textContaining('128.40 EUR'), findsOneWidget);
+      expect(find.byKey(const Key('important-facts-group')), findsNothing);
+    },
+  );
 
   testWidgets('partial result shows review guidance as a valid outcome', (
     tester,
@@ -124,7 +300,7 @@ void main() {
     await _pumpAnalysis(tester, _analysis(status: AnalysisStatus.partial));
 
     expect(find.byKey(const Key('partial-state')), findsOneWidget);
-    expect(find.text('Bitte prüfen'), findsWidgets);
+    expect(find.text('Nicht sicher feststellbar'), findsOneWidget);
     expect(find.text('A clear summary'), findsOneWidget);
     expect(
       tester.getSize(find.byKey(const Key('partial-state'))).height,
@@ -134,6 +310,36 @@ void main() {
       find.text('Gespeicherte Analyse konnte nicht gelesen werden.'),
       findsNothing,
     );
+  });
+
+  testWidgets(
+    'complete action uncertainty stays complete with review guidance',
+    (tester) async {
+      await _pumpAnalysis(
+        tester,
+        _analysis(action: ActionRequirement.uncertain),
+      );
+
+      expect(find.byKey(const Key('action-uncertain-state')), findsOneWidget);
+      expect(find.byKey(const Key('partial-state')), findsNothing);
+      expect(find.byKey(const Key('no-action-state')), findsNothing);
+      expect(find.text('Nicht sicher feststellbar'), findsOneWidget);
+    },
+  );
+
+  testWidgets('partial takes precedence over every action requirement', (
+    tester,
+  ) async {
+    for (final action in ActionRequirement.values) {
+      await _pumpAnalysis(
+        tester,
+        _analysis(status: AnalysisStatus.partial, action: action),
+      );
+
+      expect(find.byKey(const Key('partial-state')), findsOneWidget);
+      expect(find.byKey(const Key('action-required-state')), findsNothing);
+      expect(find.byKey(const Key('action-uncertain-state')), findsNothing);
+    }
   });
 
   testWidgets('technical failure offers retry and keeps the document surface', (
@@ -151,6 +357,8 @@ void main() {
     );
 
     expect(find.byKey(const Key('technical-failure-state')), findsOneWidget);
+    expect(find.byKey(const Key('document-result-title')), findsNothing);
+    expect(find.text('Wichtige Angaben'), findsNothing);
     expect(find.text('Original remains'), findsOneWidget);
     await tester.tap(find.text('Analyse erneut starten'));
     expect(retried, isTrue);
@@ -229,9 +437,40 @@ void main() {
     );
 
     expect(find.byKey(const Key('unreadable-state')), findsOneWidget);
+    expect(find.byKey(const Key('document-result-title')), findsNothing);
+    expect(find.text('Wichtige Angaben'), findsNothing);
     expect(find.text('Dokument nicht ausreichend lesbar'), findsOneWidget);
     await tester.tap(find.text('Klareres Dokument auswählen'));
     expect(replaced, isTrue);
+  });
+
+  testWidgets('unreadable text quality uses corrective source recovery', (
+    tester,
+  ) async {
+    await _pumpAnalysis(
+      tester,
+      _analysis(
+        status: AnalysisStatus.unavailable,
+        qualityReasons: const [DocumentQualityReason.unreadableText],
+      ),
+    );
+
+    expect(find.byKey(const Key('unreadable-state')), findsOneWidget);
+    expect(find.byKey(const Key('input-problem-state')), findsNothing);
+  });
+
+  testWidgets('unsupported input is not labeled unreadable', (tester) async {
+    await _pumpAnalysis(
+      tester,
+      _analysis(
+        status: AnalysisStatus.unavailable,
+        qualityReasons: const [DocumentQualityReason.unsupportedFile],
+      ),
+    );
+
+    expect(find.byKey(const Key('input-problem-state')), findsOneWidget);
+    expect(find.byKey(const Key('unreadable-state')), findsNothing);
+    expect(find.text('Dokument kann nicht verarbeitet werden'), findsOneWidget);
   });
 
   testWidgets('absent fact values do not create empty fact rows', (
@@ -259,12 +498,13 @@ void main() {
     await _pumpAnalysis(tester, _analysis(explanation: 'Full explanation'));
 
     expect(find.textContaining('Full explanation'), findsNothing);
-    final accordion = find.text('Weitere Analysedetails');
+    final accordion = find.text('Erklärung');
     await tester.ensureVisible(accordion);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.expand_more));
+    await tester.tap(accordion);
     await tester.pumpAndSettle();
     expect(find.textContaining('Full explanation'), findsOneWidget);
+    expect(find.text('Erklärung'), findsOneWidget);
     final explanation = tester.widget<Text>(
       find.byKey(const Key('analysis-explanation-text')),
     );
@@ -287,7 +527,48 @@ void main() {
       Directionality.of(tester.element(find.byType(AnalysisResultPage))),
       TextDirection.rtl,
     );
+    final date = tester.widget<Text>(find.text('2026-10-01'));
+    expect(date.textDirection, TextDirection.ltr);
   });
+
+  testWidgets(
+    'Document Detail uses a lightweight classification Bottom Sheet',
+    (tester) async {
+      final document = LocalDocument(
+        clientDocumentId: 'doc',
+        classificationState: ClassificationState.unclassified,
+        status: DocumentStatus.analyzed,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            documentProvider('doc')
+                .overrideWithValue(AsyncValue.data(document)),
+            documentFilesProvider('doc')
+                .overrideWithValue(const AsyncValue.data([])),
+            latestAnalysisProvider('doc')
+                .overrideWithValue(AsyncValue.data(_analysis())),
+            organizationsProvider.overrideWithValue(const AsyncValue.data([])),
+            casesProvider.overrideWithValue(const AsyncValue.data([])),
+          ],
+          child: _app(
+            const DocumentDetailPage(clientDocumentId: 'doc'),
+            const Locale('de'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('document-detail-back')), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byKey(const Key('classification-card')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('classification-change')));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsOneWidget);
+    },
+  );
 
   testWidgets('reopening reads the latest persisted analysis locally', (
     tester,
@@ -362,6 +643,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('unclassified-folder')));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'Dokument'));
     await tester.pumpAndSettle();
 
@@ -416,8 +699,13 @@ DocumentAnalysis _analysis({
   ActionRequirement action = ActionRequirement.no,
   String summary = 'A clear summary',
   String? explanation,
+  String? documentDate,
   List<String> nextActions = const [],
   List<AnalysisDeadline>? deadlines,
+  List<AnalysisAmount> amounts = const [],
+  List<AnalysisRequiredDocument> requiredDocuments = const [],
+  List<AnalysisSuggestedTask> suggestedTasks = const [],
+  List<DocumentQualityReason>? qualityReasons,
 }) => DocumentAnalysis(
   id: 'analysis',
   clientDocumentId: 'doc',
@@ -426,6 +714,7 @@ DocumentAnalysis _analysis({
   createdAt: DateTime(2026),
   summary: summary,
   explanation: explanation,
+  documentDate: documentDate,
   analysisStatus: status,
   actionRequired: action,
   deadlines:
@@ -438,9 +727,14 @@ DocumentAnalysis _analysis({
         ),
       ],
   nextActions: nextActions,
-  qualityReasons: status == AnalysisStatus.unavailable
-      ? const [DocumentQualityReason.blurryImage]
-      : const [],
+  amounts: amounts,
+  requiredDocuments: requiredDocuments,
+  suggestedTasks: suggestedTasks,
+  qualityReasons:
+      qualityReasons ??
+      (status == AnalysisStatus.unavailable
+          ? const [DocumentQualityReason.blurryImage]
+          : const []),
 );
 
 class _FixedIdGenerator implements IdGenerator {

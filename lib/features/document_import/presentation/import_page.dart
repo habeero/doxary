@@ -121,7 +121,12 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         _pendingOperationId = null;
         _idempotencyKey = null;
       } else {
-        analysisDebugLog('controller', 'failed type=${error.runtimeType}');
+        final cause = error is AppError ? error.cause : null;
+        analysisDebugLog(
+          'controller',
+          'failed type=${error.runtimeType} '
+              'cause_type=${cause?.runtimeType ?? 'none'}',
+        );
       }
       if (mounted) {
         setState(() {

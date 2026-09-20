@@ -2050,6 +2050,63 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
     requiredDuringInsert: false,
     defaultValue: const Constant('complete'),
   );
+  static const VerificationMeta _actionRequiredMeta = const VerificationMeta(
+    'actionRequired',
+  );
+  @override
+  late final GeneratedColumn<String> actionRequired = GeneratedColumn<String>(
+    'action_required',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _documentDateMeta = const VerificationMeta(
+    'documentDate',
+  );
+  @override
+  late final GeneratedColumn<String> documentDate = GeneratedColumn<String>(
+    'document_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _detectedLanguageMeta = const VerificationMeta(
+    'detectedLanguage',
+  );
+  @override
+  late final GeneratedColumn<String> detectedLanguage = GeneratedColumn<String>(
+    'detected_language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('undetermined'),
+  );
+  static const VerificationMeta _urgencyMeta = const VerificationMeta(
+    'urgency',
+  );
+  @override
+  late final GeneratedColumn<String> urgency = GeneratedColumn<String>(
+    'urgency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('uncertain'),
+  );
+  static const VerificationMeta _confidenceMeta = const VerificationMeta(
+    'confidence',
+  );
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+    'confidence',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _explanationStyleMeta = const VerificationMeta(
     'explanationStyle',
   );
@@ -2105,6 +2162,11 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
     explanation,
     state,
     analysisStatus,
+    actionRequired,
+    documentDate,
+    detectedLanguage,
+    urgency,
+    confidence,
     explanationStyle,
     suggestedOrganizationName,
     suggestedDocumentType,
@@ -2192,6 +2254,45 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
         ),
       );
     }
+    if (data.containsKey('action_required')) {
+      context.handle(
+        _actionRequiredMeta,
+        actionRequired.isAcceptableOrUnknown(
+          data['action_required']!,
+          _actionRequiredMeta,
+        ),
+      );
+    }
+    if (data.containsKey('document_date')) {
+      context.handle(
+        _documentDateMeta,
+        documentDate.isAcceptableOrUnknown(
+          data['document_date']!,
+          _documentDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('detected_language')) {
+      context.handle(
+        _detectedLanguageMeta,
+        detectedLanguage.isAcceptableOrUnknown(
+          data['detected_language']!,
+          _detectedLanguageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('urgency')) {
+      context.handle(
+        _urgencyMeta,
+        urgency.isAcceptableOrUnknown(data['urgency']!, _urgencyMeta),
+      );
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+        _confidenceMeta,
+        confidence.isAcceptableOrUnknown(data['confidence']!, _confidenceMeta),
+      );
+    }
     if (data.containsKey('explanation_style')) {
       context.handle(
         _explanationStyleMeta,
@@ -2268,6 +2369,26 @@ class $AnalysesTable extends Analyses with TableInfo<$AnalysesTable, Analyse> {
         DriftSqlType.string,
         data['${effectivePrefix}analysis_status'],
       )!,
+      actionRequired: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action_required'],
+      ),
+      documentDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document_date'],
+      ),
+      detectedLanguage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}detected_language'],
+      )!,
+      urgency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}urgency'],
+      )!,
+      confidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence'],
+      ),
       explanationStyle: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}explanation_style'],
@@ -2302,6 +2423,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
   final String? explanation;
   final String state;
   final String analysisStatus;
+  final String? actionRequired;
+  final String? documentDate;
+  final String detectedLanguage;
+  final String urgency;
+  final double? confidence;
   final String explanationStyle;
   final String? suggestedOrganizationName;
   final String? suggestedDocumentType;
@@ -2315,6 +2441,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     this.explanation,
     required this.state,
     required this.analysisStatus,
+    this.actionRequired,
+    this.documentDate,
+    required this.detectedLanguage,
+    required this.urgency,
+    this.confidence,
     required this.explanationStyle,
     this.suggestedOrganizationName,
     this.suggestedDocumentType,
@@ -2335,6 +2466,17 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     }
     map['state'] = Variable<String>(state);
     map['analysis_status'] = Variable<String>(analysisStatus);
+    if (!nullToAbsent || actionRequired != null) {
+      map['action_required'] = Variable<String>(actionRequired);
+    }
+    if (!nullToAbsent || documentDate != null) {
+      map['document_date'] = Variable<String>(documentDate);
+    }
+    map['detected_language'] = Variable<String>(detectedLanguage);
+    map['urgency'] = Variable<String>(urgency);
+    if (!nullToAbsent || confidence != null) {
+      map['confidence'] = Variable<double>(confidence);
+    }
     map['explanation_style'] = Variable<String>(explanationStyle);
     if (!nullToAbsent || suggestedOrganizationName != null) {
       map['suggested_organization_name'] = Variable<String>(
@@ -2362,6 +2504,17 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           : Value(explanation),
       state: Value(state),
       analysisStatus: Value(analysisStatus),
+      actionRequired: actionRequired == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actionRequired),
+      documentDate: documentDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentDate),
+      detectedLanguage: Value(detectedLanguage),
+      urgency: Value(urgency),
+      confidence: confidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidence),
       explanationStyle: Value(explanationStyle),
       suggestedOrganizationName:
           suggestedOrganizationName == null && nullToAbsent
@@ -2388,6 +2541,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       explanation: serializer.fromJson<String?>(json['explanation']),
       state: serializer.fromJson<String>(json['state']),
       analysisStatus: serializer.fromJson<String>(json['analysisStatus']),
+      actionRequired: serializer.fromJson<String?>(json['actionRequired']),
+      documentDate: serializer.fromJson<String?>(json['documentDate']),
+      detectedLanguage: serializer.fromJson<String>(json['detectedLanguage']),
+      urgency: serializer.fromJson<String>(json['urgency']),
+      confidence: serializer.fromJson<double?>(json['confidence']),
       explanationStyle: serializer.fromJson<String>(json['explanationStyle']),
       suggestedOrganizationName: serializer.fromJson<String?>(
         json['suggestedOrganizationName'],
@@ -2410,6 +2568,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       'explanation': serializer.toJson<String?>(explanation),
       'state': serializer.toJson<String>(state),
       'analysisStatus': serializer.toJson<String>(analysisStatus),
+      'actionRequired': serializer.toJson<String?>(actionRequired),
+      'documentDate': serializer.toJson<String?>(documentDate),
+      'detectedLanguage': serializer.toJson<String>(detectedLanguage),
+      'urgency': serializer.toJson<String>(urgency),
+      'confidence': serializer.toJson<double?>(confidence),
       'explanationStyle': serializer.toJson<String>(explanationStyle),
       'suggestedOrganizationName': serializer.toJson<String?>(
         suggestedOrganizationName,
@@ -2430,6 +2593,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     Value<String?> explanation = const Value.absent(),
     String? state,
     String? analysisStatus,
+    Value<String?> actionRequired = const Value.absent(),
+    Value<String?> documentDate = const Value.absent(),
+    String? detectedLanguage,
+    String? urgency,
+    Value<double?> confidence = const Value.absent(),
     String? explanationStyle,
     Value<String?> suggestedOrganizationName = const Value.absent(),
     Value<String?> suggestedDocumentType = const Value.absent(),
@@ -2443,6 +2611,13 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     explanation: explanation.present ? explanation.value : this.explanation,
     state: state ?? this.state,
     analysisStatus: analysisStatus ?? this.analysisStatus,
+    actionRequired: actionRequired.present
+        ? actionRequired.value
+        : this.actionRequired,
+    documentDate: documentDate.present ? documentDate.value : this.documentDate,
+    detectedLanguage: detectedLanguage ?? this.detectedLanguage,
+    urgency: urgency ?? this.urgency,
+    confidence: confidence.present ? confidence.value : this.confidence,
     explanationStyle: explanationStyle ?? this.explanationStyle,
     suggestedOrganizationName: suggestedOrganizationName.present
         ? suggestedOrganizationName.value
@@ -2472,6 +2647,19 @@ class Analyse extends DataClass implements Insertable<Analyse> {
       analysisStatus: data.analysisStatus.present
           ? data.analysisStatus.value
           : this.analysisStatus,
+      actionRequired: data.actionRequired.present
+          ? data.actionRequired.value
+          : this.actionRequired,
+      documentDate: data.documentDate.present
+          ? data.documentDate.value
+          : this.documentDate,
+      detectedLanguage: data.detectedLanguage.present
+          ? data.detectedLanguage.value
+          : this.detectedLanguage,
+      urgency: data.urgency.present ? data.urgency.value : this.urgency,
+      confidence: data.confidence.present
+          ? data.confidence.value
+          : this.confidence,
       explanationStyle: data.explanationStyle.present
           ? data.explanationStyle.value
           : this.explanationStyle,
@@ -2496,6 +2684,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           ..write('explanation: $explanation, ')
           ..write('state: $state, ')
           ..write('analysisStatus: $analysisStatus, ')
+          ..write('actionRequired: $actionRequired, ')
+          ..write('documentDate: $documentDate, ')
+          ..write('detectedLanguage: $detectedLanguage, ')
+          ..write('urgency: $urgency, ')
+          ..write('confidence: $confidence, ')
           ..write('explanationStyle: $explanationStyle, ')
           ..write('suggestedOrganizationName: $suggestedOrganizationName, ')
           ..write('suggestedDocumentType: $suggestedDocumentType, ')
@@ -2514,6 +2707,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
     explanation,
     state,
     analysisStatus,
+    actionRequired,
+    documentDate,
+    detectedLanguage,
+    urgency,
+    confidence,
     explanationStyle,
     suggestedOrganizationName,
     suggestedDocumentType,
@@ -2531,6 +2729,11 @@ class Analyse extends DataClass implements Insertable<Analyse> {
           other.explanation == this.explanation &&
           other.state == this.state &&
           other.analysisStatus == this.analysisStatus &&
+          other.actionRequired == this.actionRequired &&
+          other.documentDate == this.documentDate &&
+          other.detectedLanguage == this.detectedLanguage &&
+          other.urgency == this.urgency &&
+          other.confidence == this.confidence &&
           other.explanationStyle == this.explanationStyle &&
           other.suggestedOrganizationName == this.suggestedOrganizationName &&
           other.suggestedDocumentType == this.suggestedDocumentType &&
@@ -2546,6 +2749,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
   final Value<String?> explanation;
   final Value<String> state;
   final Value<String> analysisStatus;
+  final Value<String?> actionRequired;
+  final Value<String?> documentDate;
+  final Value<String> detectedLanguage;
+  final Value<String> urgency;
+  final Value<double?> confidence;
   final Value<String> explanationStyle;
   final Value<String?> suggestedOrganizationName;
   final Value<String?> suggestedDocumentType;
@@ -2560,6 +2768,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     this.explanation = const Value.absent(),
     this.state = const Value.absent(),
     this.analysisStatus = const Value.absent(),
+    this.actionRequired = const Value.absent(),
+    this.documentDate = const Value.absent(),
+    this.detectedLanguage = const Value.absent(),
+    this.urgency = const Value.absent(),
+    this.confidence = const Value.absent(),
     this.explanationStyle = const Value.absent(),
     this.suggestedOrganizationName = const Value.absent(),
     this.suggestedDocumentType = const Value.absent(),
@@ -2575,6 +2788,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     this.explanation = const Value.absent(),
     required String state,
     this.analysisStatus = const Value.absent(),
+    this.actionRequired = const Value.absent(),
+    this.documentDate = const Value.absent(),
+    this.detectedLanguage = const Value.absent(),
+    this.urgency = const Value.absent(),
+    this.confidence = const Value.absent(),
     this.explanationStyle = const Value.absent(),
     this.suggestedOrganizationName = const Value.absent(),
     this.suggestedDocumentType = const Value.absent(),
@@ -2595,6 +2813,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     Expression<String>? explanation,
     Expression<String>? state,
     Expression<String>? analysisStatus,
+    Expression<String>? actionRequired,
+    Expression<String>? documentDate,
+    Expression<String>? detectedLanguage,
+    Expression<String>? urgency,
+    Expression<double>? confidence,
     Expression<String>? explanationStyle,
     Expression<String>? suggestedOrganizationName,
     Expression<String>? suggestedDocumentType,
@@ -2610,6 +2833,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
       if (explanation != null) 'explanation': explanation,
       if (state != null) 'state': state,
       if (analysisStatus != null) 'analysis_status': analysisStatus,
+      if (actionRequired != null) 'action_required': actionRequired,
+      if (documentDate != null) 'document_date': documentDate,
+      if (detectedLanguage != null) 'detected_language': detectedLanguage,
+      if (urgency != null) 'urgency': urgency,
+      if (confidence != null) 'confidence': confidence,
       if (explanationStyle != null) 'explanation_style': explanationStyle,
       if (suggestedOrganizationName != null)
         'suggested_organization_name': suggestedOrganizationName,
@@ -2629,6 +2857,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     Value<String?>? explanation,
     Value<String>? state,
     Value<String>? analysisStatus,
+    Value<String?>? actionRequired,
+    Value<String?>? documentDate,
+    Value<String>? detectedLanguage,
+    Value<String>? urgency,
+    Value<double?>? confidence,
     Value<String>? explanationStyle,
     Value<String?>? suggestedOrganizationName,
     Value<String?>? suggestedDocumentType,
@@ -2644,6 +2877,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
       explanation: explanation ?? this.explanation,
       state: state ?? this.state,
       analysisStatus: analysisStatus ?? this.analysisStatus,
+      actionRequired: actionRequired ?? this.actionRequired,
+      documentDate: documentDate ?? this.documentDate,
+      detectedLanguage: detectedLanguage ?? this.detectedLanguage,
+      urgency: urgency ?? this.urgency,
+      confidence: confidence ?? this.confidence,
       explanationStyle: explanationStyle ?? this.explanationStyle,
       suggestedOrganizationName:
           suggestedOrganizationName ?? this.suggestedOrganizationName,
@@ -2681,6 +2919,21 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
     if (analysisStatus.present) {
       map['analysis_status'] = Variable<String>(analysisStatus.value);
     }
+    if (actionRequired.present) {
+      map['action_required'] = Variable<String>(actionRequired.value);
+    }
+    if (documentDate.present) {
+      map['document_date'] = Variable<String>(documentDate.value);
+    }
+    if (detectedLanguage.present) {
+      map['detected_language'] = Variable<String>(detectedLanguage.value);
+    }
+    if (urgency.present) {
+      map['urgency'] = Variable<String>(urgency.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
     if (explanationStyle.present) {
       map['explanation_style'] = Variable<String>(explanationStyle.value);
     }
@@ -2714,6 +2967,11 @@ class AnalysesCompanion extends UpdateCompanion<Analyse> {
           ..write('explanation: $explanation, ')
           ..write('state: $state, ')
           ..write('analysisStatus: $analysisStatus, ')
+          ..write('actionRequired: $actionRequired, ')
+          ..write('documentDate: $documentDate, ')
+          ..write('detectedLanguage: $detectedLanguage, ')
+          ..write('urgency: $urgency, ')
+          ..write('confidence: $confidence, ')
           ..write('explanationStyle: $explanationStyle, ')
           ..write('suggestedOrganizationName: $suggestedOrganizationName, ')
           ..write('suggestedDocumentType: $suggestedDocumentType, ')
@@ -2989,6 +3247,3931 @@ class AnalysisQualityReasonsCompanion
           ..write('id: $id, ')
           ..write('analysisId: $analysisId, ')
           ..write('reason: $reason, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisNextActionsTable extends AnalysisNextActions
+    with TableInfo<$AnalysisNextActionsTable, AnalysisNextAction> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisNextActionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, analysisId, position, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_next_actions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisNextAction> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisNextAction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisNextAction(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+    );
+  }
+
+  @override
+  $AnalysisNextActionsTable createAlias(String alias) {
+    return $AnalysisNextActionsTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisNextAction extends DataClass
+    implements Insertable<AnalysisNextAction> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String value;
+  const AnalysisNextAction({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.value,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['value'] = Variable<String>(value);
+    return map;
+  }
+
+  AnalysisNextActionsCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisNextActionsCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      value: Value(value),
+    );
+  }
+
+  factory AnalysisNextAction.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisNextAction(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      value: serializer.fromJson<String>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'value': serializer.toJson<String>(value),
+    };
+  }
+
+  AnalysisNextAction copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? value,
+  }) => AnalysisNextAction(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    value: value ?? this.value,
+  );
+  AnalysisNextAction copyWithCompanion(AnalysisNextActionsCompanion data) {
+    return AnalysisNextAction(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisNextAction(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, analysisId, position, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisNextAction &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.value == this.value);
+}
+
+class AnalysisNextActionsCompanion extends UpdateCompanion<AnalysisNextAction> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> value;
+  final Value<int> rowid;
+  const AnalysisNextActionsCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisNextActionsCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String value,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       value = Value(value);
+  static Insertable<AnalysisNextAction> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisNextActionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? value,
+    Value<int>? rowid,
+  }) {
+    return AnalysisNextActionsCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisNextActionsCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisUncertaintiesTable extends AnalysisUncertainties
+    with TableInfo<$AnalysisUncertaintiesTable, AnalysisUncertainty> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisUncertaintiesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageMeta = const VerificationMeta(
+    'message',
+  );
+  @override
+  late final GeneratedColumn<String> message = GeneratedColumn<String>(
+    'message',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, analysisId, position, message];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_uncertainties';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisUncertainty> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('message')) {
+      context.handle(
+        _messageMeta,
+        message.isAcceptableOrUnknown(data['message']!, _messageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisUncertainty map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisUncertainty(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      message: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message'],
+      )!,
+    );
+  }
+
+  @override
+  $AnalysisUncertaintiesTable createAlias(String alias) {
+    return $AnalysisUncertaintiesTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisUncertainty extends DataClass
+    implements Insertable<AnalysisUncertainty> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String message;
+  const AnalysisUncertainty({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.message,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['message'] = Variable<String>(message);
+    return map;
+  }
+
+  AnalysisUncertaintiesCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisUncertaintiesCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      message: Value(message),
+    );
+  }
+
+  factory AnalysisUncertainty.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisUncertainty(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      message: serializer.fromJson<String>(json['message']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'message': serializer.toJson<String>(message),
+    };
+  }
+
+  AnalysisUncertainty copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? message,
+  }) => AnalysisUncertainty(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    message: message ?? this.message,
+  );
+  AnalysisUncertainty copyWithCompanion(AnalysisUncertaintiesCompanion data) {
+    return AnalysisUncertainty(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      message: data.message.present ? data.message.value : this.message,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisUncertainty(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('message: $message')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, analysisId, position, message);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisUncertainty &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.message == this.message);
+}
+
+class AnalysisUncertaintiesCompanion
+    extends UpdateCompanion<AnalysisUncertainty> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> message;
+  final Value<int> rowid;
+  const AnalysisUncertaintiesCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.message = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisUncertaintiesCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String message,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       message = Value(message);
+  static Insertable<AnalysisUncertainty> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? message,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (message != null) 'message': message,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisUncertaintiesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? message,
+    Value<int>? rowid,
+  }) {
+    return AnalysisUncertaintiesCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      message: message ?? this.message,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (message.present) {
+      map['message'] = Variable<String>(message.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisUncertaintiesCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('message: $message, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisPracticalStatesTable extends AnalysisPracticalStates
+    with TableInfo<$AnalysisPracticalStatesTable, AnalysisPracticalState> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisPracticalStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, analysisId, position, state];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_practical_states';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisPracticalState> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stateMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisPracticalState map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisPracticalState(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      )!,
+    );
+  }
+
+  @override
+  $AnalysisPracticalStatesTable createAlias(String alias) {
+    return $AnalysisPracticalStatesTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisPracticalState extends DataClass
+    implements Insertable<AnalysisPracticalState> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String state;
+  const AnalysisPracticalState({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.state,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['state'] = Variable<String>(state);
+    return map;
+  }
+
+  AnalysisPracticalStatesCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisPracticalStatesCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      state: Value(state),
+    );
+  }
+
+  factory AnalysisPracticalState.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisPracticalState(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      state: serializer.fromJson<String>(json['state']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'state': serializer.toJson<String>(state),
+    };
+  }
+
+  AnalysisPracticalState copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? state,
+  }) => AnalysisPracticalState(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    state: state ?? this.state,
+  );
+  AnalysisPracticalState copyWithCompanion(
+    AnalysisPracticalStatesCompanion data,
+  ) {
+    return AnalysisPracticalState(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      state: data.state.present ? data.state.value : this.state,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisPracticalState(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('state: $state')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, analysisId, position, state);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisPracticalState &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.state == this.state);
+}
+
+class AnalysisPracticalStatesCompanion
+    extends UpdateCompanion<AnalysisPracticalState> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> state;
+  final Value<int> rowid;
+  const AnalysisPracticalStatesCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.state = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisPracticalStatesCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String state,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       state = Value(state);
+  static Insertable<AnalysisPracticalState> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? state,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (state != null) 'state': state,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisPracticalStatesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? state,
+    Value<int>? rowid,
+  }) {
+    return AnalysisPracticalStatesCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      state: state ?? this.state,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisPracticalStatesCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('state: $state, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisDeadlinesTable extends AnalysisDeadlines
+    with TableInfo<$AnalysisDeadlinesTable, AnalysisDeadline> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisDeadlinesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateOrRangeMeta = const VerificationMeta(
+    'dateOrRange',
+  );
+  @override
+  late final GeneratedColumn<String> dateOrRange = GeneratedColumn<String>(
+    'date_or_range',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _confidenceMeta = const VerificationMeta(
+    'confidence',
+  );
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+    'confidence',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _timeMeta = const VerificationMeta('time');
+  @override
+  late final GeneratedColumn<String> time = GeneratedColumn<String>(
+    'time',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _timezoneMeta = const VerificationMeta(
+    'timezone',
+  );
+  @override
+  late final GeneratedColumn<String> timezone = GeneratedColumn<String>(
+    'timezone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _consequenceMeta = const VerificationMeta(
+    'consequence',
+  );
+  @override
+  late final GeneratedColumn<String> consequence = GeneratedColumn<String>(
+    'consequence',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceReferenceMeta = const VerificationMeta(
+    'sourceReference',
+  );
+  @override
+  late final GeneratedColumn<String> sourceReference = GeneratedColumn<String>(
+    'source_reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    analysisId,
+    position,
+    label,
+    dateOrRange,
+    confidence,
+    time,
+    timezone,
+    consequence,
+    sourceReference,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_deadlines';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisDeadline> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('date_or_range')) {
+      context.handle(
+        _dateOrRangeMeta,
+        dateOrRange.isAcceptableOrUnknown(
+          data['date_or_range']!,
+          _dateOrRangeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+        _confidenceMeta,
+        confidence.isAcceptableOrUnknown(data['confidence']!, _confidenceMeta),
+      );
+    }
+    if (data.containsKey('time')) {
+      context.handle(
+        _timeMeta,
+        time.isAcceptableOrUnknown(data['time']!, _timeMeta),
+      );
+    }
+    if (data.containsKey('timezone')) {
+      context.handle(
+        _timezoneMeta,
+        timezone.isAcceptableOrUnknown(data['timezone']!, _timezoneMeta),
+      );
+    }
+    if (data.containsKey('consequence')) {
+      context.handle(
+        _consequenceMeta,
+        consequence.isAcceptableOrUnknown(
+          data['consequence']!,
+          _consequenceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source_reference')) {
+      context.handle(
+        _sourceReferenceMeta,
+        sourceReference.isAcceptableOrUnknown(
+          data['source_reference']!,
+          _sourceReferenceMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisDeadline map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisDeadline(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      dateOrRange: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date_or_range'],
+      ),
+      confidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence'],
+      ),
+      time: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}time'],
+      ),
+      timezone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}timezone'],
+      ),
+      consequence: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}consequence'],
+      ),
+      sourceReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_reference'],
+      ),
+    );
+  }
+
+  @override
+  $AnalysisDeadlinesTable createAlias(String alias) {
+    return $AnalysisDeadlinesTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisDeadline extends DataClass
+    implements Insertable<AnalysisDeadline> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String label;
+  final String? dateOrRange;
+  final double? confidence;
+  final String? time;
+  final String? timezone;
+  final String? consequence;
+  final String? sourceReference;
+  const AnalysisDeadline({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.label,
+    this.dateOrRange,
+    this.confidence,
+    this.time,
+    this.timezone,
+    this.consequence,
+    this.sourceReference,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['label'] = Variable<String>(label);
+    if (!nullToAbsent || dateOrRange != null) {
+      map['date_or_range'] = Variable<String>(dateOrRange);
+    }
+    if (!nullToAbsent || confidence != null) {
+      map['confidence'] = Variable<double>(confidence);
+    }
+    if (!nullToAbsent || time != null) {
+      map['time'] = Variable<String>(time);
+    }
+    if (!nullToAbsent || timezone != null) {
+      map['timezone'] = Variable<String>(timezone);
+    }
+    if (!nullToAbsent || consequence != null) {
+      map['consequence'] = Variable<String>(consequence);
+    }
+    if (!nullToAbsent || sourceReference != null) {
+      map['source_reference'] = Variable<String>(sourceReference);
+    }
+    return map;
+  }
+
+  AnalysisDeadlinesCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisDeadlinesCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      label: Value(label),
+      dateOrRange: dateOrRange == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dateOrRange),
+      confidence: confidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidence),
+      time: time == null && nullToAbsent ? const Value.absent() : Value(time),
+      timezone: timezone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(timezone),
+      consequence: consequence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(consequence),
+      sourceReference: sourceReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceReference),
+    );
+  }
+
+  factory AnalysisDeadline.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisDeadline(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      label: serializer.fromJson<String>(json['label']),
+      dateOrRange: serializer.fromJson<String?>(json['dateOrRange']),
+      confidence: serializer.fromJson<double?>(json['confidence']),
+      time: serializer.fromJson<String?>(json['time']),
+      timezone: serializer.fromJson<String?>(json['timezone']),
+      consequence: serializer.fromJson<String?>(json['consequence']),
+      sourceReference: serializer.fromJson<String?>(json['sourceReference']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'label': serializer.toJson<String>(label),
+      'dateOrRange': serializer.toJson<String?>(dateOrRange),
+      'confidence': serializer.toJson<double?>(confidence),
+      'time': serializer.toJson<String?>(time),
+      'timezone': serializer.toJson<String?>(timezone),
+      'consequence': serializer.toJson<String?>(consequence),
+      'sourceReference': serializer.toJson<String?>(sourceReference),
+    };
+  }
+
+  AnalysisDeadline copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? label,
+    Value<String?> dateOrRange = const Value.absent(),
+    Value<double?> confidence = const Value.absent(),
+    Value<String?> time = const Value.absent(),
+    Value<String?> timezone = const Value.absent(),
+    Value<String?> consequence = const Value.absent(),
+    Value<String?> sourceReference = const Value.absent(),
+  }) => AnalysisDeadline(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    label: label ?? this.label,
+    dateOrRange: dateOrRange.present ? dateOrRange.value : this.dateOrRange,
+    confidence: confidence.present ? confidence.value : this.confidence,
+    time: time.present ? time.value : this.time,
+    timezone: timezone.present ? timezone.value : this.timezone,
+    consequence: consequence.present ? consequence.value : this.consequence,
+    sourceReference: sourceReference.present
+        ? sourceReference.value
+        : this.sourceReference,
+  );
+  AnalysisDeadline copyWithCompanion(AnalysisDeadlinesCompanion data) {
+    return AnalysisDeadline(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      label: data.label.present ? data.label.value : this.label,
+      dateOrRange: data.dateOrRange.present
+          ? data.dateOrRange.value
+          : this.dateOrRange,
+      confidence: data.confidence.present
+          ? data.confidence.value
+          : this.confidence,
+      time: data.time.present ? data.time.value : this.time,
+      timezone: data.timezone.present ? data.timezone.value : this.timezone,
+      consequence: data.consequence.present
+          ? data.consequence.value
+          : this.consequence,
+      sourceReference: data.sourceReference.present
+          ? data.sourceReference.value
+          : this.sourceReference,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisDeadline(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('label: $label, ')
+          ..write('dateOrRange: $dateOrRange, ')
+          ..write('confidence: $confidence, ')
+          ..write('time: $time, ')
+          ..write('timezone: $timezone, ')
+          ..write('consequence: $consequence, ')
+          ..write('sourceReference: $sourceReference')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    analysisId,
+    position,
+    label,
+    dateOrRange,
+    confidence,
+    time,
+    timezone,
+    consequence,
+    sourceReference,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisDeadline &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.label == this.label &&
+          other.dateOrRange == this.dateOrRange &&
+          other.confidence == this.confidence &&
+          other.time == this.time &&
+          other.timezone == this.timezone &&
+          other.consequence == this.consequence &&
+          other.sourceReference == this.sourceReference);
+}
+
+class AnalysisDeadlinesCompanion extends UpdateCompanion<AnalysisDeadline> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> label;
+  final Value<String?> dateOrRange;
+  final Value<double?> confidence;
+  final Value<String?> time;
+  final Value<String?> timezone;
+  final Value<String?> consequence;
+  final Value<String?> sourceReference;
+  final Value<int> rowid;
+  const AnalysisDeadlinesCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.label = const Value.absent(),
+    this.dateOrRange = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.time = const Value.absent(),
+    this.timezone = const Value.absent(),
+    this.consequence = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisDeadlinesCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String label,
+    this.dateOrRange = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.time = const Value.absent(),
+    this.timezone = const Value.absent(),
+    this.consequence = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       label = Value(label);
+  static Insertable<AnalysisDeadline> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? label,
+    Expression<String>? dateOrRange,
+    Expression<double>? confidence,
+    Expression<String>? time,
+    Expression<String>? timezone,
+    Expression<String>? consequence,
+    Expression<String>? sourceReference,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (label != null) 'label': label,
+      if (dateOrRange != null) 'date_or_range': dateOrRange,
+      if (confidence != null) 'confidence': confidence,
+      if (time != null) 'time': time,
+      if (timezone != null) 'timezone': timezone,
+      if (consequence != null) 'consequence': consequence,
+      if (sourceReference != null) 'source_reference': sourceReference,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisDeadlinesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? label,
+    Value<String?>? dateOrRange,
+    Value<double?>? confidence,
+    Value<String?>? time,
+    Value<String?>? timezone,
+    Value<String?>? consequence,
+    Value<String?>? sourceReference,
+    Value<int>? rowid,
+  }) {
+    return AnalysisDeadlinesCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      label: label ?? this.label,
+      dateOrRange: dateOrRange ?? this.dateOrRange,
+      confidence: confidence ?? this.confidence,
+      time: time ?? this.time,
+      timezone: timezone ?? this.timezone,
+      consequence: consequence ?? this.consequence,
+      sourceReference: sourceReference ?? this.sourceReference,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (dateOrRange.present) {
+      map['date_or_range'] = Variable<String>(dateOrRange.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
+    if (time.present) {
+      map['time'] = Variable<String>(time.value);
+    }
+    if (timezone.present) {
+      map['timezone'] = Variable<String>(timezone.value);
+    }
+    if (consequence.present) {
+      map['consequence'] = Variable<String>(consequence.value);
+    }
+    if (sourceReference.present) {
+      map['source_reference'] = Variable<String>(sourceReference.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisDeadlinesCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('label: $label, ')
+          ..write('dateOrRange: $dateOrRange, ')
+          ..write('confidence: $confidence, ')
+          ..write('time: $time, ')
+          ..write('timezone: $timezone, ')
+          ..write('consequence: $consequence, ')
+          ..write('sourceReference: $sourceReference, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisAppointmentsTable extends AnalysisAppointments
+    with TableInfo<$AnalysisAppointmentsTable, AnalysisAppointment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisAppointmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startOrDateMeta = const VerificationMeta(
+    'startOrDate',
+  );
+  @override
+  late final GeneratedColumn<String> startOrDate = GeneratedColumn<String>(
+    'start_or_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _confidenceMeta = const VerificationMeta(
+    'confidence',
+  );
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+    'confidence',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endMeta = const VerificationMeta('end');
+  @override
+  late final GeneratedColumn<String> end = GeneratedColumn<String>(
+    'end',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _locationMeta = const VerificationMeta(
+    'location',
+  );
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+    'location',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _preparationMeta = const VerificationMeta(
+    'preparation',
+  );
+  @override
+  late final GeneratedColumn<String> preparation = GeneratedColumn<String>(
+    'preparation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceReferenceMeta = const VerificationMeta(
+    'sourceReference',
+  );
+  @override
+  late final GeneratedColumn<String> sourceReference = GeneratedColumn<String>(
+    'source_reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    analysisId,
+    position,
+    label,
+    startOrDate,
+    confidence,
+    end,
+    location,
+    preparation,
+    sourceReference,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_appointments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisAppointment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('start_or_date')) {
+      context.handle(
+        _startOrDateMeta,
+        startOrDate.isAcceptableOrUnknown(
+          data['start_or_date']!,
+          _startOrDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+        _confidenceMeta,
+        confidence.isAcceptableOrUnknown(data['confidence']!, _confidenceMeta),
+      );
+    }
+    if (data.containsKey('end')) {
+      context.handle(
+        _endMeta,
+        end.isAcceptableOrUnknown(data['end']!, _endMeta),
+      );
+    }
+    if (data.containsKey('location')) {
+      context.handle(
+        _locationMeta,
+        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
+    if (data.containsKey('preparation')) {
+      context.handle(
+        _preparationMeta,
+        preparation.isAcceptableOrUnknown(
+          data['preparation']!,
+          _preparationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source_reference')) {
+      context.handle(
+        _sourceReferenceMeta,
+        sourceReference.isAcceptableOrUnknown(
+          data['source_reference']!,
+          _sourceReferenceMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisAppointment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisAppointment(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      startOrDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}start_or_date'],
+      ),
+      confidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence'],
+      ),
+      end: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}end'],
+      ),
+      location: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location'],
+      ),
+      preparation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}preparation'],
+      ),
+      sourceReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_reference'],
+      ),
+    );
+  }
+
+  @override
+  $AnalysisAppointmentsTable createAlias(String alias) {
+    return $AnalysisAppointmentsTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisAppointment extends DataClass
+    implements Insertable<AnalysisAppointment> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String label;
+  final String? startOrDate;
+  final double? confidence;
+  final String? end;
+  final String? location;
+  final String? preparation;
+  final String? sourceReference;
+  const AnalysisAppointment({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.label,
+    this.startOrDate,
+    this.confidence,
+    this.end,
+    this.location,
+    this.preparation,
+    this.sourceReference,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['label'] = Variable<String>(label);
+    if (!nullToAbsent || startOrDate != null) {
+      map['start_or_date'] = Variable<String>(startOrDate);
+    }
+    if (!nullToAbsent || confidence != null) {
+      map['confidence'] = Variable<double>(confidence);
+    }
+    if (!nullToAbsent || end != null) {
+      map['end'] = Variable<String>(end);
+    }
+    if (!nullToAbsent || location != null) {
+      map['location'] = Variable<String>(location);
+    }
+    if (!nullToAbsent || preparation != null) {
+      map['preparation'] = Variable<String>(preparation);
+    }
+    if (!nullToAbsent || sourceReference != null) {
+      map['source_reference'] = Variable<String>(sourceReference);
+    }
+    return map;
+  }
+
+  AnalysisAppointmentsCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisAppointmentsCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      label: Value(label),
+      startOrDate: startOrDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startOrDate),
+      confidence: confidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidence),
+      end: end == null && nullToAbsent ? const Value.absent() : Value(end),
+      location: location == null && nullToAbsent
+          ? const Value.absent()
+          : Value(location),
+      preparation: preparation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(preparation),
+      sourceReference: sourceReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceReference),
+    );
+  }
+
+  factory AnalysisAppointment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisAppointment(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      label: serializer.fromJson<String>(json['label']),
+      startOrDate: serializer.fromJson<String?>(json['startOrDate']),
+      confidence: serializer.fromJson<double?>(json['confidence']),
+      end: serializer.fromJson<String?>(json['end']),
+      location: serializer.fromJson<String?>(json['location']),
+      preparation: serializer.fromJson<String?>(json['preparation']),
+      sourceReference: serializer.fromJson<String?>(json['sourceReference']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'label': serializer.toJson<String>(label),
+      'startOrDate': serializer.toJson<String?>(startOrDate),
+      'confidence': serializer.toJson<double?>(confidence),
+      'end': serializer.toJson<String?>(end),
+      'location': serializer.toJson<String?>(location),
+      'preparation': serializer.toJson<String?>(preparation),
+      'sourceReference': serializer.toJson<String?>(sourceReference),
+    };
+  }
+
+  AnalysisAppointment copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? label,
+    Value<String?> startOrDate = const Value.absent(),
+    Value<double?> confidence = const Value.absent(),
+    Value<String?> end = const Value.absent(),
+    Value<String?> location = const Value.absent(),
+    Value<String?> preparation = const Value.absent(),
+    Value<String?> sourceReference = const Value.absent(),
+  }) => AnalysisAppointment(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    label: label ?? this.label,
+    startOrDate: startOrDate.present ? startOrDate.value : this.startOrDate,
+    confidence: confidence.present ? confidence.value : this.confidence,
+    end: end.present ? end.value : this.end,
+    location: location.present ? location.value : this.location,
+    preparation: preparation.present ? preparation.value : this.preparation,
+    sourceReference: sourceReference.present
+        ? sourceReference.value
+        : this.sourceReference,
+  );
+  AnalysisAppointment copyWithCompanion(AnalysisAppointmentsCompanion data) {
+    return AnalysisAppointment(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      label: data.label.present ? data.label.value : this.label,
+      startOrDate: data.startOrDate.present
+          ? data.startOrDate.value
+          : this.startOrDate,
+      confidence: data.confidence.present
+          ? data.confidence.value
+          : this.confidence,
+      end: data.end.present ? data.end.value : this.end,
+      location: data.location.present ? data.location.value : this.location,
+      preparation: data.preparation.present
+          ? data.preparation.value
+          : this.preparation,
+      sourceReference: data.sourceReference.present
+          ? data.sourceReference.value
+          : this.sourceReference,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisAppointment(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('label: $label, ')
+          ..write('startOrDate: $startOrDate, ')
+          ..write('confidence: $confidence, ')
+          ..write('end: $end, ')
+          ..write('location: $location, ')
+          ..write('preparation: $preparation, ')
+          ..write('sourceReference: $sourceReference')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    analysisId,
+    position,
+    label,
+    startOrDate,
+    confidence,
+    end,
+    location,
+    preparation,
+    sourceReference,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisAppointment &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.label == this.label &&
+          other.startOrDate == this.startOrDate &&
+          other.confidence == this.confidence &&
+          other.end == this.end &&
+          other.location == this.location &&
+          other.preparation == this.preparation &&
+          other.sourceReference == this.sourceReference);
+}
+
+class AnalysisAppointmentsCompanion
+    extends UpdateCompanion<AnalysisAppointment> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> label;
+  final Value<String?> startOrDate;
+  final Value<double?> confidence;
+  final Value<String?> end;
+  final Value<String?> location;
+  final Value<String?> preparation;
+  final Value<String?> sourceReference;
+  final Value<int> rowid;
+  const AnalysisAppointmentsCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.label = const Value.absent(),
+    this.startOrDate = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.end = const Value.absent(),
+    this.location = const Value.absent(),
+    this.preparation = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisAppointmentsCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String label,
+    this.startOrDate = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.end = const Value.absent(),
+    this.location = const Value.absent(),
+    this.preparation = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       label = Value(label);
+  static Insertable<AnalysisAppointment> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? label,
+    Expression<String>? startOrDate,
+    Expression<double>? confidence,
+    Expression<String>? end,
+    Expression<String>? location,
+    Expression<String>? preparation,
+    Expression<String>? sourceReference,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (label != null) 'label': label,
+      if (startOrDate != null) 'start_or_date': startOrDate,
+      if (confidence != null) 'confidence': confidence,
+      if (end != null) 'end': end,
+      if (location != null) 'location': location,
+      if (preparation != null) 'preparation': preparation,
+      if (sourceReference != null) 'source_reference': sourceReference,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisAppointmentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? label,
+    Value<String?>? startOrDate,
+    Value<double?>? confidence,
+    Value<String?>? end,
+    Value<String?>? location,
+    Value<String?>? preparation,
+    Value<String?>? sourceReference,
+    Value<int>? rowid,
+  }) {
+    return AnalysisAppointmentsCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      label: label ?? this.label,
+      startOrDate: startOrDate ?? this.startOrDate,
+      confidence: confidence ?? this.confidence,
+      end: end ?? this.end,
+      location: location ?? this.location,
+      preparation: preparation ?? this.preparation,
+      sourceReference: sourceReference ?? this.sourceReference,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (startOrDate.present) {
+      map['start_or_date'] = Variable<String>(startOrDate.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
+    if (end.present) {
+      map['end'] = Variable<String>(end.value);
+    }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
+    }
+    if (preparation.present) {
+      map['preparation'] = Variable<String>(preparation.value);
+    }
+    if (sourceReference.present) {
+      map['source_reference'] = Variable<String>(sourceReference.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisAppointmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('label: $label, ')
+          ..write('startOrDate: $startOrDate, ')
+          ..write('confidence: $confidence, ')
+          ..write('end: $end, ')
+          ..write('location: $location, ')
+          ..write('preparation: $preparation, ')
+          ..write('sourceReference: $sourceReference, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisAmountsTable extends AnalysisAmounts
+    with TableInfo<$AnalysisAmountsTable, AnalysisAmount> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisAmountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _directionMeta = const VerificationMeta(
+    'direction',
+  );
+  @override
+  late final GeneratedColumn<String> direction = GeneratedColumn<String>(
+    'direction',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _confidenceMeta = const VerificationMeta(
+    'confidence',
+  );
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+    'confidence',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<String> dueDate = GeneratedColumn<String>(
+    'due_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _purposeMeta = const VerificationMeta(
+    'purpose',
+  );
+  @override
+  late final GeneratedColumn<String> purpose = GeneratedColumn<String>(
+    'purpose',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceReferenceMeta = const VerificationMeta(
+    'sourceReference',
+  );
+  @override
+  late final GeneratedColumn<String> sourceReference = GeneratedColumn<String>(
+    'source_reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    analysisId,
+    position,
+    value,
+    currency,
+    direction,
+    confidence,
+    dueDate,
+    purpose,
+    sourceReference,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_amounts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisAmount> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('direction')) {
+      context.handle(
+        _directionMeta,
+        direction.isAcceptableOrUnknown(data['direction']!, _directionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_directionMeta);
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+        _confidenceMeta,
+        confidence.isAcceptableOrUnknown(data['confidence']!, _confidenceMeta),
+      );
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    }
+    if (data.containsKey('purpose')) {
+      context.handle(
+        _purposeMeta,
+        purpose.isAcceptableOrUnknown(data['purpose']!, _purposeMeta),
+      );
+    }
+    if (data.containsKey('source_reference')) {
+      context.handle(
+        _sourceReferenceMeta,
+        sourceReference.isAcceptableOrUnknown(
+          data['source_reference']!,
+          _sourceReferenceMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisAmount map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisAmount(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      direction: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}direction'],
+      )!,
+      confidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence'],
+      ),
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}due_date'],
+      ),
+      purpose: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}purpose'],
+      ),
+      sourceReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_reference'],
+      ),
+    );
+  }
+
+  @override
+  $AnalysisAmountsTable createAlias(String alias) {
+    return $AnalysisAmountsTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisAmount extends DataClass implements Insertable<AnalysisAmount> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String value;
+  final String currency;
+  final String direction;
+  final double? confidence;
+  final String? dueDate;
+  final String? purpose;
+  final String? sourceReference;
+  const AnalysisAmount({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.value,
+    required this.currency,
+    required this.direction,
+    this.confidence,
+    this.dueDate,
+    this.purpose,
+    this.sourceReference,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['value'] = Variable<String>(value);
+    map['currency'] = Variable<String>(currency);
+    map['direction'] = Variable<String>(direction);
+    if (!nullToAbsent || confidence != null) {
+      map['confidence'] = Variable<double>(confidence);
+    }
+    if (!nullToAbsent || dueDate != null) {
+      map['due_date'] = Variable<String>(dueDate);
+    }
+    if (!nullToAbsent || purpose != null) {
+      map['purpose'] = Variable<String>(purpose);
+    }
+    if (!nullToAbsent || sourceReference != null) {
+      map['source_reference'] = Variable<String>(sourceReference);
+    }
+    return map;
+  }
+
+  AnalysisAmountsCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisAmountsCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      value: Value(value),
+      currency: Value(currency),
+      direction: Value(direction),
+      confidence: confidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidence),
+      dueDate: dueDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueDate),
+      purpose: purpose == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purpose),
+      sourceReference: sourceReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceReference),
+    );
+  }
+
+  factory AnalysisAmount.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisAmount(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      value: serializer.fromJson<String>(json['value']),
+      currency: serializer.fromJson<String>(json['currency']),
+      direction: serializer.fromJson<String>(json['direction']),
+      confidence: serializer.fromJson<double?>(json['confidence']),
+      dueDate: serializer.fromJson<String?>(json['dueDate']),
+      purpose: serializer.fromJson<String?>(json['purpose']),
+      sourceReference: serializer.fromJson<String?>(json['sourceReference']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'value': serializer.toJson<String>(value),
+      'currency': serializer.toJson<String>(currency),
+      'direction': serializer.toJson<String>(direction),
+      'confidence': serializer.toJson<double?>(confidence),
+      'dueDate': serializer.toJson<String?>(dueDate),
+      'purpose': serializer.toJson<String?>(purpose),
+      'sourceReference': serializer.toJson<String?>(sourceReference),
+    };
+  }
+
+  AnalysisAmount copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? value,
+    String? currency,
+    String? direction,
+    Value<double?> confidence = const Value.absent(),
+    Value<String?> dueDate = const Value.absent(),
+    Value<String?> purpose = const Value.absent(),
+    Value<String?> sourceReference = const Value.absent(),
+  }) => AnalysisAmount(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    value: value ?? this.value,
+    currency: currency ?? this.currency,
+    direction: direction ?? this.direction,
+    confidence: confidence.present ? confidence.value : this.confidence,
+    dueDate: dueDate.present ? dueDate.value : this.dueDate,
+    purpose: purpose.present ? purpose.value : this.purpose,
+    sourceReference: sourceReference.present
+        ? sourceReference.value
+        : this.sourceReference,
+  );
+  AnalysisAmount copyWithCompanion(AnalysisAmountsCompanion data) {
+    return AnalysisAmount(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      value: data.value.present ? data.value.value : this.value,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      direction: data.direction.present ? data.direction.value : this.direction,
+      confidence: data.confidence.present
+          ? data.confidence.value
+          : this.confidence,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      purpose: data.purpose.present ? data.purpose.value : this.purpose,
+      sourceReference: data.sourceReference.present
+          ? data.sourceReference.value
+          : this.sourceReference,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisAmount(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('value: $value, ')
+          ..write('currency: $currency, ')
+          ..write('direction: $direction, ')
+          ..write('confidence: $confidence, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('purpose: $purpose, ')
+          ..write('sourceReference: $sourceReference')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    analysisId,
+    position,
+    value,
+    currency,
+    direction,
+    confidence,
+    dueDate,
+    purpose,
+    sourceReference,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisAmount &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.value == this.value &&
+          other.currency == this.currency &&
+          other.direction == this.direction &&
+          other.confidence == this.confidence &&
+          other.dueDate == this.dueDate &&
+          other.purpose == this.purpose &&
+          other.sourceReference == this.sourceReference);
+}
+
+class AnalysisAmountsCompanion extends UpdateCompanion<AnalysisAmount> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> value;
+  final Value<String> currency;
+  final Value<String> direction;
+  final Value<double?> confidence;
+  final Value<String?> dueDate;
+  final Value<String?> purpose;
+  final Value<String?> sourceReference;
+  final Value<int> rowid;
+  const AnalysisAmountsCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.value = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.direction = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.purpose = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisAmountsCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String value,
+    required String currency,
+    required String direction,
+    this.confidence = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.purpose = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       value = Value(value),
+       currency = Value(currency),
+       direction = Value(direction);
+  static Insertable<AnalysisAmount> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? value,
+    Expression<String>? currency,
+    Expression<String>? direction,
+    Expression<double>? confidence,
+    Expression<String>? dueDate,
+    Expression<String>? purpose,
+    Expression<String>? sourceReference,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (value != null) 'value': value,
+      if (currency != null) 'currency': currency,
+      if (direction != null) 'direction': direction,
+      if (confidence != null) 'confidence': confidence,
+      if (dueDate != null) 'due_date': dueDate,
+      if (purpose != null) 'purpose': purpose,
+      if (sourceReference != null) 'source_reference': sourceReference,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisAmountsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? value,
+    Value<String>? currency,
+    Value<String>? direction,
+    Value<double?>? confidence,
+    Value<String?>? dueDate,
+    Value<String?>? purpose,
+    Value<String?>? sourceReference,
+    Value<int>? rowid,
+  }) {
+    return AnalysisAmountsCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      value: value ?? this.value,
+      currency: currency ?? this.currency,
+      direction: direction ?? this.direction,
+      confidence: confidence ?? this.confidence,
+      dueDate: dueDate ?? this.dueDate,
+      purpose: purpose ?? this.purpose,
+      sourceReference: sourceReference ?? this.sourceReference,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (direction.present) {
+      map['direction'] = Variable<String>(direction.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<String>(dueDate.value);
+    }
+    if (purpose.present) {
+      map['purpose'] = Variable<String>(purpose.value);
+    }
+    if (sourceReference.present) {
+      map['source_reference'] = Variable<String>(sourceReference.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisAmountsCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('value: $value, ')
+          ..write('currency: $currency, ')
+          ..write('direction: $direction, ')
+          ..write('confidence: $confidence, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('purpose: $purpose, ')
+          ..write('sourceReference: $sourceReference, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisRequiredDocumentsTable extends AnalysisRequiredDocuments
+    with TableInfo<$AnalysisRequiredDocumentsTable, AnalysisRequiredDocument> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisRequiredDocumentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _confidenceMeta = const VerificationMeta(
+    'confidence',
+  );
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+    'confidence',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<String> dueDate = GeneratedColumn<String>(
+    'due_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _submissionMethodMeta = const VerificationMeta(
+    'submissionMethod',
+  );
+  @override
+  late final GeneratedColumn<String> submissionMethod = GeneratedColumn<String>(
+    'submission_method',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceReferenceMeta = const VerificationMeta(
+    'sourceReference',
+  );
+  @override
+  late final GeneratedColumn<String> sourceReference = GeneratedColumn<String>(
+    'source_reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    analysisId,
+    position,
+    description,
+    confidence,
+    dueDate,
+    submissionMethod,
+    sourceReference,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_required_documents';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisRequiredDocument> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+        _confidenceMeta,
+        confidence.isAcceptableOrUnknown(data['confidence']!, _confidenceMeta),
+      );
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    }
+    if (data.containsKey('submission_method')) {
+      context.handle(
+        _submissionMethodMeta,
+        submissionMethod.isAcceptableOrUnknown(
+          data['submission_method']!,
+          _submissionMethodMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source_reference')) {
+      context.handle(
+        _sourceReferenceMeta,
+        sourceReference.isAcceptableOrUnknown(
+          data['source_reference']!,
+          _sourceReferenceMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisRequiredDocument map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisRequiredDocument(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      confidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence'],
+      ),
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}due_date'],
+      ),
+      submissionMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}submission_method'],
+      ),
+      sourceReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_reference'],
+      ),
+    );
+  }
+
+  @override
+  $AnalysisRequiredDocumentsTable createAlias(String alias) {
+    return $AnalysisRequiredDocumentsTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisRequiredDocument extends DataClass
+    implements Insertable<AnalysisRequiredDocument> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String description;
+  final double? confidence;
+  final String? dueDate;
+  final String? submissionMethod;
+  final String? sourceReference;
+  const AnalysisRequiredDocument({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.description,
+    this.confidence,
+    this.dueDate,
+    this.submissionMethod,
+    this.sourceReference,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['description'] = Variable<String>(description);
+    if (!nullToAbsent || confidence != null) {
+      map['confidence'] = Variable<double>(confidence);
+    }
+    if (!nullToAbsent || dueDate != null) {
+      map['due_date'] = Variable<String>(dueDate);
+    }
+    if (!nullToAbsent || submissionMethod != null) {
+      map['submission_method'] = Variable<String>(submissionMethod);
+    }
+    if (!nullToAbsent || sourceReference != null) {
+      map['source_reference'] = Variable<String>(sourceReference);
+    }
+    return map;
+  }
+
+  AnalysisRequiredDocumentsCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisRequiredDocumentsCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      description: Value(description),
+      confidence: confidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidence),
+      dueDate: dueDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueDate),
+      submissionMethod: submissionMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(submissionMethod),
+      sourceReference: sourceReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceReference),
+    );
+  }
+
+  factory AnalysisRequiredDocument.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisRequiredDocument(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      description: serializer.fromJson<String>(json['description']),
+      confidence: serializer.fromJson<double?>(json['confidence']),
+      dueDate: serializer.fromJson<String?>(json['dueDate']),
+      submissionMethod: serializer.fromJson<String?>(json['submissionMethod']),
+      sourceReference: serializer.fromJson<String?>(json['sourceReference']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'description': serializer.toJson<String>(description),
+      'confidence': serializer.toJson<double?>(confidence),
+      'dueDate': serializer.toJson<String?>(dueDate),
+      'submissionMethod': serializer.toJson<String?>(submissionMethod),
+      'sourceReference': serializer.toJson<String?>(sourceReference),
+    };
+  }
+
+  AnalysisRequiredDocument copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? description,
+    Value<double?> confidence = const Value.absent(),
+    Value<String?> dueDate = const Value.absent(),
+    Value<String?> submissionMethod = const Value.absent(),
+    Value<String?> sourceReference = const Value.absent(),
+  }) => AnalysisRequiredDocument(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    description: description ?? this.description,
+    confidence: confidence.present ? confidence.value : this.confidence,
+    dueDate: dueDate.present ? dueDate.value : this.dueDate,
+    submissionMethod: submissionMethod.present
+        ? submissionMethod.value
+        : this.submissionMethod,
+    sourceReference: sourceReference.present
+        ? sourceReference.value
+        : this.sourceReference,
+  );
+  AnalysisRequiredDocument copyWithCompanion(
+    AnalysisRequiredDocumentsCompanion data,
+  ) {
+    return AnalysisRequiredDocument(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      confidence: data.confidence.present
+          ? data.confidence.value
+          : this.confidence,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      submissionMethod: data.submissionMethod.present
+          ? data.submissionMethod.value
+          : this.submissionMethod,
+      sourceReference: data.sourceReference.present
+          ? data.sourceReference.value
+          : this.sourceReference,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisRequiredDocument(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('description: $description, ')
+          ..write('confidence: $confidence, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('submissionMethod: $submissionMethod, ')
+          ..write('sourceReference: $sourceReference')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    analysisId,
+    position,
+    description,
+    confidence,
+    dueDate,
+    submissionMethod,
+    sourceReference,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisRequiredDocument &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.description == this.description &&
+          other.confidence == this.confidence &&
+          other.dueDate == this.dueDate &&
+          other.submissionMethod == this.submissionMethod &&
+          other.sourceReference == this.sourceReference);
+}
+
+class AnalysisRequiredDocumentsCompanion
+    extends UpdateCompanion<AnalysisRequiredDocument> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> description;
+  final Value<double?> confidence;
+  final Value<String?> dueDate;
+  final Value<String?> submissionMethod;
+  final Value<String?> sourceReference;
+  final Value<int> rowid;
+  const AnalysisRequiredDocumentsCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.description = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.submissionMethod = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisRequiredDocumentsCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String description,
+    this.confidence = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.submissionMethod = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       description = Value(description);
+  static Insertable<AnalysisRequiredDocument> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? description,
+    Expression<double>? confidence,
+    Expression<String>? dueDate,
+    Expression<String>? submissionMethod,
+    Expression<String>? sourceReference,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (description != null) 'description': description,
+      if (confidence != null) 'confidence': confidence,
+      if (dueDate != null) 'due_date': dueDate,
+      if (submissionMethod != null) 'submission_method': submissionMethod,
+      if (sourceReference != null) 'source_reference': sourceReference,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisRequiredDocumentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? description,
+    Value<double?>? confidence,
+    Value<String?>? dueDate,
+    Value<String?>? submissionMethod,
+    Value<String?>? sourceReference,
+    Value<int>? rowid,
+  }) {
+    return AnalysisRequiredDocumentsCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      description: description ?? this.description,
+      confidence: confidence ?? this.confidence,
+      dueDate: dueDate ?? this.dueDate,
+      submissionMethod: submissionMethod ?? this.submissionMethod,
+      sourceReference: sourceReference ?? this.sourceReference,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<String>(dueDate.value);
+    }
+    if (submissionMethod.present) {
+      map['submission_method'] = Variable<String>(submissionMethod.value);
+    }
+    if (sourceReference.present) {
+      map['source_reference'] = Variable<String>(sourceReference.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisRequiredDocumentsCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('description: $description, ')
+          ..write('confidence: $confidence, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('submissionMethod: $submissionMethod, ')
+          ..write('sourceReference: $sourceReference, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnalysisSuggestedTasksTable extends AnalysisSuggestedTasks
+    with TableInfo<$AnalysisSuggestedTasksTable, AnalysisSuggestedTask> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnalysisSuggestedTasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _analysisIdMeta = const VerificationMeta(
+    'analysisId',
+  );
+  @override
+  late final GeneratedColumn<String> analysisId = GeneratedColumn<String>(
+    'analysis_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES analyses (id)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _confidenceMeta = const VerificationMeta(
+    'confidence',
+  );
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+    'confidence',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<String> dueDate = GeneratedColumn<String>(
+    'due_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _instructionsMeta = const VerificationMeta(
+    'instructions',
+  );
+  @override
+  late final GeneratedColumn<String> instructions = GeneratedColumn<String>(
+    'instructions',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceReferenceMeta = const VerificationMeta(
+    'sourceReference',
+  );
+  @override
+  late final GeneratedColumn<String> sourceReference = GeneratedColumn<String>(
+    'source_reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    analysisId,
+    position,
+    title,
+    confidence,
+    dueDate,
+    instructions,
+    sourceReference,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'analysis_suggested_tasks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AnalysisSuggestedTask> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('analysis_id')) {
+      context.handle(
+        _analysisIdMeta,
+        analysisId.isAcceptableOrUnknown(data['analysis_id']!, _analysisIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_analysisIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+        _confidenceMeta,
+        confidence.isAcceptableOrUnknown(data['confidence']!, _confidenceMeta),
+      );
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    }
+    if (data.containsKey('instructions')) {
+      context.handle(
+        _instructionsMeta,
+        instructions.isAcceptableOrUnknown(
+          data['instructions']!,
+          _instructionsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source_reference')) {
+      context.handle(
+        _sourceReferenceMeta,
+        sourceReference.isAcceptableOrUnknown(
+          data['source_reference']!,
+          _sourceReferenceMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnalysisSuggestedTask map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnalysisSuggestedTask(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      analysisId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}analysis_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      confidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence'],
+      ),
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}due_date'],
+      ),
+      instructions: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}instructions'],
+      ),
+      sourceReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_reference'],
+      ),
+    );
+  }
+
+  @override
+  $AnalysisSuggestedTasksTable createAlias(String alias) {
+    return $AnalysisSuggestedTasksTable(attachedDatabase, alias);
+  }
+}
+
+class AnalysisSuggestedTask extends DataClass
+    implements Insertable<AnalysisSuggestedTask> {
+  final String id;
+  final String analysisId;
+  final int position;
+  final String title;
+  final double? confidence;
+  final String? dueDate;
+  final String? instructions;
+  final String? sourceReference;
+  const AnalysisSuggestedTask({
+    required this.id,
+    required this.analysisId,
+    required this.position,
+    required this.title,
+    this.confidence,
+    this.dueDate,
+    this.instructions,
+    this.sourceReference,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['analysis_id'] = Variable<String>(analysisId);
+    map['position'] = Variable<int>(position);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || confidence != null) {
+      map['confidence'] = Variable<double>(confidence);
+    }
+    if (!nullToAbsent || dueDate != null) {
+      map['due_date'] = Variable<String>(dueDate);
+    }
+    if (!nullToAbsent || instructions != null) {
+      map['instructions'] = Variable<String>(instructions);
+    }
+    if (!nullToAbsent || sourceReference != null) {
+      map['source_reference'] = Variable<String>(sourceReference);
+    }
+    return map;
+  }
+
+  AnalysisSuggestedTasksCompanion toCompanion(bool nullToAbsent) {
+    return AnalysisSuggestedTasksCompanion(
+      id: Value(id),
+      analysisId: Value(analysisId),
+      position: Value(position),
+      title: Value(title),
+      confidence: confidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidence),
+      dueDate: dueDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueDate),
+      instructions: instructions == null && nullToAbsent
+          ? const Value.absent()
+          : Value(instructions),
+      sourceReference: sourceReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceReference),
+    );
+  }
+
+  factory AnalysisSuggestedTask.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnalysisSuggestedTask(
+      id: serializer.fromJson<String>(json['id']),
+      analysisId: serializer.fromJson<String>(json['analysisId']),
+      position: serializer.fromJson<int>(json['position']),
+      title: serializer.fromJson<String>(json['title']),
+      confidence: serializer.fromJson<double?>(json['confidence']),
+      dueDate: serializer.fromJson<String?>(json['dueDate']),
+      instructions: serializer.fromJson<String?>(json['instructions']),
+      sourceReference: serializer.fromJson<String?>(json['sourceReference']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'analysisId': serializer.toJson<String>(analysisId),
+      'position': serializer.toJson<int>(position),
+      'title': serializer.toJson<String>(title),
+      'confidence': serializer.toJson<double?>(confidence),
+      'dueDate': serializer.toJson<String?>(dueDate),
+      'instructions': serializer.toJson<String?>(instructions),
+      'sourceReference': serializer.toJson<String?>(sourceReference),
+    };
+  }
+
+  AnalysisSuggestedTask copyWith({
+    String? id,
+    String? analysisId,
+    int? position,
+    String? title,
+    Value<double?> confidence = const Value.absent(),
+    Value<String?> dueDate = const Value.absent(),
+    Value<String?> instructions = const Value.absent(),
+    Value<String?> sourceReference = const Value.absent(),
+  }) => AnalysisSuggestedTask(
+    id: id ?? this.id,
+    analysisId: analysisId ?? this.analysisId,
+    position: position ?? this.position,
+    title: title ?? this.title,
+    confidence: confidence.present ? confidence.value : this.confidence,
+    dueDate: dueDate.present ? dueDate.value : this.dueDate,
+    instructions: instructions.present ? instructions.value : this.instructions,
+    sourceReference: sourceReference.present
+        ? sourceReference.value
+        : this.sourceReference,
+  );
+  AnalysisSuggestedTask copyWithCompanion(
+    AnalysisSuggestedTasksCompanion data,
+  ) {
+    return AnalysisSuggestedTask(
+      id: data.id.present ? data.id.value : this.id,
+      analysisId: data.analysisId.present
+          ? data.analysisId.value
+          : this.analysisId,
+      position: data.position.present ? data.position.value : this.position,
+      title: data.title.present ? data.title.value : this.title,
+      confidence: data.confidence.present
+          ? data.confidence.value
+          : this.confidence,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      instructions: data.instructions.present
+          ? data.instructions.value
+          : this.instructions,
+      sourceReference: data.sourceReference.present
+          ? data.sourceReference.value
+          : this.sourceReference,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisSuggestedTask(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('title: $title, ')
+          ..write('confidence: $confidence, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('instructions: $instructions, ')
+          ..write('sourceReference: $sourceReference')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    analysisId,
+    position,
+    title,
+    confidence,
+    dueDate,
+    instructions,
+    sourceReference,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnalysisSuggestedTask &&
+          other.id == this.id &&
+          other.analysisId == this.analysisId &&
+          other.position == this.position &&
+          other.title == this.title &&
+          other.confidence == this.confidence &&
+          other.dueDate == this.dueDate &&
+          other.instructions == this.instructions &&
+          other.sourceReference == this.sourceReference);
+}
+
+class AnalysisSuggestedTasksCompanion
+    extends UpdateCompanion<AnalysisSuggestedTask> {
+  final Value<String> id;
+  final Value<String> analysisId;
+  final Value<int> position;
+  final Value<String> title;
+  final Value<double?> confidence;
+  final Value<String?> dueDate;
+  final Value<String?> instructions;
+  final Value<String?> sourceReference;
+  final Value<int> rowid;
+  const AnalysisSuggestedTasksCompanion({
+    this.id = const Value.absent(),
+    this.analysisId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.title = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.instructions = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AnalysisSuggestedTasksCompanion.insert({
+    required String id,
+    required String analysisId,
+    required int position,
+    required String title,
+    this.confidence = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.instructions = const Value.absent(),
+    this.sourceReference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       analysisId = Value(analysisId),
+       position = Value(position),
+       title = Value(title);
+  static Insertable<AnalysisSuggestedTask> custom({
+    Expression<String>? id,
+    Expression<String>? analysisId,
+    Expression<int>? position,
+    Expression<String>? title,
+    Expression<double>? confidence,
+    Expression<String>? dueDate,
+    Expression<String>? instructions,
+    Expression<String>? sourceReference,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (analysisId != null) 'analysis_id': analysisId,
+      if (position != null) 'position': position,
+      if (title != null) 'title': title,
+      if (confidence != null) 'confidence': confidence,
+      if (dueDate != null) 'due_date': dueDate,
+      if (instructions != null) 'instructions': instructions,
+      if (sourceReference != null) 'source_reference': sourceReference,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AnalysisSuggestedTasksCompanion copyWith({
+    Value<String>? id,
+    Value<String>? analysisId,
+    Value<int>? position,
+    Value<String>? title,
+    Value<double?>? confidence,
+    Value<String?>? dueDate,
+    Value<String?>? instructions,
+    Value<String?>? sourceReference,
+    Value<int>? rowid,
+  }) {
+    return AnalysisSuggestedTasksCompanion(
+      id: id ?? this.id,
+      analysisId: analysisId ?? this.analysisId,
+      position: position ?? this.position,
+      title: title ?? this.title,
+      confidence: confidence ?? this.confidence,
+      dueDate: dueDate ?? this.dueDate,
+      instructions: instructions ?? this.instructions,
+      sourceReference: sourceReference ?? this.sourceReference,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (analysisId.present) {
+      map['analysis_id'] = Variable<String>(analysisId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<String>(dueDate.value);
+    }
+    if (instructions.present) {
+      map['instructions'] = Variable<String>(instructions.value);
+    }
+    if (sourceReference.present) {
+      map['source_reference'] = Variable<String>(sourceReference.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnalysisSuggestedTasksCompanion(')
+          ..write('id: $id, ')
+          ..write('analysisId: $analysisId, ')
+          ..write('position: $position, ')
+          ..write('title: $title, ')
+          ..write('confidence: $confidence, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('instructions: $instructions, ')
+          ..write('sourceReference: $sourceReference, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6047,6 +10230,23 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AnalysesTable analyses = $AnalysesTable(this);
   late final $AnalysisQualityReasonsTable analysisQualityReasons =
       $AnalysisQualityReasonsTable(this);
+  late final $AnalysisNextActionsTable analysisNextActions =
+      $AnalysisNextActionsTable(this);
+  late final $AnalysisUncertaintiesTable analysisUncertainties =
+      $AnalysisUncertaintiesTable(this);
+  late final $AnalysisPracticalStatesTable analysisPracticalStates =
+      $AnalysisPracticalStatesTable(this);
+  late final $AnalysisDeadlinesTable analysisDeadlines =
+      $AnalysisDeadlinesTable(this);
+  late final $AnalysisAppointmentsTable analysisAppointments =
+      $AnalysisAppointmentsTable(this);
+  late final $AnalysisAmountsTable analysisAmounts = $AnalysisAmountsTable(
+    this,
+  );
+  late final $AnalysisRequiredDocumentsTable analysisRequiredDocuments =
+      $AnalysisRequiredDocumentsTable(this);
+  late final $AnalysisSuggestedTasksTable analysisSuggestedTasks =
+      $AnalysisSuggestedTasksTable(this);
   late final $SourceReferencesTable sourceReferences = $SourceReferencesTable(
     this,
   );
@@ -6070,6 +10270,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     documentFiles,
     analyses,
     analysisQualityReasons,
+    analysisNextActions,
+    analysisUncertainties,
+    analysisPracticalStates,
+    analysisDeadlines,
+    analysisAppointments,
+    analysisAmounts,
+    analysisRequiredDocuments,
+    analysisSuggestedTasks,
     sourceReferences,
     tasks,
     deadlines,
@@ -8884,6 +13092,11 @@ typedef $$AnalysesTableCreateCompanionBuilder = AnalysesCompanion Function({
   Value<String?> explanation,
   required String state,
   Value<String> analysisStatus,
+  Value<String?> actionRequired,
+  Value<String?> documentDate,
+  Value<String> detectedLanguage,
+  Value<String> urgency,
+  Value<double?> confidence,
   Value<String> explanationStyle,
   Value<String?> suggestedOrganizationName,
   Value<String?> suggestedDocumentType,
@@ -8899,6 +13112,11 @@ typedef $$AnalysesTableUpdateCompanionBuilder = AnalysesCompanion Function({
   Value<String?> explanation,
   Value<String> state,
   Value<String> analysisStatus,
+  Value<String?> actionRequired,
+  Value<String?> documentDate,
+  Value<String> detectedLanguage,
+  Value<String> urgency,
+  Value<double?> confidence,
   Value<String> explanationStyle,
   Value<String?> suggestedOrganizationName,
   Value<String?> suggestedDocumentType,
@@ -8948,6 +13166,196 @@ final class $$AnalysesTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _analysisQualityReasonsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AnalysisNextActionsTable,
+    List<AnalysisNextAction>
+  >
+  _analysisNextActionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisNextActions,
+        aliasName: 'analyses__id__analysis_next_actions__analysis_id',
+      );
+
+  $$AnalysisNextActionsTableProcessedTableManager get analysisNextActionsRefs {
+    final manager = $$AnalysisNextActionsTableTableManager(
+      $_db,
+      $_db.analysisNextActions,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisNextActionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AnalysisUncertaintiesTable,
+    List<AnalysisUncertainty>
+  >
+  _analysisUncertaintiesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisUncertainties,
+        aliasName: 'analyses__id__analysis_uncertainties__analysis_id',
+      );
+
+  $$AnalysisUncertaintiesTableProcessedTableManager
+  get analysisUncertaintiesRefs {
+    final manager = $$AnalysisUncertaintiesTableTableManager(
+      $_db,
+      $_db.analysisUncertainties,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisUncertaintiesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AnalysisPracticalStatesTable,
+    List<AnalysisPracticalState>
+  >
+  _analysisPracticalStatesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisPracticalStates,
+        aliasName: 'analyses__id__analysis_practical_states__analysis_id',
+      );
+
+  $$AnalysisPracticalStatesTableProcessedTableManager
+  get analysisPracticalStatesRefs {
+    final manager = $$AnalysisPracticalStatesTableTableManager(
+      $_db,
+      $_db.analysisPracticalStates,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisPracticalStatesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$AnalysisDeadlinesTable, List<AnalysisDeadline>>
+  _analysisDeadlinesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisDeadlines,
+        aliasName: 'analyses__id__analysis_deadlines__analysis_id',
+      );
+
+  $$AnalysisDeadlinesTableProcessedTableManager get analysisDeadlinesRefs {
+    final manager = $$AnalysisDeadlinesTableTableManager(
+      $_db,
+      $_db.analysisDeadlines,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisDeadlinesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AnalysisAppointmentsTable,
+    List<AnalysisAppointment>
+  >
+  _analysisAppointmentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisAppointments,
+        aliasName: 'analyses__id__analysis_appointments__analysis_id',
+      );
+
+  $$AnalysisAppointmentsTableProcessedTableManager
+  get analysisAppointmentsRefs {
+    final manager = $$AnalysisAppointmentsTableTableManager(
+      $_db,
+      $_db.analysisAppointments,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisAppointmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$AnalysisAmountsTable, List<AnalysisAmount>>
+  _analysisAmountsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.analysisAmounts,
+    aliasName: 'analyses__id__analysis_amounts__analysis_id',
+  );
+
+  $$AnalysisAmountsTableProcessedTableManager get analysisAmountsRefs {
+    final manager = $$AnalysisAmountsTableTableManager(
+      $_db,
+      $_db.analysisAmounts,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisAmountsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AnalysisRequiredDocumentsTable,
+    List<AnalysisRequiredDocument>
+  >
+  _analysisRequiredDocumentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisRequiredDocuments,
+        aliasName: 'analyses__id__analysis_required_documents__analysis_id',
+      );
+
+  $$AnalysisRequiredDocumentsTableProcessedTableManager
+  get analysisRequiredDocumentsRefs {
+    final manager = $$AnalysisRequiredDocumentsTableTableManager(
+      $_db,
+      $_db.analysisRequiredDocuments,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisRequiredDocumentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AnalysisSuggestedTasksTable,
+    List<AnalysisSuggestedTask>
+  >
+  _analysisSuggestedTasksRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.analysisSuggestedTasks,
+        aliasName: 'analyses__id__analysis_suggested_tasks__analysis_id',
+      );
+
+  $$AnalysisSuggestedTasksTableProcessedTableManager
+  get analysisSuggestedTasksRefs {
+    final manager = $$AnalysisSuggestedTasksTableTableManager(
+      $_db,
+      $_db.analysisSuggestedTasks,
+    ).filter((f) => f.analysisId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _analysisSuggestedTasksRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -9019,6 +13427,31 @@ class $$AnalysesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get actionRequired => $composableBuilder(
+    column: $table.actionRequired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get documentDate => $composableBuilder(
+    column: $table.documentDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get detectedLanguage => $composableBuilder(
+    column: $table.detectedLanguage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get urgency => $composableBuilder(
+    column: $table.urgency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get explanationStyle => $composableBuilder(
     column: $table.explanationStyle,
     builder: (column) => ColumnFilters(column),
@@ -9079,6 +13512,211 @@ class $$AnalysesTableFilterComposer
               }) => $$AnalysisQualityReasonsTableFilterComposer(
                 $db: $db,
                 $table: $db.analysisQualityReasons,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> analysisNextActionsRefs(
+    Expression<bool> Function($$AnalysisNextActionsTableFilterComposer f) f,
+  ) {
+    final $$AnalysisNextActionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.analysisNextActions,
+      getReferencedColumn: (t) => t.analysisId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysisNextActionsTableFilterComposer(
+            $db: $db,
+            $table: $db.analysisNextActions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> analysisUncertaintiesRefs(
+    Expression<bool> Function($$AnalysisUncertaintiesTableFilterComposer f) f,
+  ) {
+    final $$AnalysisUncertaintiesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisUncertainties,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisUncertaintiesTableFilterComposer(
+                $db: $db,
+                $table: $db.analysisUncertainties,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> analysisPracticalStatesRefs(
+    Expression<bool> Function($$AnalysisPracticalStatesTableFilterComposer f) f,
+  ) {
+    final $$AnalysisPracticalStatesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisPracticalStates,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisPracticalStatesTableFilterComposer(
+                $db: $db,
+                $table: $db.analysisPracticalStates,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> analysisDeadlinesRefs(
+    Expression<bool> Function($$AnalysisDeadlinesTableFilterComposer f) f,
+  ) {
+    final $$AnalysisDeadlinesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.analysisDeadlines,
+      getReferencedColumn: (t) => t.analysisId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysisDeadlinesTableFilterComposer(
+            $db: $db,
+            $table: $db.analysisDeadlines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> analysisAppointmentsRefs(
+    Expression<bool> Function($$AnalysisAppointmentsTableFilterComposer f) f,
+  ) {
+    final $$AnalysisAppointmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.analysisAppointments,
+      getReferencedColumn: (t) => t.analysisId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysisAppointmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.analysisAppointments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> analysisAmountsRefs(
+    Expression<bool> Function($$AnalysisAmountsTableFilterComposer f) f,
+  ) {
+    final $$AnalysisAmountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.analysisAmounts,
+      getReferencedColumn: (t) => t.analysisId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysisAmountsTableFilterComposer(
+            $db: $db,
+            $table: $db.analysisAmounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> analysisRequiredDocumentsRefs(
+    Expression<bool> Function($$AnalysisRequiredDocumentsTableFilterComposer f)
+    f,
+  ) {
+    final $$AnalysisRequiredDocumentsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisRequiredDocuments,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisRequiredDocumentsTableFilterComposer(
+                $db: $db,
+                $table: $db.analysisRequiredDocuments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> analysisSuggestedTasksRefs(
+    Expression<bool> Function($$AnalysisSuggestedTasksTableFilterComposer f) f,
+  ) {
+    final $$AnalysisSuggestedTasksTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisSuggestedTasks,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisSuggestedTasksTableFilterComposer(
+                $db: $db,
+                $table: $db.analysisSuggestedTasks,
                 $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
                 joinBuilder: joinBuilder,
                 $removeJoinBuilderFromRootComposer:
@@ -9155,6 +13793,31 @@ class $$AnalysesTableOrderingComposer
 
   ColumnOrderings<String> get analysisStatus => $composableBuilder(
     column: $table.analysisStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actionRequired => $composableBuilder(
+    column: $table.actionRequired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get documentDate => $composableBuilder(
+    column: $table.documentDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get detectedLanguage => $composableBuilder(
+    column: $table.detectedLanguage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get urgency => $composableBuilder(
+    column: $table.urgency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+    column: $table.confidence,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -9240,6 +13903,29 @@ class $$AnalysesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get actionRequired => $composableBuilder(
+    column: $table.actionRequired,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get documentDate => $composableBuilder(
+    column: $table.documentDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get detectedLanguage => $composableBuilder(
+    column: $table.detectedLanguage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get urgency =>
+      $composableBuilder(column: $table.urgency, builder: (column) => column);
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get explanationStyle => $composableBuilder(
     column: $table.explanationStyle,
     builder: (column) => column,
@@ -9307,6 +13993,215 @@ class $$AnalysesTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> analysisNextActionsRefs<T extends Object>(
+    Expression<T> Function($$AnalysisNextActionsTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisNextActionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisNextActions,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisNextActionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisNextActions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> analysisUncertaintiesRefs<T extends Object>(
+    Expression<T> Function($$AnalysisUncertaintiesTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisUncertaintiesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisUncertainties,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisUncertaintiesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisUncertainties,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> analysisPracticalStatesRefs<T extends Object>(
+    Expression<T> Function($$AnalysisPracticalStatesTableAnnotationComposer a)
+    f,
+  ) {
+    final $$AnalysisPracticalStatesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisPracticalStates,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisPracticalStatesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisPracticalStates,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> analysisDeadlinesRefs<T extends Object>(
+    Expression<T> Function($$AnalysisDeadlinesTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisDeadlinesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisDeadlines,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisDeadlinesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisDeadlines,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> analysisAppointmentsRefs<T extends Object>(
+    Expression<T> Function($$AnalysisAppointmentsTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisAppointmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisAppointments,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisAppointmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisAppointments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> analysisAmountsRefs<T extends Object>(
+    Expression<T> Function($$AnalysisAmountsTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisAmountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.analysisAmounts,
+      getReferencedColumn: (t) => t.analysisId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysisAmountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analysisAmounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> analysisRequiredDocumentsRefs<T extends Object>(
+    Expression<T> Function($$AnalysisRequiredDocumentsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$AnalysisRequiredDocumentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisRequiredDocuments,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisRequiredDocumentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisRequiredDocuments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> analysisSuggestedTasksRefs<T extends Object>(
+    Expression<T> Function($$AnalysisSuggestedTasksTableAnnotationComposer a) f,
+  ) {
+    final $$AnalysisSuggestedTasksTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.analysisSuggestedTasks,
+          getReferencedColumn: (t) => t.analysisId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AnalysisSuggestedTasksTableAnnotationComposer(
+                $db: $db,
+                $table: $db.analysisSuggestedTasks,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> sourceReferencesRefs<T extends Object>(
     Expression<T> Function($$SourceReferencesTableAnnotationComposer a) f,
   ) {
@@ -9349,6 +14244,14 @@ class $$AnalysesTableTableManager
           PrefetchHooks Function({
             bool clientDocumentId,
             bool analysisQualityReasonsRefs,
+            bool analysisNextActionsRefs,
+            bool analysisUncertaintiesRefs,
+            bool analysisPracticalStatesRefs,
+            bool analysisDeadlinesRefs,
+            bool analysisAppointmentsRefs,
+            bool analysisAmountsRefs,
+            bool analysisRequiredDocumentsRefs,
+            bool analysisSuggestedTasksRefs,
             bool sourceReferencesRefs,
           })
         > {
@@ -9373,6 +14276,11 @@ class $$AnalysesTableTableManager
                 Value<String?> explanation = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<String> analysisStatus = const Value.absent(),
+                Value<String?> actionRequired = const Value.absent(),
+                Value<String?> documentDate = const Value.absent(),
+                Value<String> detectedLanguage = const Value.absent(),
+                Value<String> urgency = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
                 Value<String> explanationStyle = const Value.absent(),
                 Value<String?> suggestedOrganizationName = const Value.absent(),
                 Value<String?> suggestedDocumentType = const Value.absent(),
@@ -9387,6 +14295,11 @@ class $$AnalysesTableTableManager
                 explanation: explanation,
                 state: state,
                 analysisStatus: analysisStatus,
+                actionRequired: actionRequired,
+                documentDate: documentDate,
+                detectedLanguage: detectedLanguage,
+                urgency: urgency,
+                confidence: confidence,
                 explanationStyle: explanationStyle,
                 suggestedOrganizationName: suggestedOrganizationName,
                 suggestedDocumentType: suggestedDocumentType,
@@ -9403,6 +14316,11 @@ class $$AnalysesTableTableManager
                 Value<String?> explanation = const Value.absent(),
                 required String state,
                 Value<String> analysisStatus = const Value.absent(),
+                Value<String?> actionRequired = const Value.absent(),
+                Value<String?> documentDate = const Value.absent(),
+                Value<String> detectedLanguage = const Value.absent(),
+                Value<String> urgency = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
                 Value<String> explanationStyle = const Value.absent(),
                 Value<String?> suggestedOrganizationName = const Value.absent(),
                 Value<String?> suggestedDocumentType = const Value.absent(),
@@ -9417,6 +14335,11 @@ class $$AnalysesTableTableManager
                 explanation: explanation,
                 state: state,
                 analysisStatus: analysisStatus,
+                actionRequired: actionRequired,
+                documentDate: documentDate,
+                detectedLanguage: detectedLanguage,
+                urgency: urgency,
+                confidence: confidence,
                 explanationStyle: explanationStyle,
                 suggestedOrganizationName: suggestedOrganizationName,
                 suggestedDocumentType: suggestedDocumentType,
@@ -9435,12 +14358,29 @@ class $$AnalysesTableTableManager
               ({
                 clientDocumentId = false,
                 analysisQualityReasonsRefs = false,
+                analysisNextActionsRefs = false,
+                analysisUncertaintiesRefs = false,
+                analysisPracticalStatesRefs = false,
+                analysisDeadlinesRefs = false,
+                analysisAppointmentsRefs = false,
+                analysisAmountsRefs = false,
+                analysisRequiredDocumentsRefs = false,
+                analysisSuggestedTasksRefs = false,
                 sourceReferencesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (analysisQualityReasonsRefs) db.analysisQualityReasons,
+                    if (analysisNextActionsRefs) db.analysisNextActions,
+                    if (analysisUncertaintiesRefs) db.analysisUncertainties,
+                    if (analysisPracticalStatesRefs) db.analysisPracticalStates,
+                    if (analysisDeadlinesRefs) db.analysisDeadlines,
+                    if (analysisAppointmentsRefs) db.analysisAppointments,
+                    if (analysisAmountsRefs) db.analysisAmounts,
+                    if (analysisRequiredDocumentsRefs)
+                      db.analysisRequiredDocuments,
+                    if (analysisSuggestedTasksRefs) db.analysisSuggestedTasks,
                     if (sourceReferencesRefs) db.sourceReferences,
                   ],
                   addJoins:
@@ -9496,6 +14436,174 @@ class $$AnalysesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (analysisNextActionsRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisNextAction
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisNextActionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisNextActionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (analysisUncertaintiesRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisUncertainty
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisUncertaintiesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisUncertaintiesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (analysisPracticalStatesRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisPracticalState
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisPracticalStatesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisPracticalStatesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (analysisDeadlinesRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisDeadline
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisDeadlinesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisDeadlinesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (analysisAppointmentsRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisAppointment
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisAppointmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisAppointmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (analysisAmountsRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisAmount
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisAmountsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisAmountsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (analysisRequiredDocumentsRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisRequiredDocument
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisRequiredDocumentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisRequiredDocumentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (analysisSuggestedTasksRefs)
+                        await $_getPrefetchedData<
+                          Analyse,
+                          $AnalysesTable,
+                          AnalysisSuggestedTask
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnalysesTableReferences
+                              ._analysisSuggestedTasksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnalysesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).analysisSuggestedTasksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.analysisId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (sourceReferencesRefs)
                         await $_getPrefetchedData<
                           Analyse,
@@ -9540,6 +14648,14 @@ typedef $$AnalysesTableProcessedTableManager =
       PrefetchHooks Function({
         bool clientDocumentId,
         bool analysisQualityReasonsRefs,
+        bool analysisNextActionsRefs,
+        bool analysisUncertaintiesRefs,
+        bool analysisPracticalStatesRefs,
+        bool analysisDeadlinesRefs,
+        bool analysisAppointmentsRefs,
+        bool analysisAmountsRefs,
+        bool analysisRequiredDocumentsRefs,
+        bool analysisSuggestedTasksRefs,
         bool sourceReferencesRefs,
       })
     >;
@@ -9842,6 +14958,3060 @@ typedef $$AnalysisQualityReasonsTableProcessedTableManager =
       $$AnalysisQualityReasonsTableUpdateCompanionBuilder,
       (AnalysisQualityReason, $$AnalysisQualityReasonsTableReferences),
       AnalysisQualityReason,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisNextActionsTableCreateCompanionBuilder =
+    AnalysisNextActionsCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String value,
+      Value<int> rowid,
+    });
+typedef $$AnalysisNextActionsTableUpdateCompanionBuilder =
+    AnalysisNextActionsCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> value,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisNextActionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisNextActionsTable,
+          AnalysisNextAction
+        > {
+  $$AnalysisNextActionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) => db.analyses
+      .createAlias('analysis_next_actions__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisNextActionsTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisNextActionsTable> {
+  $$AnalysisNextActionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisNextActionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisNextActionsTable> {
+  $$AnalysisNextActionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisNextActionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisNextActionsTable> {
+  $$AnalysisNextActionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisNextActionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisNextActionsTable,
+          AnalysisNextAction,
+          $$AnalysisNextActionsTableFilterComposer,
+          $$AnalysisNextActionsTableOrderingComposer,
+          $$AnalysisNextActionsTableAnnotationComposer,
+          $$AnalysisNextActionsTableCreateCompanionBuilder,
+          $$AnalysisNextActionsTableUpdateCompanionBuilder,
+          (AnalysisNextAction, $$AnalysisNextActionsTableReferences),
+          AnalysisNextAction,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisNextActionsTableTableManager(
+    _$AppDatabase db,
+    $AnalysisNextActionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisNextActionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AnalysisNextActionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AnalysisNextActionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisNextActionsCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                value: value,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String value,
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisNextActionsCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AnalysisNextActionsTable, AnalysisNextAction>(
+                    table,
+                  ),
+                  $$AnalysisNextActionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable: $$AnalysisNextActionsTableReferences
+                            ._analysisIdTable(db),
+                        referencedColumn: $$AnalysisNextActionsTableReferences
+                            ._analysisIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisNextActionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisNextActionsTable,
+      AnalysisNextAction,
+      $$AnalysisNextActionsTableFilterComposer,
+      $$AnalysisNextActionsTableOrderingComposer,
+      $$AnalysisNextActionsTableAnnotationComposer,
+      $$AnalysisNextActionsTableCreateCompanionBuilder,
+      $$AnalysisNextActionsTableUpdateCompanionBuilder,
+      (AnalysisNextAction, $$AnalysisNextActionsTableReferences),
+      AnalysisNextAction,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisUncertaintiesTableCreateCompanionBuilder =
+    AnalysisUncertaintiesCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String message,
+      Value<int> rowid,
+    });
+typedef $$AnalysisUncertaintiesTableUpdateCompanionBuilder =
+    AnalysisUncertaintiesCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> message,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisUncertaintiesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisUncertaintiesTable,
+          AnalysisUncertainty
+        > {
+  $$AnalysisUncertaintiesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) => db.analyses
+      .createAlias('analysis_uncertainties__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisUncertaintiesTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisUncertaintiesTable> {
+  $$AnalysisUncertaintiesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisUncertaintiesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisUncertaintiesTable> {
+  $$AnalysisUncertaintiesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisUncertaintiesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisUncertaintiesTable> {
+  $$AnalysisUncertaintiesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get message =>
+      $composableBuilder(column: $table.message, builder: (column) => column);
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisUncertaintiesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisUncertaintiesTable,
+          AnalysisUncertainty,
+          $$AnalysisUncertaintiesTableFilterComposer,
+          $$AnalysisUncertaintiesTableOrderingComposer,
+          $$AnalysisUncertaintiesTableAnnotationComposer,
+          $$AnalysisUncertaintiesTableCreateCompanionBuilder,
+          $$AnalysisUncertaintiesTableUpdateCompanionBuilder,
+          (AnalysisUncertainty, $$AnalysisUncertaintiesTableReferences),
+          AnalysisUncertainty,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisUncertaintiesTableTableManager(
+    _$AppDatabase db,
+    $AnalysisUncertaintiesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisUncertaintiesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AnalysisUncertaintiesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AnalysisUncertaintiesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> message = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisUncertaintiesCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                message: message,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String message,
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisUncertaintiesCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                message: message,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AnalysisUncertaintiesTable, AnalysisUncertainty>(
+                    table,
+                  ),
+                  $$AnalysisUncertaintiesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable: $$AnalysisUncertaintiesTableReferences
+                            ._analysisIdTable(db),
+                        referencedColumn: $$AnalysisUncertaintiesTableReferences
+                            ._analysisIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisUncertaintiesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisUncertaintiesTable,
+      AnalysisUncertainty,
+      $$AnalysisUncertaintiesTableFilterComposer,
+      $$AnalysisUncertaintiesTableOrderingComposer,
+      $$AnalysisUncertaintiesTableAnnotationComposer,
+      $$AnalysisUncertaintiesTableCreateCompanionBuilder,
+      $$AnalysisUncertaintiesTableUpdateCompanionBuilder,
+      (AnalysisUncertainty, $$AnalysisUncertaintiesTableReferences),
+      AnalysisUncertainty,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisPracticalStatesTableCreateCompanionBuilder =
+    AnalysisPracticalStatesCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String state,
+      Value<int> rowid,
+    });
+typedef $$AnalysisPracticalStatesTableUpdateCompanionBuilder =
+    AnalysisPracticalStatesCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> state,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisPracticalStatesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisPracticalStatesTable,
+          AnalysisPracticalState
+        > {
+  $$AnalysisPracticalStatesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) => db.analyses
+      .createAlias('analysis_practical_states__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisPracticalStatesTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisPracticalStatesTable> {
+  $$AnalysisPracticalStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisPracticalStatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisPracticalStatesTable> {
+  $$AnalysisPracticalStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisPracticalStatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisPracticalStatesTable> {
+  $$AnalysisPracticalStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisPracticalStatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisPracticalStatesTable,
+          AnalysisPracticalState,
+          $$AnalysisPracticalStatesTableFilterComposer,
+          $$AnalysisPracticalStatesTableOrderingComposer,
+          $$AnalysisPracticalStatesTableAnnotationComposer,
+          $$AnalysisPracticalStatesTableCreateCompanionBuilder,
+          $$AnalysisPracticalStatesTableUpdateCompanionBuilder,
+          (AnalysisPracticalState, $$AnalysisPracticalStatesTableReferences),
+          AnalysisPracticalState,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisPracticalStatesTableTableManager(
+    _$AppDatabase db,
+    $AnalysisPracticalStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisPracticalStatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AnalysisPracticalStatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AnalysisPracticalStatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> state = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisPracticalStatesCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                state: state,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String state,
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisPracticalStatesCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                state: state,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $AnalysisPracticalStatesTable,
+                    AnalysisPracticalState
+                  >(table),
+                  $$AnalysisPracticalStatesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable:
+                            $$AnalysisPracticalStatesTableReferences
+                                ._analysisIdTable(db),
+                        referencedColumn:
+                            $$AnalysisPracticalStatesTableReferences
+                                ._analysisIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisPracticalStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisPracticalStatesTable,
+      AnalysisPracticalState,
+      $$AnalysisPracticalStatesTableFilterComposer,
+      $$AnalysisPracticalStatesTableOrderingComposer,
+      $$AnalysisPracticalStatesTableAnnotationComposer,
+      $$AnalysisPracticalStatesTableCreateCompanionBuilder,
+      $$AnalysisPracticalStatesTableUpdateCompanionBuilder,
+      (AnalysisPracticalState, $$AnalysisPracticalStatesTableReferences),
+      AnalysisPracticalState,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisDeadlinesTableCreateCompanionBuilder =
+    AnalysisDeadlinesCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String label,
+      Value<String?> dateOrRange,
+      Value<double?> confidence,
+      Value<String?> time,
+      Value<String?> timezone,
+      Value<String?> consequence,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+typedef $$AnalysisDeadlinesTableUpdateCompanionBuilder =
+    AnalysisDeadlinesCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> label,
+      Value<String?> dateOrRange,
+      Value<double?> confidence,
+      Value<String?> time,
+      Value<String?> timezone,
+      Value<String?> consequence,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisDeadlinesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisDeadlinesTable,
+          AnalysisDeadline
+        > {
+  $$AnalysisDeadlinesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) =>
+      db.analyses.createAlias('analysis_deadlines__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisDeadlinesTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisDeadlinesTable> {
+  $$AnalysisDeadlinesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dateOrRange => $composableBuilder(
+    column: $table.dateOrRange,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get time => $composableBuilder(
+    column: $table.time,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get timezone => $composableBuilder(
+    column: $table.timezone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get consequence => $composableBuilder(
+    column: $table.consequence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisDeadlinesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisDeadlinesTable> {
+  $$AnalysisDeadlinesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dateOrRange => $composableBuilder(
+    column: $table.dateOrRange,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get time => $composableBuilder(
+    column: $table.time,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get timezone => $composableBuilder(
+    column: $table.timezone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get consequence => $composableBuilder(
+    column: $table.consequence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisDeadlinesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisDeadlinesTable> {
+  $$AnalysisDeadlinesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get dateOrRange => $composableBuilder(
+    column: $table.dateOrRange,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get time =>
+      $composableBuilder(column: $table.time, builder: (column) => column);
+
+  GeneratedColumn<String> get timezone =>
+      $composableBuilder(column: $table.timezone, builder: (column) => column);
+
+  GeneratedColumn<String> get consequence => $composableBuilder(
+    column: $table.consequence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => column,
+  );
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisDeadlinesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisDeadlinesTable,
+          AnalysisDeadline,
+          $$AnalysisDeadlinesTableFilterComposer,
+          $$AnalysisDeadlinesTableOrderingComposer,
+          $$AnalysisDeadlinesTableAnnotationComposer,
+          $$AnalysisDeadlinesTableCreateCompanionBuilder,
+          $$AnalysisDeadlinesTableUpdateCompanionBuilder,
+          (AnalysisDeadline, $$AnalysisDeadlinesTableReferences),
+          AnalysisDeadline,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisDeadlinesTableTableManager(
+    _$AppDatabase db,
+    $AnalysisDeadlinesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisDeadlinesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AnalysisDeadlinesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AnalysisDeadlinesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String?> dateOrRange = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> time = const Value.absent(),
+                Value<String?> timezone = const Value.absent(),
+                Value<String?> consequence = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisDeadlinesCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                label: label,
+                dateOrRange: dateOrRange,
+                confidence: confidence,
+                time: time,
+                timezone: timezone,
+                consequence: consequence,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String label,
+                Value<String?> dateOrRange = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> time = const Value.absent(),
+                Value<String?> timezone = const Value.absent(),
+                Value<String?> consequence = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisDeadlinesCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                label: label,
+                dateOrRange: dateOrRange,
+                confidence: confidence,
+                time: time,
+                timezone: timezone,
+                consequence: consequence,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AnalysisDeadlinesTable, AnalysisDeadline>(table),
+                  $$AnalysisDeadlinesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable: $$AnalysisDeadlinesTableReferences
+                            ._analysisIdTable(db),
+                        referencedColumn: $$AnalysisDeadlinesTableReferences
+                            ._analysisIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisDeadlinesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisDeadlinesTable,
+      AnalysisDeadline,
+      $$AnalysisDeadlinesTableFilterComposer,
+      $$AnalysisDeadlinesTableOrderingComposer,
+      $$AnalysisDeadlinesTableAnnotationComposer,
+      $$AnalysisDeadlinesTableCreateCompanionBuilder,
+      $$AnalysisDeadlinesTableUpdateCompanionBuilder,
+      (AnalysisDeadline, $$AnalysisDeadlinesTableReferences),
+      AnalysisDeadline,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisAppointmentsTableCreateCompanionBuilder =
+    AnalysisAppointmentsCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String label,
+      Value<String?> startOrDate,
+      Value<double?> confidence,
+      Value<String?> end,
+      Value<String?> location,
+      Value<String?> preparation,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+typedef $$AnalysisAppointmentsTableUpdateCompanionBuilder =
+    AnalysisAppointmentsCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> label,
+      Value<String?> startOrDate,
+      Value<double?> confidence,
+      Value<String?> end,
+      Value<String?> location,
+      Value<String?> preparation,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisAppointmentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisAppointmentsTable,
+          AnalysisAppointment
+        > {
+  $$AnalysisAppointmentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) => db.analyses
+      .createAlias('analysis_appointments__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisAppointmentsTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisAppointmentsTable> {
+  $$AnalysisAppointmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get startOrDate => $composableBuilder(
+    column: $table.startOrDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get end => $composableBuilder(
+    column: $table.end,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get preparation => $composableBuilder(
+    column: $table.preparation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisAppointmentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisAppointmentsTable> {
+  $$AnalysisAppointmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get startOrDate => $composableBuilder(
+    column: $table.startOrDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get end => $composableBuilder(
+    column: $table.end,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get preparation => $composableBuilder(
+    column: $table.preparation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisAppointmentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisAppointmentsTable> {
+  $$AnalysisAppointmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get startOrDate => $composableBuilder(
+    column: $table.startOrDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get end =>
+      $composableBuilder(column: $table.end, builder: (column) => column);
+
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumn<String> get preparation => $composableBuilder(
+    column: $table.preparation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => column,
+  );
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisAppointmentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisAppointmentsTable,
+          AnalysisAppointment,
+          $$AnalysisAppointmentsTableFilterComposer,
+          $$AnalysisAppointmentsTableOrderingComposer,
+          $$AnalysisAppointmentsTableAnnotationComposer,
+          $$AnalysisAppointmentsTableCreateCompanionBuilder,
+          $$AnalysisAppointmentsTableUpdateCompanionBuilder,
+          (AnalysisAppointment, $$AnalysisAppointmentsTableReferences),
+          AnalysisAppointment,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisAppointmentsTableTableManager(
+    _$AppDatabase db,
+    $AnalysisAppointmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisAppointmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AnalysisAppointmentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AnalysisAppointmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String?> startOrDate = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> end = const Value.absent(),
+                Value<String?> location = const Value.absent(),
+                Value<String?> preparation = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisAppointmentsCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                label: label,
+                startOrDate: startOrDate,
+                confidence: confidence,
+                end: end,
+                location: location,
+                preparation: preparation,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String label,
+                Value<String?> startOrDate = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> end = const Value.absent(),
+                Value<String?> location = const Value.absent(),
+                Value<String?> preparation = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisAppointmentsCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                label: label,
+                startOrDate: startOrDate,
+                confidence: confidence,
+                end: end,
+                location: location,
+                preparation: preparation,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AnalysisAppointmentsTable, AnalysisAppointment>(
+                    table,
+                  ),
+                  $$AnalysisAppointmentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable: $$AnalysisAppointmentsTableReferences
+                            ._analysisIdTable(db),
+                        referencedColumn: $$AnalysisAppointmentsTableReferences
+                            ._analysisIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisAppointmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisAppointmentsTable,
+      AnalysisAppointment,
+      $$AnalysisAppointmentsTableFilterComposer,
+      $$AnalysisAppointmentsTableOrderingComposer,
+      $$AnalysisAppointmentsTableAnnotationComposer,
+      $$AnalysisAppointmentsTableCreateCompanionBuilder,
+      $$AnalysisAppointmentsTableUpdateCompanionBuilder,
+      (AnalysisAppointment, $$AnalysisAppointmentsTableReferences),
+      AnalysisAppointment,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisAmountsTableCreateCompanionBuilder =
+    AnalysisAmountsCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String value,
+      required String currency,
+      required String direction,
+      Value<double?> confidence,
+      Value<String?> dueDate,
+      Value<String?> purpose,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+typedef $$AnalysisAmountsTableUpdateCompanionBuilder =
+    AnalysisAmountsCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> value,
+      Value<String> currency,
+      Value<String> direction,
+      Value<double?> confidence,
+      Value<String?> dueDate,
+      Value<String?> purpose,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisAmountsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $AnalysisAmountsTable, AnalysisAmount> {
+  $$AnalysisAmountsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) =>
+      db.analyses.createAlias('analysis_amounts__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisAmountsTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisAmountsTable> {
+  $$AnalysisAmountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get purpose => $composableBuilder(
+    column: $table.purpose,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisAmountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisAmountsTable> {
+  $$AnalysisAmountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get purpose => $composableBuilder(
+    column: $table.purpose,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisAmountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisAmountsTable> {
+  $$AnalysisAmountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get direction =>
+      $composableBuilder(column: $table.direction, builder: (column) => column);
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<String> get purpose =>
+      $composableBuilder(column: $table.purpose, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => column,
+  );
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisAmountsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisAmountsTable,
+          AnalysisAmount,
+          $$AnalysisAmountsTableFilterComposer,
+          $$AnalysisAmountsTableOrderingComposer,
+          $$AnalysisAmountsTableAnnotationComposer,
+          $$AnalysisAmountsTableCreateCompanionBuilder,
+          $$AnalysisAmountsTableUpdateCompanionBuilder,
+          (AnalysisAmount, $$AnalysisAmountsTableReferences),
+          AnalysisAmount,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisAmountsTableTableManager(
+    _$AppDatabase db,
+    $AnalysisAmountsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisAmountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AnalysisAmountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AnalysisAmountsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String> direction = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> dueDate = const Value.absent(),
+                Value<String?> purpose = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisAmountsCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                value: value,
+                currency: currency,
+                direction: direction,
+                confidence: confidence,
+                dueDate: dueDate,
+                purpose: purpose,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String value,
+                required String currency,
+                required String direction,
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> dueDate = const Value.absent(),
+                Value<String?> purpose = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisAmountsCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                value: value,
+                currency: currency,
+                direction: direction,
+                confidence: confidence,
+                dueDate: dueDate,
+                purpose: purpose,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AnalysisAmountsTable, AnalysisAmount>(table),
+                  $$AnalysisAmountsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable: $$AnalysisAmountsTableReferences
+                            ._analysisIdTable(db),
+                        referencedColumn: $$AnalysisAmountsTableReferences
+                            ._analysisIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisAmountsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisAmountsTable,
+      AnalysisAmount,
+      $$AnalysisAmountsTableFilterComposer,
+      $$AnalysisAmountsTableOrderingComposer,
+      $$AnalysisAmountsTableAnnotationComposer,
+      $$AnalysisAmountsTableCreateCompanionBuilder,
+      $$AnalysisAmountsTableUpdateCompanionBuilder,
+      (AnalysisAmount, $$AnalysisAmountsTableReferences),
+      AnalysisAmount,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisRequiredDocumentsTableCreateCompanionBuilder =
+    AnalysisRequiredDocumentsCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String description,
+      Value<double?> confidence,
+      Value<String?> dueDate,
+      Value<String?> submissionMethod,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+typedef $$AnalysisRequiredDocumentsTableUpdateCompanionBuilder =
+    AnalysisRequiredDocumentsCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> description,
+      Value<double?> confidence,
+      Value<String?> dueDate,
+      Value<String?> submissionMethod,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisRequiredDocumentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisRequiredDocumentsTable,
+          AnalysisRequiredDocument
+        > {
+  $$AnalysisRequiredDocumentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) => db.analyses
+      .createAlias('analysis_required_documents__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisRequiredDocumentsTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisRequiredDocumentsTable> {
+  $$AnalysisRequiredDocumentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get submissionMethod => $composableBuilder(
+    column: $table.submissionMethod,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisRequiredDocumentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisRequiredDocumentsTable> {
+  $$AnalysisRequiredDocumentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get submissionMethod => $composableBuilder(
+    column: $table.submissionMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisRequiredDocumentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisRequiredDocumentsTable> {
+  $$AnalysisRequiredDocumentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<String> get submissionMethod => $composableBuilder(
+    column: $table.submissionMethod,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => column,
+  );
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisRequiredDocumentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisRequiredDocumentsTable,
+          AnalysisRequiredDocument,
+          $$AnalysisRequiredDocumentsTableFilterComposer,
+          $$AnalysisRequiredDocumentsTableOrderingComposer,
+          $$AnalysisRequiredDocumentsTableAnnotationComposer,
+          $$AnalysisRequiredDocumentsTableCreateCompanionBuilder,
+          $$AnalysisRequiredDocumentsTableUpdateCompanionBuilder,
+          (
+            AnalysisRequiredDocument,
+            $$AnalysisRequiredDocumentsTableReferences,
+          ),
+          AnalysisRequiredDocument,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisRequiredDocumentsTableTableManager(
+    _$AppDatabase db,
+    $AnalysisRequiredDocumentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisRequiredDocumentsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AnalysisRequiredDocumentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AnalysisRequiredDocumentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> dueDate = const Value.absent(),
+                Value<String?> submissionMethod = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisRequiredDocumentsCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                description: description,
+                confidence: confidence,
+                dueDate: dueDate,
+                submissionMethod: submissionMethod,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String description,
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> dueDate = const Value.absent(),
+                Value<String?> submissionMethod = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisRequiredDocumentsCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                description: description,
+                confidence: confidence,
+                dueDate: dueDate,
+                submissionMethod: submissionMethod,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $AnalysisRequiredDocumentsTable,
+                    AnalysisRequiredDocument
+                  >(table),
+                  $$AnalysisRequiredDocumentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable:
+                            $$AnalysisRequiredDocumentsTableReferences
+                                ._analysisIdTable(db),
+                        referencedColumn:
+                            $$AnalysisRequiredDocumentsTableReferences
+                                ._analysisIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisRequiredDocumentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisRequiredDocumentsTable,
+      AnalysisRequiredDocument,
+      $$AnalysisRequiredDocumentsTableFilterComposer,
+      $$AnalysisRequiredDocumentsTableOrderingComposer,
+      $$AnalysisRequiredDocumentsTableAnnotationComposer,
+      $$AnalysisRequiredDocumentsTableCreateCompanionBuilder,
+      $$AnalysisRequiredDocumentsTableUpdateCompanionBuilder,
+      (AnalysisRequiredDocument, $$AnalysisRequiredDocumentsTableReferences),
+      AnalysisRequiredDocument,
+      PrefetchHooks Function({bool analysisId})
+    >;
+typedef $$AnalysisSuggestedTasksTableCreateCompanionBuilder =
+    AnalysisSuggestedTasksCompanion Function({
+      required String id,
+      required String analysisId,
+      required int position,
+      required String title,
+      Value<double?> confidence,
+      Value<String?> dueDate,
+      Value<String?> instructions,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+typedef $$AnalysisSuggestedTasksTableUpdateCompanionBuilder =
+    AnalysisSuggestedTasksCompanion Function({
+      Value<String> id,
+      Value<String> analysisId,
+      Value<int> position,
+      Value<String> title,
+      Value<double?> confidence,
+      Value<String?> dueDate,
+      Value<String?> instructions,
+      Value<String?> sourceReference,
+      Value<int> rowid,
+    });
+
+final class $$AnalysisSuggestedTasksTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AnalysisSuggestedTasksTable,
+          AnalysisSuggestedTask
+        > {
+  $$AnalysisSuggestedTasksTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AnalysesTable _analysisIdTable(_$AppDatabase db) => db.analyses
+      .createAlias('analysis_suggested_tasks__analysis_id__analyses__id');
+
+  $$AnalysesTableProcessedTableManager get analysisId {
+    final $_column = $_itemColumn<String>('analysis_id')!;
+
+    final manager = $$AnalysesTableTableManager(
+      $_db,
+      $_db.analyses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_analysisIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AnalysisSuggestedTasksTableFilterComposer
+    extends Composer<_$AppDatabase, $AnalysisSuggestedTasksTable> {
+  $$AnalysisSuggestedTasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get instructions => $composableBuilder(
+    column: $table.instructions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AnalysesTableFilterComposer get analysisId {
+    final $$AnalysesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableFilterComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisSuggestedTasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnalysisSuggestedTasksTable> {
+  $$AnalysisSuggestedTasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get instructions => $composableBuilder(
+    column: $table.instructions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AnalysesTableOrderingComposer get analysisId {
+    final $$AnalysesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableOrderingComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisSuggestedTasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnalysisSuggestedTasksTable> {
+  $$AnalysisSuggestedTasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<String> get instructions => $composableBuilder(
+    column: $table.instructions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceReference => $composableBuilder(
+    column: $table.sourceReference,
+    builder: (column) => column,
+  );
+
+  $$AnalysesTableAnnotationComposer get analysisId {
+    final $$AnalysesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.analysisId,
+      referencedTable: $db.analyses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnalysesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.analyses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AnalysisSuggestedTasksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AnalysisSuggestedTasksTable,
+          AnalysisSuggestedTask,
+          $$AnalysisSuggestedTasksTableFilterComposer,
+          $$AnalysisSuggestedTasksTableOrderingComposer,
+          $$AnalysisSuggestedTasksTableAnnotationComposer,
+          $$AnalysisSuggestedTasksTableCreateCompanionBuilder,
+          $$AnalysisSuggestedTasksTableUpdateCompanionBuilder,
+          (AnalysisSuggestedTask, $$AnalysisSuggestedTasksTableReferences),
+          AnalysisSuggestedTask,
+          PrefetchHooks Function({bool analysisId})
+        > {
+  $$AnalysisSuggestedTasksTableTableManager(
+    _$AppDatabase db,
+    $AnalysisSuggestedTasksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnalysisSuggestedTasksTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AnalysisSuggestedTasksTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AnalysisSuggestedTasksTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> analysisId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> dueDate = const Value.absent(),
+                Value<String?> instructions = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisSuggestedTasksCompanion(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                title: title,
+                confidence: confidence,
+                dueDate: dueDate,
+                instructions: instructions,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String analysisId,
+                required int position,
+                required String title,
+                Value<double?> confidence = const Value.absent(),
+                Value<String?> dueDate = const Value.absent(),
+                Value<String?> instructions = const Value.absent(),
+                Value<String?> sourceReference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AnalysisSuggestedTasksCompanion.insert(
+                id: id,
+                analysisId: analysisId,
+                position: position,
+                title: title,
+                confidence: confidence,
+                dueDate: dueDate,
+                instructions: instructions,
+                sourceReference: sourceReference,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $AnalysisSuggestedTasksTable,
+                    AnalysisSuggestedTask
+                  >(table),
+                  $$AnalysisSuggestedTasksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({analysisId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (analysisId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.analysisId,
+                        referencedTable: $$AnalysisSuggestedTasksTableReferences
+                            ._analysisIdTable(db),
+                        referencedColumn:
+                            $$AnalysisSuggestedTasksTableReferences
+                                ._analysisIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AnalysisSuggestedTasksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AnalysisSuggestedTasksTable,
+      AnalysisSuggestedTask,
+      $$AnalysisSuggestedTasksTableFilterComposer,
+      $$AnalysisSuggestedTasksTableOrderingComposer,
+      $$AnalysisSuggestedTasksTableAnnotationComposer,
+      $$AnalysisSuggestedTasksTableCreateCompanionBuilder,
+      $$AnalysisSuggestedTasksTableUpdateCompanionBuilder,
+      (AnalysisSuggestedTask, $$AnalysisSuggestedTasksTableReferences),
+      AnalysisSuggestedTask,
       PrefetchHooks Function({bool analysisId})
     >;
 typedef $$SourceReferencesTableCreateCompanionBuilder =
@@ -12615,6 +20785,31 @@ class $AppDatabaseManager {
       $$AnalysisQualityReasonsTableTableManager(
         _db,
         _db.analysisQualityReasons,
+      );
+  $$AnalysisNextActionsTableTableManager get analysisNextActions =>
+      $$AnalysisNextActionsTableTableManager(_db, _db.analysisNextActions);
+  $$AnalysisUncertaintiesTableTableManager get analysisUncertainties =>
+      $$AnalysisUncertaintiesTableTableManager(_db, _db.analysisUncertainties);
+  $$AnalysisPracticalStatesTableTableManager get analysisPracticalStates =>
+      $$AnalysisPracticalStatesTableTableManager(
+        _db,
+        _db.analysisPracticalStates,
+      );
+  $$AnalysisDeadlinesTableTableManager get analysisDeadlines =>
+      $$AnalysisDeadlinesTableTableManager(_db, _db.analysisDeadlines);
+  $$AnalysisAppointmentsTableTableManager get analysisAppointments =>
+      $$AnalysisAppointmentsTableTableManager(_db, _db.analysisAppointments);
+  $$AnalysisAmountsTableTableManager get analysisAmounts =>
+      $$AnalysisAmountsTableTableManager(_db, _db.analysisAmounts);
+  $$AnalysisRequiredDocumentsTableTableManager get analysisRequiredDocuments =>
+      $$AnalysisRequiredDocumentsTableTableManager(
+        _db,
+        _db.analysisRequiredDocuments,
+      );
+  $$AnalysisSuggestedTasksTableTableManager get analysisSuggestedTasks =>
+      $$AnalysisSuggestedTasksTableTableManager(
+        _db,
+        _db.analysisSuggestedTasks,
       );
   $$SourceReferencesTableTableManager get sourceReferences =>
       $$SourceReferencesTableTableManager(_db, _db.sourceReferences);

@@ -1,9 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:doxary/core/config/doxary_api_config.dart';
-import 'package:doxary/core/database/app_database.dart' hide DocumentFile;
+import 'package:doxary/core/database/app_database.dart'
+    hide
+        AnalysisAmount,
+        AnalysisAppointment,
+        AnalysisDeadline,
+        AnalysisRequiredDocument,
+        AnalysisSuggestedTask,
+        DocumentFile;
 import 'package:doxary/core/errors/app_error.dart';
 import 'package:doxary/core/network/doxary_api_client.dart';
 import 'package:doxary/features/document_analysis/application/analysis_workflow.dart';
@@ -70,6 +78,91 @@ void main() {
     expect(result.documentDate, '2026-09-01');
     expect(result.sourceReferences.single.pageIndex, isNull);
     expect(result.sourceReferences.single.fileId, isNull);
+  });
+
+  test('persists and restores every mapped action requirement', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final repository = LocalAnalysisRepository(database);
+    final now = DateTime(2026);
+    await _insertDocument(database, 'document-action');
+
+    for (final action in ActionRequirement.values) {
+      await repository.saveCompleted(
+        DocumentAnalysis(
+          id: 'analysis-${action.name}',
+          clientDocumentId: 'document-action',
+          schemaVersion: 'analysis_result.v1',
+          targetLanguage: 'de',
+          createdAt: now.add(Duration(seconds: action.index)),
+          analysisStatus: AnalysisStatus.complete,
+          actionRequired: action,
+        ),
+      );
+      expect(
+        (await repository.getLatest('document-action'))?.actionRequired,
+        action,
+      );
+    }
+  });
+
+  test('legacy analysis row retains a missing action requirement', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final repository = LocalAnalysisRepository(database);
+    final now = DateTime(2026);
+    await _insertDocument(database, 'document-legacy-action');
+    await database.into(database.analyses).insert(
+      AnalysesCompanion.insert(
+        id: 'legacy-analysis',
+        clientDocumentId: 'document-legacy-action',
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        state: AnalysisStatus.complete.name,
+        analysisStatus: Value(AnalysisStatus.complete.name),
+        actionRequired: const Value(null),
+        explanationStyle: Value(ExplanationStyle.standard.name),
+        createdAt: now,
+      ),
+    );
+
+    final restored = await repository.getLatest('document-legacy-action');
+    expect(restored?.analysisStatus, AnalysisStatus.complete);
+    expect(restored?.actionRequired, isNull);
+  });
+
+  test('completed analysis round trip retains normalized Result facts', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    await _insertDocument(database, 'document-round-trip');
+    final repository = LocalAnalysisRepository(database);
+    final analysis = DocumentAnalysis(
+      id: 'analysis-round-trip', clientDocumentId: 'document-round-trip', schemaVersion: 'analysis_result.v1', targetLanguage: 'de', createdAt: DateTime(2026),
+      documentDate: '2026-09-15', detectedLanguage: 'de', urgency: AnalysisUrgency.high, confidence: .9,
+      actionRequired: ActionRequirement.yes, analysisStatus: AnalysisStatus.complete,
+      practicalStates: const [PracticalState.payment], uncertainties: const ['Verify the date'], nextActions: const ['Pay the amount'],
+      deadlines: const [AnalysisDeadline(label: 'Pay', dateOrRange: '2026-10-01', confidence: .8, consequence: 'Reminder')],
+      appointments: const [AnalysisAppointment(label: 'Meeting', startOrDate: '2026-10-02', confidence: .7, location: 'Berlin')],
+      amounts: const [AnalysisAmount(value: '128.40', currency: 'EUR', direction: AmountDirection.pay, confidence: .9, dueDate: '2026-10-01', purpose: 'Invoice')],
+      requiredDocuments: const [AnalysisRequiredDocument(description: 'Proof', confidence: .8, dueDate: '2026-10-03')],
+      suggestedTasks: const [AnalysisSuggestedTask(title: 'Pay invoice', confidence: .9, dueDate: '2026-10-01', instructions: 'Use reference')],
+      qualityReasons: const [DocumentQualityReason.blurryImage], classification: const ClassificationSuggestion(organizationName: 'SAGA'),
+    );
+    await repository.saveCompleted(analysis);
+    await repository.saveCompleted(analysis);
+    final restored = await repository.getLatest('document-round-trip');
+    expect(restored?.documentDate, analysis.documentDate);
+    expect(restored?.nextActions, analysis.nextActions);
+    expect(restored?.uncertainties, analysis.uncertainties);
+    expect(restored?.deadlines.single.consequence, 'Reminder');
+    expect(restored?.appointments.single.location, 'Berlin');
+    expect(restored?.amounts.single.purpose, 'Invoice');
+    expect(restored?.requiredDocuments.single.description, 'Proof');
+    expect(restored?.suggestedTasks.single.instructions, 'Use reference');
+    expect(restored?.practicalStates, analysis.practicalStates);
+    expect(restored?.qualityReasons, analysis.qualityReasons);
+    expect(restored?.classification?.organizationName, 'SAGA');
+    expect(await database.select(database.analysisAmounts).get(), hasLength(1));
   });
 
   test('incompatible result payload fails safely', () {
@@ -207,6 +300,10 @@ void main() {
     final terminal = await workflow.poll('op-1', 'document-1');
     expect(terminal.status, BackendOperationStatus.succeeded);
     expect(await database.select(database.analyses).get(), hasLength(1));
+    expect(
+      (await local.getLatest('document-1'))?.qualityReasons,
+      [DocumentQualityReason.blurryImage],
+    );
     expect(
       (await database.select(database.documents).get()).single.clientDocumentId,
       'document-1',

@@ -45,4 +45,10 @@ Unclassified and Without Case are distinct UI states: an Unclassified Document h
 
 Approved current navigation does not include Assistant/Chat or German-reply-drafting screens. Their future UI is not defined here.
 
+## Documents special entries
+
+Unclassified and Without Case remain distinct navigation states: Unclassified has no confirmed Organization, while Without Case has a confirmed Organization but no Case. They use special folder-like entries and are never represented as Organization or Case records.
+
+Organization, Without Case, and Case are focused nested archive flows: each provides an explicit Back/Close control and keeps primary bottom navigation hidden while preserving the practical origin state on return.
+
 Screen purposes and states are defined in [Screens](SCREENS.md). User actions within those flows are defined in [Interactions](INTERACTIONS.md).

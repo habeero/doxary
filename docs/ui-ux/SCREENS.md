@@ -27,15 +27,19 @@ Processing explains upload, accepted, and processing as truthful semantic stages
 
 ## Documents
 
-Documents browses the complete local library by confirmed Organization, then Case, with Unclassified Documents remaining visible separately. Root navigation may include contextual search, Unclassified, and Organizations. Loading, empty, and error states preserve accessible local navigation and Arabic RTL grouping. A document row uses a meaningful title, relevant date, and useful status; it does not promote a raw filename or opaque identifier when meaningful metadata exists.
+Documents browses the complete local library by confirmed Organization, then Case, with Unclassified Documents remaining visible separately. The root contains the screen title, contextual search, a Grid/List view control, an Unclassified special entry when applicable, and Organizations. Organizations are folders rather than large cards: Grid is the default and uses three columns at normal phone widths (responsive at narrower widths), folder icon, full display name below the icon, and concise useful metadata. List is a compact flat alternative for the active UI session; persistent view preference is future work unless an established lightweight preference mechanism is available. Long Organization names retain their actual value and wrap/ellipsis only as needed.
+
+Unclassified is not an Organization: it is a distinct compact archive/folder-like entry with a useful count and opens only Documents without a confirmed Organization. In its normal state, the Documents root is an index and does not render individual Unclassified Documents below that entry. Root search may show genuinely matching local documents, including Unclassified Documents, without introducing backend search; headings for empty Organization or Document result sections are omitted.
+
+Loading, empty, and error states preserve accessible local navigation and Arabic RTL grouping. A document row uses a meaningful title, relevant date, useful status, and clear tap affordance; it does not promote a raw filename or opaque identifier when meaningful metadata exists.
 
 ## Organization
 
-An Organization screen presents the Organization name and contextual search, with Cases as the visually primary content. It also shows documents associated with that Organization but no Case and may offer an All Documents entry. Empty states distinguish no Cases from no documents and retain the Organization context.
+An Organization screen is a focused archive folder with explicit Back/Close behavior, the Organization name, contextual search, and Cases as the visually primary content. Cases are compact folder-like rows, not oversized cards, and show concise local document-count metadata when available. Documents associated with that Organization but no Case appear as a distinct compact **Without Case** folder/archive entry with a useful count; it opens only those organization-only Documents. Without Case is not a normal Case. Its focused screen retains the Organization context and uses the same compact searchable document rows. Empty states distinguish no Cases from no documents and retain the Organization context.
 
 ## Case / Vorgang / المعاملة
 
-A Case screen follows Documents belonging to one continuing matter. It shows meaningful document titles, relevant dates, and useful status such as action required, completed, or no action required. It does not require year headings; grouping, filtering, or sorting by year remains a later decision if justified.
+A Case screen follows Documents belonging to one continuing matter. It uses compact document rows with a document icon, meaningful title, relevant dates, useful status, and a clear tap affordance. It does not require year headings; grouping, filtering, or sorting by year remains a later decision if justified.
 
 ## Document route: Result / Detail
 
@@ -55,7 +59,9 @@ Required-action information outranks long or secondary explanation. Sender sugge
 
 Facts are data-driven. Absent or meaningless values are omitted rather than rendered as “unknown” rows. Organization and Case may explicitly show an unassigned state; uncertainty is review guidance, not a fabricated fact. Suggestions remain suggestions until the user confirms or changes them. Original-document access remains a trust action and is shown only when supported.
 
-The route presents pre-analysis, processing, complete, partial/uncertain, and failed/unavailable states without creating a redundant detail-to-result route. A failed or unavailable analysis does not mean the Document is lost; the user can see the appropriate recovery action. Unreadable or insufficient input may direct the user to retake or reselect clearer source material.
+The primary Result surface shows only the highest-value facts: the primary deadline, directly relevant amount, document date, primary appointment, and at most one or two further facts (approximately five rows total). Remaining extracted facts stay available in collapsed secondary detail. A primary action uses one concrete source in order of next action, suggested task, required document, then localized fallback; any directly associated deadline or amount is shown there once and is not immediately repeated in Important Information. Expanded detail content does not repeat the heading of its containing accordion.
+
+The route presents pre-analysis, processing, complete, partial, action-uncertain, failed, and unavailable states without creating a redundant detail-to-result route. A complete action-uncertain result remains complete and receives review guidance specific to the uncertain action requirement. A failed or unavailable analysis does not mean the Document is lost; the user can see the appropriate recovery action. Unreadable or insufficient input may direct the user to retake or reselect clearer source material, while unsupported or corrupt input must not be described as merely unreadable.
 
 ## Classification
 

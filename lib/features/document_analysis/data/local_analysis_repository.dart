@@ -1,6 +1,12 @@
 import 'package:drift/drift.dart';
 
-import '../../../core/database/app_database.dart';
+import '../../../core/database/app_database.dart'
+    hide
+        AnalysisAmount,
+        AnalysisAppointment,
+        AnalysisDeadline,
+        AnalysisRequiredDocument,
+        AnalysisSuggestedTask;
 import '../../documents/domain/entities/domain_entities.dart';
 import '../domain/analysis_repository.dart';
 import '../domain/analysis_submission.dart';
@@ -17,7 +23,7 @@ class LocalAnalysisRepository implements AnalysisRepository {
               ..orderBy([(row) => OrderingTerm.desc(row.createdAt)])
               ..limit(1))
             .get();
-    return rows.isEmpty ? null : _toDomain(rows.single);
+    return rows.isEmpty ? null : await _toDomain(rows.single);
   }
 
   @override
@@ -27,28 +33,59 @@ class LocalAnalysisRepository implements AnalysisRepository {
           ..orderBy([(row) => OrderingTerm.desc(row.createdAt)])
           ..limit(1))
         .watch()
-        .map((rows) => rows.isEmpty ? null : _toDomain(rows.single));
+        .asyncMap((rows) => rows.isEmpty ? null : _toDomain(rows.single));
   }
 
-  DocumentAnalysis _toDomain(Analyse row) => DocumentAnalysis(
-    id: row.id,
-    clientDocumentId: row.clientDocumentId,
-    schemaVersion: row.schemaVersion,
-    targetLanguage: row.targetLanguage,
-    summary: row.summary,
-    explanation: row.explanation,
-    createdAt: row.createdAt,
-    analysisStatus: AnalysisStatus.values.byName(row.analysisStatus),
-    explanationStyle: ExplanationStyle.values.byName(row.explanationStyle),
-    classification:
-        row.suggestedOrganizationName == null &&
-            row.suggestedDocumentType == null
-        ? null
-        : ClassificationSuggestion(
-            organizationName: row.suggestedOrganizationName,
-            documentType: row.suggestedDocumentType,
-          ),
-  );
+  Future<DocumentAnalysis> _toDomain(Analyse row) async {
+    final qualityRows = await (_database.select(_database.analysisQualityReasons)
+          ..where((item) => item.analysisId.equals(row.id)))
+        .get();
+    final nextActions = await (_database.select(_database.analysisNextActions)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    final uncertainties = await (_database.select(_database.analysisUncertainties)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    final practicalStates = await (_database.select(_database.analysisPracticalStates)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    final deadlines = await (_database.select(_database.analysisDeadlines)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    final appointments = await (_database.select(_database.analysisAppointments)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    final amounts = await (_database.select(_database.analysisAmounts)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    final requiredDocuments = await (_database.select(_database.analysisRequiredDocuments)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    final suggestedTasks = await (_database.select(_database.analysisSuggestedTasks)..where((item) => item.analysisId.equals(row.id))..orderBy([(item) => OrderingTerm.asc(item.position)])).get();
+    return DocumentAnalysis(
+      id: row.id,
+      clientDocumentId: row.clientDocumentId,
+      schemaVersion: row.schemaVersion,
+      targetLanguage: row.targetLanguage,
+      summary: row.summary,
+      explanation: row.explanation,
+      documentDate: row.documentDate,
+      createdAt: row.createdAt,
+      analysisStatus: AnalysisStatus.values.byName(row.analysisStatus),
+      actionRequired: row.actionRequired == null
+          ? null
+          : ActionRequirement.values.byName(row.actionRequired!),
+      explanationStyle: ExplanationStyle.values.byName(row.explanationStyle),
+      detectedLanguage: row.detectedLanguage,
+      urgency: AnalysisUrgency.values.byName(row.urgency),
+      confidence: row.confidence,
+      practicalStates: practicalStates.map((item) => PracticalState.values.byName(item.state)).toList(growable: false),
+      uncertainties: uncertainties.map((item) => item.message).toList(growable: false),
+      classification:
+          row.suggestedOrganizationName == null &&
+              row.suggestedDocumentType == null
+          ? null
+          : ClassificationSuggestion(
+              organizationName: row.suggestedOrganizationName,
+              documentType: row.suggestedDocumentType,
+            ),
+      qualityReasons: qualityRows
+          .map((item) => DocumentQualityReason.values.byName(item.reason))
+          .toList(growable: false),
+      nextActions: nextActions.map((item) => item.value).toList(growable: false),
+      deadlines: deadlines.map((item) => AnalysisDeadline(label: item.label, dateOrRange: item.dateOrRange, confidence: item.confidence, time: item.time, timezone: item.timezone, consequence: item.consequence, sourceReference: item.sourceReference)).toList(growable: false),
+      appointments: appointments.map((item) => AnalysisAppointment(label: item.label, startOrDate: item.startOrDate, confidence: item.confidence, end: item.end, location: item.location, preparation: item.preparation, sourceReference: item.sourceReference)).toList(growable: false),
+      amounts: amounts.map((item) => AnalysisAmount(value: item.value, currency: item.currency, direction: AmountDirection.values.byName(item.direction), confidence: item.confidence, dueDate: item.dueDate, purpose: item.purpose, sourceReference: item.sourceReference)).toList(growable: false),
+      requiredDocuments: requiredDocuments.map((item) => AnalysisRequiredDocument(description: item.description, confidence: item.confidence, dueDate: item.dueDate, submissionMethod: item.submissionMethod, sourceReference: item.sourceReference)).toList(growable: false),
+      suggestedTasks: suggestedTasks.map((item) => AnalysisSuggestedTask(title: item.title, confidence: item.confidence, dueDate: item.dueDate, instructions: item.instructions, sourceReference: item.sourceReference)).toList(growable: false),
+    );
+  }
 
   @override
   Future<void> saveOperation({
@@ -87,7 +124,7 @@ class LocalAnalysisRepository implements AnalysisRepository {
     await _database.transaction(() async {
       await _database
           .into(_database.analyses)
-          .insert(
+          .insertOnConflictUpdate(
             AnalysesCompanion.insert(
               id: analysis.id,
               clientDocumentId: analysis.clientDocumentId,
@@ -97,6 +134,11 @@ class LocalAnalysisRepository implements AnalysisRepository {
               explanation: Value(analysis.explanation),
               state: analysis.analysisStatus.name,
               analysisStatus: Value(analysis.analysisStatus.name),
+              actionRequired: Value(analysis.actionRequired?.name),
+              documentDate: Value(analysis.documentDate),
+              detectedLanguage: Value(analysis.detectedLanguage),
+              urgency: Value(analysis.urgency.name),
+              confidence: Value(analysis.confidence),
               explanationStyle: Value(analysis.explanationStyle.name),
               suggestedOrganizationName: Value(
                 analysis.classification?.organizationName,
@@ -107,6 +149,16 @@ class LocalAnalysisRepository implements AnalysisRepository {
               createdAt: analysis.createdAt,
             ),
           );
+      await (_database.delete(_database.analysisQualityReasons)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.sourceReferences)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisNextActions)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisUncertainties)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisPracticalStates)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisDeadlines)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisAppointments)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisAmounts)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisRequiredDocuments)..where((item) => item.analysisId.equals(analysis.id))).go();
+      await (_database.delete(_database.analysisSuggestedTasks)..where((item) => item.analysisId.equals(analysis.id))).go();
       for (var i = 0; i < analysis.qualityReasons.length; i++) {
         await _database
             .into(_database.analysisQualityReasons)
@@ -132,6 +184,14 @@ class LocalAnalysisRepository implements AnalysisRepository {
               ),
             );
       }
+      for (final (index, value) in analysis.nextActions.indexed) { await _database.into(_database.analysisNextActions).insert(AnalysisNextActionsCompanion.insert(id: '${analysis.id}-next-$index', analysisId: analysis.id, position: index, value: value)); }
+      for (final (index, value) in analysis.uncertainties.indexed) { await _database.into(_database.analysisUncertainties).insert(AnalysisUncertaintiesCompanion.insert(id: '${analysis.id}-uncertainty-$index', analysisId: analysis.id, position: index, message: value)); }
+      for (final (index, value) in analysis.practicalStates.indexed) { await _database.into(_database.analysisPracticalStates).insert(AnalysisPracticalStatesCompanion.insert(id: '${analysis.id}-state-$index', analysisId: analysis.id, position: index, state: value.name)); }
+      for (final (index, value) in analysis.deadlines.indexed) { await _database.into(_database.analysisDeadlines).insert(AnalysisDeadlinesCompanion.insert(id: '${analysis.id}-deadline-$index', analysisId: analysis.id, position: index, label: value.label, dateOrRange: Value(value.dateOrRange), confidence: Value(value.confidence), time: Value(value.time), timezone: Value(value.timezone), consequence: Value(value.consequence), sourceReference: Value(value.sourceReference))); }
+      for (final (index, value) in analysis.appointments.indexed) { await _database.into(_database.analysisAppointments).insert(AnalysisAppointmentsCompanion.insert(id: '${analysis.id}-appointment-$index', analysisId: analysis.id, position: index, label: value.label, startOrDate: Value(value.startOrDate), confidence: Value(value.confidence), end: Value(value.end), location: Value(value.location), preparation: Value(value.preparation), sourceReference: Value(value.sourceReference))); }
+      for (final (index, value) in analysis.amounts.indexed) { await _database.into(_database.analysisAmounts).insert(AnalysisAmountsCompanion.insert(id: '${analysis.id}-amount-$index', analysisId: analysis.id, position: index, value: value.value, currency: value.currency, direction: value.direction.name, confidence: Value(value.confidence), dueDate: Value(value.dueDate), purpose: Value(value.purpose), sourceReference: Value(value.sourceReference))); }
+      for (final (index, value) in analysis.requiredDocuments.indexed) { await _database.into(_database.analysisRequiredDocuments).insert(AnalysisRequiredDocumentsCompanion.insert(id: '${analysis.id}-required-$index', analysisId: analysis.id, position: index, description: value.description, confidence: Value(value.confidence), dueDate: Value(value.dueDate), submissionMethod: Value(value.submissionMethod), sourceReference: Value(value.sourceReference))); }
+      for (final (index, value) in analysis.suggestedTasks.indexed) { await _database.into(_database.analysisSuggestedTasks).insert(AnalysisSuggestedTasksCompanion.insert(id: '${analysis.id}-task-$index', analysisId: analysis.id, position: index, title: value.title, confidence: Value(value.confidence), dueDate: Value(value.dueDate), instructions: Value(value.instructions), sourceReference: Value(value.sourceReference))); }
       await (_database.update(_database.documents)..where(
             (row) => row.clientDocumentId.equals(analysis.clientDocumentId),
           ))

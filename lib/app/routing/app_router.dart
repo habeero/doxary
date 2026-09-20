@@ -76,12 +76,25 @@ final appRouterProvider = Provider<GoRouter>(
                   builder: (context, state) => const DocumentsPage(),
                   routes: [
                     GoRoute(
+                      path: 'unclassified',
+                      builder: (context, state) =>
+                          const UnclassifiedDocumentsPage(),
+                    ),
+                    GoRoute(
                       path: 'organization/:organizationId',
                       builder: (context, state) => OrganizationPage(
                         organizationId:
                             state.pathParameters['organizationId']!,
                       ),
                       routes: [
+                        GoRoute(
+                          path: 'without-case',
+                          builder: (context, state) =>
+                              OrganizationWithoutCasePage(
+                                organizationId:
+                                    state.pathParameters['organizationId']!,
+                              ),
+                        ),
                         GoRoute(
                           path: 'case/:caseId',
                           builder: (context, state) => CasePage(
