@@ -22,6 +22,8 @@ If analysis is unavailable, partial, or fails, the local Document and its origin
 
 Analyze input is a session draft. It may survive temporary root navigation before submission, is consumed when the backend operation is accepted, and is retained only when submission fails before acceptance. It is not permanently persisted. After acceptance, selected-input UI and its CTA are cleared; ongoing work belongs to the local Document and Processing lifecycle rather than the Analyze draft.
 
+Camera Capture precedes the Analyze session draft. Its shutter produces a temporary candidate owned by Camera Review, not a Document, file reference, session draft, or analysis operation. Retake or Back discards that candidate. Only explicit Use photo in Review transfers the candidate into the Analyze session draft; normal submission rules then apply. Review may replace its temporary candidate with a genuinely rotated file, but Crop and multi-page editing remain future stages.
+
 ## Classification confirmation and correction
 
 AI classification is a suggestion, not a confirmed Organization or Case relationship. The user can accept, edit, reject, clear, or manually create/reuse the relationship. Only user acceptance or manual input changes confirmed classification. Confirmed relationships are preserved when a new analysis is persisted.

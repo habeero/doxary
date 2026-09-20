@@ -2,6 +2,8 @@
 
 ## 2026-09-20
 
+- Implemented single-photo Camera Review: shutter pauses preview into the captured-file surface, Retake safely resumes capture, Use photo promotes to the normal Analyze draft, and real 90-degree rotation is available; crop, multi-page Review, and final camera-selected polish remain deferred.
+- Implemented Camera Capture as the first focused camera-import stage: native preview/shutter, truthful flash control, localized permission and availability states, and no draft/Document/operation creation before Review.
 - Implemented the post-acceptance Processing modal overlay: dismissal continues analysis in the background, cancellation remains unavailable, and terminal states close the overlay into the existing lifecycle.
 - Recorded the non-cancelling Processing-dismissal rule; cancellation remains contract work.
 - Clarified that Analyze submission acceptance feedback is transient and local to the current surface, while ongoing processing belongs to the Document lifecycle.

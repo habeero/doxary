@@ -11,6 +11,7 @@ import '../features/cases/data/repositories/local_case_repository.dart';
 import '../features/cases/domain/repositories/case_repository.dart';
 import '../features/document_import/domain/document_import.dart';
 import '../features/document_import/data/file_picker_document_import_gateway.dart';
+import '../features/document_import/data/camera_capture_gateway.dart';
 import '../features/document_analysis/application/analysis_workflow.dart';
 import '../features/document_analysis/data/doxary_document_analysis_remote_data_source.dart';
 import '../features/document_analysis/data/local_analysis_repository.dart';
@@ -89,6 +90,9 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 );
 final importGatewayProvider = Provider<DocumentImportGateway>(
   (ref) => FilePickerDocumentImportGateway(),
+);
+final cameraCaptureGatewayProvider = Provider<CameraCaptureGateway>(
+  (ref) => DeviceCameraCaptureGateway(),
 );
 final reminderSchedulerProvider = Provider<ReminderScheduler>(
   (ref) => UnavailableReminderScheduler(),

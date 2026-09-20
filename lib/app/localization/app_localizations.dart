@@ -100,6 +100,19 @@ class AppLocalizations {
   String get analysisFailed => _value('analysisFailed');
   String get images => _value('images');
   String get cameraDeferred => _value('cameraDeferred');
+  String get cameraFlash => _value('cameraFlash');
+  String get cameraPreparing => _value('cameraPreparing');
+  String get cameraPermissionDenied => _value('cameraPermissionDenied');
+  String get cameraPermissionSettingsRequired =>
+      _value('cameraPermissionSettingsRequired');
+  String get cameraPermissionRestricted => _value('cameraPermissionRestricted');
+  String get cameraUnavailable => _value('cameraUnavailable');
+  String get cameraInitializationFailed => _value('cameraInitializationFailed');
+  String get cameraCaptureStored => _value('cameraCaptureStored');
+  String get cameraRetake => _value('cameraRetake');
+  String get cameraUsePhoto => _value('cameraUsePhoto');
+  String get cameraRotate => _value('cameraRotate');
+  String get cameraRotateFailed => _value('cameraRotateFailed');
   String get operationRetryableError => _value('operationRetryableError');
   String get operationFailedError => _value('operationFailedError');
   String get importError => _value('importError');
@@ -517,6 +530,20 @@ const _strings = <String, Map<String, String>>{
     'analysisFailed': 'Analyse konnte nicht abgeschlossen werden.',
     'images': 'Bilder',
     'cameraDeferred': 'Kamera wird später unterstützt.',
+    'cameraFlash': 'Blitz',
+    'cameraPreparing': 'Kamera wird vorbereitet …',
+    'cameraPermissionDenied': 'Der Kamerazugriff wurde nicht erlaubt. Du kannst ihn später erneut erlauben.',
+    'cameraPermissionSettingsRequired': 'Der Kamerazugriff ist deaktiviert. Aktiviere ihn in den Geräteeinstellungen.',
+    'cameraPermissionRestricted':
+        'Der Kamerazugriff ist auf diesem Gerät eingeschränkt.',
+    'cameraUnavailable': 'Auf diesem Gerät ist keine Kamera verfügbar.',
+    'cameraInitializationFailed':
+        'Die Kamera konnte nicht gestartet werden. Bitte versuche es erneut.',
+    'cameraCaptureStored': 'Aufnahme erstellt',
+    'cameraRetake': 'Neu aufnehmen',
+    'cameraUsePhoto': 'Foto verwenden',
+    'cameraRotate': 'Drehen',
+    'cameraRotateFailed': 'Das Foto konnte nicht gedreht werden.',
     'operationRetryableError': 'Der Dienst ist vorübergehend nicht verfügbar.',
     'operationFailedError': 'Die Analyse konnte nicht abgeschlossen werden.',
     'importError': 'Der Dokumentimport ist fehlgeschlagen.',
@@ -572,6 +599,21 @@ const _strings = <String, Map<String, String>>{
     'analysisFailed': 'تعذر إكمال التحليل.',
     'images': 'الصور',
     'cameraDeferred': 'سيتم دعم الكاميرا لاحقًا.',
+    'cameraFlash': 'الفلاش',
+    'cameraPreparing': 'جارٍ تجهيز الكاميرا …',
+    'cameraPermissionDenied':
+        'لم يتم السماح بالوصول إلى الكاميرا. يمكنك السماح به لاحقًا.',
+    'cameraPermissionSettingsRequired':
+        'تم تعطيل الوصول إلى الكاميرا. فعّله من إعدادات الجهاز.',
+    'cameraPermissionRestricted': 'الوصول إلى الكاميرا مقيّد على هذا الجهاز.',
+    'cameraUnavailable': 'لا تتوفر كاميرا على هذا الجهاز.',
+    'cameraInitializationFailed':
+        'تعذّر تشغيل الكاميرا. يُرجى المحاولة مرة أخرى.',
+    'cameraCaptureStored': 'تم التقاط الصورة',
+    'cameraRetake': 'إعادة التصوير',
+    'cameraUsePhoto': 'استخدام الصورة',
+    'cameraRotate': 'تدوير',
+    'cameraRotateFailed': 'تعذّر تدوير الصورة.',
     'operationRetryableError': 'الخدمة غير متاحة مؤقتًا.',
     'operationFailedError': 'تعذر إكمال التحليل.',
     'importError': 'تعذر استيراد المستند.',

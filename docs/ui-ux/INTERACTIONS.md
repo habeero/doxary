@@ -12,6 +12,8 @@ The import review places a compact analysis-language selector beside Analyze. It
 
 Single-page review supports retake, accept/use image, crop, and rotate. Multi-page review supports ordered thumbnails, selected-page preview, individual removal, remove-all, adding another page, and continuing up to 10 pages/images. A maintained reliable implementation is required before using automatic edge detection or perspective correction; advanced scanner filters are not required initially.
 
+Camera Capture is a focused nested flow without bottom navigation. It owns native camera initialization, permission feedback, app-lifecycle release/resume, and disposal. Shutter releases the live preview into single-photo Review. Review displays the captured file, may rotate the actual temporary file by 90 degrees, and owns it until the user chooses Retake, Back, or Use photo. Retake and Back discard the candidate and resume Capture; Use photo transfers it to the existing Analyze session draft. Neither Capture nor Review creates a Document or operation. Crop is deferred until a truthful editing implementation is available.
+
 ## Processing and retry
 
 Processing uses semantic staged labels derived from observable state. It never shows invented percentages, unsupported sub-stages, or raw technical logs. Terminal technical failure offers deliberate Retry analysis where appropriate; retry is not automatic resubmission.

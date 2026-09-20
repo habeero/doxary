@@ -14,6 +14,7 @@ import '../../document_analysis/domain/analysis_output_language.dart';
 import '../../document_analysis/presentation/document_detail_page.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../domain/document_import.dart';
+import 'camera_capture_page.dart';
 
 class ImportPage extends ConsumerStatefulWidget {
   const ImportPage({super.key});
@@ -75,6 +76,20 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         }
       },
     );
+  }
+
+  Future<void> _openCameraCapture() async {
+    if (_busy) return;
+    final selection = await Navigator.of(context).push<DocumentImportSelection>(
+      MaterialPageRoute(builder: (_) => const CameraCapturePage()),
+    );
+    if (!mounted || selection == null) return;
+    setState(() {
+      _selection = selection;
+      _idempotencyKey = null;
+      _submission = null;
+      _message = null;
+    });
   }
 
   void _removeSelection() {
@@ -376,9 +391,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                     const SizedBox(height: AppSpacing.lg),
                     FilledButton.icon(
                       key: const Key('capture-document-action'),
-                      onPressed: _busy
-                          ? null
-                          : () => _select(ImportSource.camera),
+                      onPressed: _busy ? null : _openCameraCapture,
                       icon: const Icon(Icons.document_scanner_outlined),
                       label: Text(l10n.captureDocument),
                       style: FilledButton.styleFrom(

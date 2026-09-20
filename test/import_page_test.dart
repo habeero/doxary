@@ -8,6 +8,7 @@ import 'package:doxary/core/errors/app_error.dart';
 import 'package:doxary/core/errors/result.dart';
 import 'package:doxary/core/utils/id_generator.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
+import 'package:doxary/features/document_import/data/camera_capture_gateway.dart';
 import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
 import 'package:doxary/features/document_import/domain/document_import.dart';
 import 'package:doxary/features/document_import/presentation/import_page.dart';
@@ -608,16 +609,18 @@ void main() {
   });
 
   testWidgets(
-    'empty Analyze root preserves capture and file-picker callbacks',
+    'camera shutter opens Review and Back returns to Capture without a draft',
     (tester) async {
       final database = AppDatabase(NativeDatabase.memory());
       addTearDown(database.close);
       final gateway = _RecordingGateway();
+      final camera = _FakeCameraCaptureGateway();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             databaseProvider.overrideWithValue(database),
             importGatewayProvider.overrideWithValue(gateway),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
           ],
           child: _app(),
         ),
@@ -626,15 +629,194 @@ void main() {
 
       await tester.tap(find.byKey(const Key('capture-document-action')));
       await tester.pumpAndSettle();
-      expect(gateway.sources, [ImportSource.camera]);
+      expect(find.byKey(const Key('camera-capture-page')), findsOneWidget);
+      expect(find.byKey(const Key('camera-capture-shutter')), findsOneWidget);
+      expect(gateway.sources, isEmpty);
+
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
+      expect(find.byKey(const Key('camera-review-preview')), findsOneWidget);
+      expect(camera.session.pauseCalls, 1);
+
+      await tester.tap(find.byKey(const Key('camera-review-back')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('camera-capture-page')), findsOneWidget);
+      expect(camera.session.discardCalls, 1);
+      expect(camera.session.resumeCalls, 1);
+
+      await tester.tap(find.byKey(const Key('camera-capture-back')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('camera-capture-page')), findsNothing);
+      expect(find.byKey(const Key('capture-document-action')), findsOneWidget);
+      expect(await database.select(database.documents).get(), isEmpty);
+      expect(await database.select(database.analysisOperations).get(), isEmpty);
+      expect(camera.session.disposeCalls, greaterThanOrEqualTo(1));
 
       await tester.tap(find.byKey(const Key('choose-file-image-action')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('import-choose-image')));
       await tester.pumpAndSettle();
-      expect(gateway.sources, [ImportSource.camera, ImportSource.imageLibrary]);
+      expect(gateway.sources, [ImportSource.imageLibrary]);
     },
   );
+
+  testWidgets('Retake discards the reviewed capture and resumes the camera', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('camera-review-retake')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('camera-review-page')), findsNothing);
+    expect(find.byKey(const Key('camera-capture-shutter')), findsOneWidget);
+    expect(camera.session.discardCalls, 1);
+    expect(camera.session.resumeCalls, 1);
+    expect(await database.select(database.documents).get(), isEmpty);
+  });
+
+  testWidgets('Review rotates the candidate file before it can be accepted', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('camera-review-rotate')));
+    await tester.pumpAndSettle();
+
+    expect(camera.session.rotateCalls, 1);
+    expect(find.byKey(const Key('camera-review-preview')), findsOneWidget);
+  });
+
+  testWidgets(
+    'Use photo returns a camera image as an unsubmitted Analyze draft',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final camera = _FakeCameraCaptureGateway();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('camera-review-use')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('camera-review-page')), findsNothing);
+      expect(find.byKey(const Key('selected-import-draft')), findsOneWidget);
+      expect(find.byKey(const Key('analyze-draft-action')), findsOneWidget);
+      expect(await database.select(database.documents).get(), isEmpty);
+      expect(await database.select(database.analysisOperations).get(), isEmpty);
+      expect(camera.session.discardCalls, 0);
+      expect(camera.session.disposeCalls, greaterThanOrEqualTo(1));
+    },
+  );
+
+  testWidgets('camera permission denial renders a safe localized state', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway(
+      initialState: CameraCaptureState.permissionDenied,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('camera-capture-state-message')),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Der Kamerazugriff wurde nicht erlaubt. Du kannst ihn später erneut erlauben.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('camera initialization failure renders a safe localized state', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway(
+      initialState: CameraCaptureState.failed,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Die Kamera konnte nicht gestartet werden. Bitte versuche es erneut.',
+      ),
+      findsOneWidget,
+    );
+  });
 
   testWidgets(
     'selected Analyze draft leaves the host bottom navigation visible',
@@ -702,6 +884,86 @@ Widget _appWithHome(Widget home, [Locale locale = const Locale('de')]) =>
       ],
       home: home,
     );
+
+class _FakeCameraCaptureGateway implements CameraCaptureGateway {
+  _FakeCameraCaptureGateway({
+    CameraCaptureState initialState = CameraCaptureState.ready,
+  }) : session = _FakeCameraCaptureSession(initialState);
+
+  final _FakeCameraCaptureSession session;
+
+  @override
+  CameraCaptureSession createSession() => session;
+}
+
+class _FakeCameraCaptureSession implements CameraCaptureSession {
+  _FakeCameraCaptureSession(this._state);
+
+  CameraCaptureState _state;
+  var disposeCalls = 0;
+  var pauseCalls = 0;
+  var resumeCalls = 0;
+  var discardCalls = 0;
+  var rotateCalls = 0;
+  var _flashOn = false;
+
+  @override
+  CameraCaptureState get state => _state;
+
+  @override
+  bool get isFlashControlAvailable => _state == CameraCaptureState.ready;
+
+  @override
+  bool get isFlashOn => _flashOn;
+
+  @override
+  Future<CameraCaptureState> initialize() async => _state;
+
+  @override
+  Widget buildPreview() => const ColoredBox(color: Colors.black);
+
+  @override
+  Future<void> toggleFlash() async => _flashOn = !_flashOn;
+
+  @override
+  Future<CameraCaptureCandidate> capture() async => CameraCaptureCandidate(
+    localUri: Uri.parse('file:///camera-capture.jpg'),
+    capturedAt: DateTime(2026),
+  );
+
+  @override
+  Future<CameraCaptureCandidate> rotateRight(
+    CameraCaptureCandidate candidate,
+  ) async {
+    rotateCalls++;
+    return CameraCaptureCandidate(
+      localUri: Uri.parse('file:///camera-capture-rotated.jpg'),
+      capturedAt: candidate.capturedAt,
+    );
+  }
+
+  @override
+  Future<void> discard(CameraCaptureCandidate candidate) async {
+    discardCalls++;
+  }
+
+  @override
+  Future<void> pause() async {
+    pauseCalls++;
+  }
+
+  @override
+  Future<CameraCaptureState> resume() async {
+    resumeCalls++;
+    _state = CameraCaptureState.ready;
+    return _state;
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposeCalls++;
+  }
+}
 
 class _SelectionGateway implements DocumentImportGateway {
   @override
