@@ -181,99 +181,224 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     );
   }
 
+  Future<void> _showFileChoices() => showModalBottomSheet<void>(
+    context: context,
+    builder: (sheetContext) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            key: const Key('import-choose-image'),
+            leading: const Icon(Icons.image_outlined),
+            title: Text(context.l10n.images),
+            onTap: _busy
+                ? null
+                : () {
+                    Navigator.of(sheetContext).pop();
+                    _select(ImportSource.imageLibrary);
+                  },
+          ),
+          ListTile(
+            key: const Key('import-choose-pdf'),
+            leading: const Icon(Icons.picture_as_pdf_outlined),
+            title: Text(context.l10n.pdf),
+            onTap: _busy
+                ? null
+                : () {
+                    Navigator.of(sheetContext).pop();
+                    _select(ImportSource.pdfFile);
+                  },
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Widget _languageSelector(
+    BuildContext context,
+    AnalysisOutputLanguage analysisLanguage,
+  ) {
+    final l10n = context.l10n;
+    return Semantics(
+      label: l10n.analysisLanguageLabel,
+      child: DecoratedBox(
+        key: const Key('analysis-language-selector'),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Theme.of(context).dividerColor),
+        ),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 8, 4),
+          child: Row(
+            children: [
+              const Icon(Icons.translate_outlined, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  l10n.analysisLanguageLabel,
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              PopupMenuButton<AnalysisOutputLanguage>(
+                enabled: !_busy,
+                tooltip: l10n.analysisLanguageLabel,
+                onSelected: (value) => ref
+                    .read(analysisLanguageProvider.notifier)
+                    .setLanguage(value),
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: AnalysisOutputLanguage.arabic,
+                    child: Text(l10n.analysisLanguageArabic),
+                  ),
+                  PopupMenuItem(
+                    value: AnalysisOutputLanguage.simpleGerman,
+                    child: Text(l10n.analysisLanguageSimpleGerman),
+                  ),
+                ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      analysisLanguage == AnalysisOutputLanguage.arabic
+                          ? l10n.analysisLanguageArabic
+                          : l10n.analysisLanguageSimpleGerman,
+                    ),
+                    const Icon(Icons.arrow_drop_down),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final analysisLanguage = ref.watch(analysisLanguageProvider);
     return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(title: Text(l10n.importDocument)),
-        body: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.foundationMessage,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              if (_selection != null) ...[
-                const SizedBox(height: AppSpacing.md),
-                AppSectionCard(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.description_outlined),
-                        title: Text(l10n.selectedDocument),
-                        subtitle: Text('${_selection!.files.length} file(s)'),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.translate_outlined),
-                        title: Text(l10n.analysisLanguageLabel),
-                        trailing: DropdownButton<AnalysisOutputLanguage>(
-                          value: analysisLanguage,
-                          onChanged: _busy
-                              ? null
-                              : (value) {
-                                  if (value != null) {
-                                    ref
-                                        .read(analysisLanguageProvider.notifier)
-                                        .setLanguage(value);
-                                  }
-                                },
-                          items: [
-                            DropdownMenuItem(
-                              value: AnalysisOutputLanguage.arabic,
-                              child: Text(l10n.analysisLanguageArabic),
-                            ),
-                            DropdownMenuItem(
-                              value: AnalysisOutputLanguage.simpleGerman,
-                              child: Text(l10n.analysisLanguageSimpleGerman),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+      child: Material(
+        color: Colors.transparent,
+        child: SingleChildScrollView(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.xl,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.productName,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                FilledButton.icon(
-                  onPressed: _busy ? null : _analyze,
-                  icon: const Icon(Icons.auto_awesome),
-                  label: Text(l10n.startAnalysis),
-                ),
+                const SizedBox(height: AppSpacing.xl),
+                if (_selection == null) ...[
+                  Text(
+                    l10n.addDocumentForAnalysis,
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  FilledButton.icon(
+                    key: const Key('capture-document-action'),
+                    onPressed: _busy
+                        ? null
+                        : () => _select(ImportSource.camera),
+                    icon: const Icon(Icons.document_scanner_outlined),
+                    label: Text(l10n.captureDocument),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  OutlinedButton.icon(
+                    key: const Key('choose-file-image-action'),
+                    onPressed: _busy ? null : _showFileChoices,
+                    icon: const Icon(Icons.insert_drive_file_outlined),
+                    label: Text(l10n.chooseFileOrImage),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l10n.supportedFormats,
+                    key: const Key('supported-formats-guidance'),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  _languageSelector(context, analysisLanguage),
+                ] else ...[
+                  const SizedBox(height: AppSpacing.md),
+                  AppSectionCard(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.description_outlined),
+                          title: Text(l10n.selectedDocument),
+                          subtitle: Text('${_selection!.files.length} file(s)'),
+                        ),
+                        _languageSelector(context, analysisLanguage),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  FilledButton.icon(
+                    onPressed: _busy ? null : _analyze,
+                    icon: const Icon(Icons.auto_awesome),
+                    label: Text(l10n.startAnalysis),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  AppSectionCard(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.image_outlined),
+                          title: Text(l10n.images),
+                          onTap: _busy
+                              ? null
+                              : () => _select(ImportSource.imageLibrary),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.picture_as_pdf_outlined),
+                          title: Text(l10n.pdf),
+                          onTap: _busy
+                              ? null
+                              : () => _select(ImportSource.pdfFile),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.photo_camera_outlined),
+                          title: Text(l10n.camera),
+                          subtitle: Text(l10n.cameraDeferred),
+                          onTap: _busy
+                              ? null
+                              : () => _select(ImportSource.camera),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (_message != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    child: Text(_message!),
+                  ),
               ],
-              if (_message != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Text(_message!),
-                ),
-              const SizedBox(height: AppSpacing.xl),
-              AppSectionCard(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.image_outlined),
-                      title: Text(l10n.images),
-                      onTap: _busy
-                          ? null
-                          : () => _select(ImportSource.imageLibrary),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.picture_as_pdf_outlined),
-                      title: Text(l10n.pdf),
-                      onTap: _busy ? null : () => _select(ImportSource.pdfFile),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.photo_camera_outlined),
-                      title: Text(l10n.camera),
-                      subtitle: Text(l10n.cameraDeferred),
-                      onTap: _busy ? null : () => _select(ImportSource.camera),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

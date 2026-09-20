@@ -37,8 +37,16 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.image_outlined));
-    await tester.pump();
+    expect(
+      Directionality.of(tester.element(find.byType(ImportPage))),
+      TextDirection.rtl,
+    );
+    expect(find.byKey(const Key('analysis-language-selector')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('choose-file-image-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('import-choose-image')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -67,8 +75,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Bilder'));
-      await tester.pump();
+      await tester.tap(find.byKey(const Key('choose-file-image-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('import-choose-image')));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Analyse starten'));
       await tester.pumpAndSettle();
 
@@ -116,6 +126,94 @@ void main() {
       expect(await database.select(database.documentFiles).get(), hasLength(1));
     },
   );
+
+  testWidgets('empty Analyze root has focused actions and language selection', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          importGatewayProvider.overrideWithValue(_RecordingGateway()),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('capture-document-action')), findsOneWidget);
+    expect(find.byKey(const Key('choose-file-image-action')), findsOneWidget);
+    expect(find.byKey(const Key('supported-formats-guidance')), findsOneWidget);
+    expect(find.byKey(const Key('analysis-language-selector')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('choose-file-image-action')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('import-choose-image')), findsOneWidget);
+    expect(find.byKey(const Key('import-choose-pdf')), findsOneWidget);
+  });
+
+  testWidgets(
+    'empty Analyze root preserves capture and file-picker callbacks',
+    (tester) async {
+      final gateway = _RecordingGateway();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [importGatewayProvider.overrideWithValue(gateway)],
+          child: _app(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      expect(gateway.sources, [ImportSource.camera]);
+
+      await tester.tap(find.byKey(const Key('choose-file-image-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('import-choose-image')));
+      await tester.pumpAndSettle();
+      expect(gateway.sources, [ImportSource.camera, ImportSource.imageLibrary]);
+    },
+  );
+
+  testWidgets('empty Analyze root leaves the host bottom navigation visible', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          importGatewayProvider.overrideWithValue(_RecordingGateway()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('de'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: Scaffold(
+            body: const ImportPage(),
+            bottomNavigationBar: NavigationBar(
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  label: 'Start',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.document_scanner_outlined),
+                  label: 'Analyse',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+  });
 }
 
 Widget _app([Locale locale = const Locale('de')]) => MaterialApp(
@@ -148,6 +246,22 @@ class _SelectionGateway implements DocumentImportGateway {
       ),
     ]),
   );
+}
+
+class _RecordingGateway implements DocumentImportGateway {
+  final sources = <ImportSource>[];
+
+  @override
+  Future<Result<DocumentImportCandidate>> pick(ImportSource source) async =>
+      const Failure(ImportCancelledError());
+
+  @override
+  Future<Result<DocumentImportSelection>> pickSelection(
+    ImportSource source,
+  ) async {
+    sources.add(source);
+    return const Failure(ImportCancelledError());
+  }
 }
 
 class _FailedOperationRemote implements DocumentAnalysisRemoteDataSource {

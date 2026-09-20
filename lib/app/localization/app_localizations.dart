@@ -15,6 +15,10 @@ class AppLocalizations {
   String get documents => _value('documents');
   String get bottomNavigationDocuments => _bottomNavigationValue('documents');
   String get importDocument => _value('importDocument');
+  String get addDocumentForAnalysis => _value('addDocumentForAnalysis');
+  String get captureDocument => _value('captureDocument');
+  String get chooseFileOrImage => _value('chooseFileOrImage');
+  String get supportedFormats => _value('supportedFormats');
   String get analyze => _value('analyze');
   String get bottomNavigationAnalyze => _bottomNavigationValue('analyze');
   String get tasks => _value('tasks');
@@ -455,6 +459,10 @@ const _strings = <String, Map<String, String>>{
     'home': 'Start',
     'documents': 'Dokumente',
     'importDocument': 'Neu',
+    'addDocumentForAnalysis': 'Dokument zur Analyse hinzufügen',
+    'captureDocument': 'Dokument aufnehmen',
+    'chooseFileOrImage': 'Datei oder Bild auswählen',
+    'supportedFormats': 'Unterstützte Formate: JPG, PNG, PDF',
     'analyze': 'Analysieren',
     'tasks': 'Aufgaben',
     'profile': 'Profil',
@@ -500,6 +508,10 @@ const _strings = <String, Map<String, String>>{
     'home': 'الرئيسية',
     'documents': 'المستندات',
     'importDocument': 'إضافة',
+    'addDocumentForAnalysis': 'إضافة مستند للتحليل',
+    'captureDocument': 'تصوير مستند',
+    'chooseFileOrImage': 'اختيار ملف أو صورة',
+    'supportedFormats': 'الصيغ المدعومة: JPG، PNG، PDF',
     'analyze': 'تحليل',
     'tasks': 'المهام',
     'profile': 'الملف الشخصي',
