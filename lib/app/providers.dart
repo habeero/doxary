@@ -68,6 +68,13 @@ final analysisWorkflowProvider = Provider<AnalysisWorkflow>(
     ref.watch(analysisRepositoryProvider),
   ),
 );
+final activeAnalysisOperationsProvider =
+    StreamProvider<List<PendingAnalysisOperation>>(
+      (ref) => ref.watch(analysisRepositoryProvider).watchPending(),
+    );
+final resumePendingAnalysesProvider = FutureProvider<void>(
+  (ref) => ref.read(analysisWorkflowProvider).resumePending(),
+);
 final organizationRepositoryProvider = Provider<OrganizationRepository>(
   (ref) => LocalOrganizationRepository(ref.watch(databaseProvider)),
 );

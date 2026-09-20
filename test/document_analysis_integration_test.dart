@@ -112,58 +112,115 @@ void main() {
     final repository = LocalAnalysisRepository(database);
     final now = DateTime(2026);
     await _insertDocument(database, 'document-legacy-action');
-    await database.into(database.analyses).insert(
-      AnalysesCompanion.insert(
-        id: 'legacy-analysis',
-        clientDocumentId: 'document-legacy-action',
-        schemaVersion: 'analysis_result.v1',
-        targetLanguage: 'de',
-        state: AnalysisStatus.complete.name,
-        analysisStatus: Value(AnalysisStatus.complete.name),
-        actionRequired: const Value(null),
-        explanationStyle: Value(ExplanationStyle.standard.name),
-        createdAt: now,
-      ),
-    );
+    await database
+        .into(database.analyses)
+        .insert(
+          AnalysesCompanion.insert(
+            id: 'legacy-analysis',
+            clientDocumentId: 'document-legacy-action',
+            schemaVersion: 'analysis_result.v1',
+            targetLanguage: 'de',
+            state: AnalysisStatus.complete.name,
+            analysisStatus: Value(AnalysisStatus.complete.name),
+            actionRequired: const Value(null),
+            explanationStyle: Value(ExplanationStyle.standard.name),
+            createdAt: now,
+          ),
+        );
 
     final restored = await repository.getLatest('document-legacy-action');
     expect(restored?.analysisStatus, AnalysisStatus.complete);
     expect(restored?.actionRequired, isNull);
   });
 
-  test('completed analysis round trip retains normalized Result facts', () async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    await _insertDocument(database, 'document-round-trip');
-    final repository = LocalAnalysisRepository(database);
-    final analysis = DocumentAnalysis(
-      id: 'analysis-round-trip', clientDocumentId: 'document-round-trip', schemaVersion: 'analysis_result.v1', targetLanguage: 'de', createdAt: DateTime(2026),
-      documentDate: '2026-09-15', detectedLanguage: 'de', urgency: AnalysisUrgency.high, confidence: .9,
-      actionRequired: ActionRequirement.yes, analysisStatus: AnalysisStatus.complete,
-      practicalStates: const [PracticalState.payment], uncertainties: const ['Verify the date'], nextActions: const ['Pay the amount'],
-      deadlines: const [AnalysisDeadline(label: 'Pay', dateOrRange: '2026-10-01', confidence: .8, consequence: 'Reminder')],
-      appointments: const [AnalysisAppointment(label: 'Meeting', startOrDate: '2026-10-02', confidence: .7, location: 'Berlin')],
-      amounts: const [AnalysisAmount(value: '128.40', currency: 'EUR', direction: AmountDirection.pay, confidence: .9, dueDate: '2026-10-01', purpose: 'Invoice')],
-      requiredDocuments: const [AnalysisRequiredDocument(description: 'Proof', confidence: .8, dueDate: '2026-10-03')],
-      suggestedTasks: const [AnalysisSuggestedTask(title: 'Pay invoice', confidence: .9, dueDate: '2026-10-01', instructions: 'Use reference')],
-      qualityReasons: const [DocumentQualityReason.blurryImage], classification: const ClassificationSuggestion(organizationName: 'SAGA'),
-    );
-    await repository.saveCompleted(analysis);
-    await repository.saveCompleted(analysis);
-    final restored = await repository.getLatest('document-round-trip');
-    expect(restored?.documentDate, analysis.documentDate);
-    expect(restored?.nextActions, analysis.nextActions);
-    expect(restored?.uncertainties, analysis.uncertainties);
-    expect(restored?.deadlines.single.consequence, 'Reminder');
-    expect(restored?.appointments.single.location, 'Berlin');
-    expect(restored?.amounts.single.purpose, 'Invoice');
-    expect(restored?.requiredDocuments.single.description, 'Proof');
-    expect(restored?.suggestedTasks.single.instructions, 'Use reference');
-    expect(restored?.practicalStates, analysis.practicalStates);
-    expect(restored?.qualityReasons, analysis.qualityReasons);
-    expect(restored?.classification?.organizationName, 'SAGA');
-    expect(await database.select(database.analysisAmounts).get(), hasLength(1));
-  });
+  test(
+    'completed analysis round trip retains normalized Result facts',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      await _insertDocument(database, 'document-round-trip');
+      final repository = LocalAnalysisRepository(database);
+      final analysis = DocumentAnalysis(
+        id: 'analysis-round-trip',
+        clientDocumentId: 'document-round-trip',
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        createdAt: DateTime(2026),
+        documentDate: '2026-09-15',
+        detectedLanguage: 'de',
+        urgency: AnalysisUrgency.high,
+        confidence: .9,
+        actionRequired: ActionRequirement.yes,
+        analysisStatus: AnalysisStatus.complete,
+        practicalStates: const [PracticalState.payment],
+        uncertainties: const ['Verify the date'],
+        nextActions: const ['Pay the amount'],
+        deadlines: const [
+          AnalysisDeadline(
+            label: 'Pay',
+            dateOrRange: '2026-10-01',
+            confidence: .8,
+            consequence: 'Reminder',
+          ),
+        ],
+        appointments: const [
+          AnalysisAppointment(
+            label: 'Meeting',
+            startOrDate: '2026-10-02',
+            confidence: .7,
+            location: 'Berlin',
+          ),
+        ],
+        amounts: const [
+          AnalysisAmount(
+            value: '128.40',
+            currency: 'EUR',
+            direction: AmountDirection.pay,
+            confidence: .9,
+            dueDate: '2026-10-01',
+            purpose: 'Invoice',
+          ),
+        ],
+        requiredDocuments: const [
+          AnalysisRequiredDocument(
+            description: 'Proof',
+            confidence: .8,
+            dueDate: '2026-10-03',
+          ),
+        ],
+        suggestedTasks: const [
+          AnalysisSuggestedTask(
+            title: 'Pay invoice',
+            confidence: .9,
+            dueDate: '2026-10-01',
+            instructions: 'Use reference',
+          ),
+        ],
+        qualityReasons: const [DocumentQualityReason.blurryImage],
+        classification: const ClassificationSuggestion(
+          organizationName: 'SAGA',
+        ),
+      );
+      await repository.saveCompleted(analysis);
+      await repository.saveCompleted(analysis);
+      final restored = await repository.getLatest('document-round-trip');
+      expect(restored?.documentDate, analysis.documentDate);
+      expect(restored?.nextActions, analysis.nextActions);
+      expect(restored?.uncertainties, analysis.uncertainties);
+      expect(restored?.deadlines.single.consequence, 'Reminder');
+      expect(restored?.appointments.single.location, 'Berlin');
+      expect(restored?.amounts.single.purpose, 'Invoice');
+      expect(restored?.requiredDocuments.single.description, 'Proof');
+      expect(restored?.suggestedTasks.single.instructions, 'Use reference');
+      expect(restored?.practicalStates, analysis.practicalStates);
+      expect(restored?.qualityReasons, analysis.qualityReasons);
+      expect(restored?.classification?.organizationName, 'SAGA');
+      expect(
+        await database.select(database.analysisAmounts).get(),
+        hasLength(1),
+      );
+    },
+  );
 
   test('incompatible result payload fails safely', () {
     expect(
@@ -196,6 +253,16 @@ void main() {
     expect(retry.clientDocumentId, first.clientDocumentId);
     expect(second.idempotencyKey, isNot(first.idempotencyKey));
     expect(second.clientDocumentId, isNot(first.clientDocumentId));
+  });
+
+  test('a cold local store has no active processing operations', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+
+    expect(
+      await LocalAnalysisRepository(database).watchPending().first,
+      isEmpty,
+    );
   });
 
   test('multipart submission preserves files, language, idempotency, and repeated page indexes', () async {
@@ -300,16 +367,96 @@ void main() {
     final terminal = await workflow.poll('op-1', 'document-1');
     expect(terminal.status, BackendOperationStatus.succeeded);
     expect(await database.select(database.analyses).get(), hasLength(1));
-    expect(
-      (await local.getLatest('document-1'))?.qualityReasons,
-      [DocumentQualityReason.blurryImage],
-    );
+    expect((await local.getLatest('document-1'))?.qualityReasons, [
+      DocumentQualityReason.blurryImage,
+    ]);
     expect(
       (await database.select(database.documents).get()).single.clientDocumentId,
       'document-1',
     );
     expect(await database.select(database.analysisOperations).get(), isEmpty);
     expect(remote.submitCalls, 0);
+  });
+
+  test('only non-terminal pending operations are exposed and duplicate saves are idempotent', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final local = LocalAnalysisRepository(database);
+    await _insertDocument(database, 'document-one');
+    await _insertDocument(database, 'document-two');
+
+    await local.saveOperation(
+      operationId: 'op-one',
+      clientDocumentId: 'document-one',
+      state: AnalysisLifecycleState.accepted,
+    );
+    final firstSaved =
+        (await database.select(database.analysisOperations).get())
+            .single
+            .updatedAt;
+    await local.saveOperation(
+      operationId: 'op-one',
+      clientDocumentId: 'document-one',
+      state: AnalysisLifecycleState.accepted,
+    );
+    await local.saveOperation(
+      operationId: 'op-two',
+      clientDocumentId: 'document-two',
+      state: AnalysisLifecycleState.processing,
+    );
+
+    final operations = await local.watchPending().first;
+    final saved = await database.select(database.analysisOperations).get();
+    expect(operations.map((operation) => operation.operationId).toSet(), {
+      'op-one',
+      'op-two',
+    });
+    expect(saved, hasLength(2));
+    expect(
+      saved
+          .singleWhere((operation) => operation.operationId == 'op-one')
+          .updatedAt,
+      firstSaved,
+    );
+  });
+
+  test('startup removes stale active correlations without polling or fabricating completion', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final local = LocalAnalysisRepository(database);
+    await _insertDocument(database, 'document-terminal');
+    final now = DateTime(2026);
+    await (database.update(
+      database.documents,
+    )..where((row) => row.clientDocumentId.equals('document-terminal'))).write(
+      DocumentsCompanion(
+        status: Value(DocumentStatus.analyzed.name),
+        updatedAt: Value(now),
+      ),
+    );
+    await database
+        .into(database.analysisOperations)
+        .insert(
+          AnalysisOperationsCompanion.insert(
+            operationId: 'stale-operation',
+            clientDocumentId: 'document-terminal',
+            state: AnalysisLifecycleState.processing.name,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final remote = _FakeRemote([]);
+    final workflow = AnalysisWorkflow(remote, local, wait: (_) async {});
+
+    await workflow.resumePending();
+
+    expect(await local.watchPending().first, isEmpty);
+    expect(await database.select(database.analysisOperations).get(), isEmpty);
+    expect(remote.getCalls, 0);
+    expect(
+      (await database.select(database.documents).get()).single.status,
+      DocumentStatus.analyzed.name,
+    );
   });
 
   test(

@@ -225,6 +225,12 @@ void main() {
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
+          activeAnalysisOperationsProvider.overrideWithValue(
+            const AsyncValue.data([]),
+          ),
+          resumePendingAnalysesProvider.overrideWith(
+            (ref) => Future<void>.value(),
+          ),
         ],
         child: const ProjectApp(),
       ),
@@ -258,6 +264,12 @@ void main() {
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
+          activeAnalysisOperationsProvider.overrideWithValue(
+            const AsyncValue.data([]),
+          ),
+          resumePendingAnalysesProvider.overrideWith(
+            (ref) => Future<void>.value(),
+          ),
         ],
         child: const ProjectApp(),
       ),
@@ -274,6 +286,12 @@ void main() {
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
+          activeAnalysisOperationsProvider.overrideWithValue(
+            const AsyncValue.data([]),
+          ),
+          resumePendingAnalysesProvider.overrideWith(
+            (ref) => Future<void>.value(),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('ar'),

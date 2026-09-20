@@ -18,6 +18,13 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final documents = ref.watch(homeDocumentsProvider);
+    final activeOperations = ref.watch(activeAnalysisOperationsProvider);
+    final activeDocumentIds = activeOperations.when(
+      data: (operations) =>
+          operations.map((operation) => operation.clientDocumentId).toSet(),
+      loading: () => const <String>{},
+      error: (_, _) => const <String>{},
+    );
 
     return Material(
       color: AppColors.background,
@@ -44,7 +51,7 @@ class HomePage extends ConsumerWidget {
                       child: AppErrorState(message: error.toString()),
                     ),
                     data: (items) => _HomeOverview(
-                      query: _HomeOverviewQuery(items),
+                      query: _HomeOverviewQuery(items, activeDocumentIds),
                       onOpenDocument: (id) => _openDocument(context, id),
                       onViewAll: () => _openDocuments(context),
                       onImport: () => context.go(AppRoutes.importDocument),
@@ -339,6 +346,7 @@ class _ProcessingItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Semantics(
+      key: Key('home-processing-document-${entry.document.clientDocumentId}'),
       button: true,
       label: '${l10n.processingDocuments}: ${entry.title(l10n)}',
       child: Material(
@@ -460,17 +468,23 @@ class _RecentDocumentItem extends StatelessWidget {
 }
 
 class _HomeOverviewQuery {
-  const _HomeOverviewQuery(this.documents);
+  const _HomeOverviewQuery(this.documents, this.activeDocumentIds);
   final List<LocalDocument> documents;
+  final Set<String> activeDocumentIds;
 
   @override
   bool operator ==(Object other) =>
       other is _HomeOverviewQuery &&
       other.documents.length == documents.length &&
-      _queryIdentity(other.documents) == _queryIdentity(documents);
+      _queryIdentity(other.documents) == _queryIdentity(documents) &&
+      _activeIdentity(other.activeDocumentIds) ==
+          _activeIdentity(activeDocumentIds);
 
   @override
-  int get hashCode => _queryIdentity(documents).hashCode;
+  int get hashCode => Object.hash(
+    _queryIdentity(documents),
+    _activeIdentity(activeDocumentIds),
+  );
 }
 
 String _queryIdentity(List<LocalDocument> documents) => documents
@@ -480,26 +494,32 @@ String _queryIdentity(List<LocalDocument> documents) => documents
     )
     .join('|');
 
+String _activeIdentity(Set<String> activeDocumentIds) =>
+    (activeDocumentIds.toList()..sort()).join('|');
+
 class _HomeOverviewData {
-  const _HomeOverviewData(this.entries);
+  const _HomeOverviewData(this.entries, this.activeDocumentIds);
   final List<_HomeDocumentEntry> entries;
+  final Set<String> activeDocumentIds;
 
   List<_HomeDocumentEntry> get actionRequired => entries
       .where(
         (entry) =>
-            entry.document.status != DocumentStatus.processing &&
+            !activeDocumentIds.contains(entry.document.clientDocumentId) &&
             entry.analysis?.actionRequired == ActionRequirement.yes,
       )
       .toList();
 
   List<_HomeDocumentEntry> get processing => entries
-      .where((entry) => entry.document.status == DocumentStatus.processing)
+      .where(
+        (entry) => activeDocumentIds.contains(entry.document.clientDocumentId),
+      )
       .toList();
 
   List<_HomeDocumentEntry> get recent => entries
       .where(
         (entry) =>
-            entry.document.status != DocumentStatus.processing &&
+            !activeDocumentIds.contains(entry.document.clientDocumentId) &&
             entry.analysis?.actionRequired != ActionRequirement.yes,
       )
       .take(5)
@@ -546,7 +566,7 @@ final _homeOverviewProvider = FutureProvider.autoDispose
           );
         }),
       );
-      return _HomeOverviewData(entries);
+      return _HomeOverviewData(entries, query.activeDocumentIds);
     });
 
 String? _firstMeaningful(List<String> values) {

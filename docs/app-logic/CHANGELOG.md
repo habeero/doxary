@@ -2,6 +2,8 @@
 
 ## 2026-09-20
 
+- Defined Processing as the non-terminal accepted-operation set, with safe startup cleanup of stale correlations and idempotent polling persistence that does not refresh unrelated Home content.
+- Established Analyze input as a non-persistent session draft: it survives temporary navigation before submission, is consumed at backend acceptance, and is retained only for pre-acceptance failure.
 - Added normalized, analysis-owned local persistence for mapped Result facts, next actions, uncertainties, suggested tasks, and semantic metadata; analysis suggestions remain separate from user-owned operational records.
 - Added forward-only local persistence for `DocumentAnalysis.action_required`; legacy analysis rows retain a null value rather than inferred action state.
 

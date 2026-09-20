@@ -103,6 +103,7 @@ class AnalysisWorkflow {
   }
 
   Future<void> resumePending() async {
+    await _local.clearStalePendingOperations();
     final pending = await _local.watchPending().first;
     for (final operation in pending) {
       try {

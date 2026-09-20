@@ -2,6 +2,9 @@
 
 ## 2026-09-20
 
+- Implemented the post-acceptance Processing modal overlay: dismissal continues analysis in the background, cancellation remains unavailable, and terminal states close the overlay into the existing lifecycle.
+- Recorded the non-cancelling Processing-dismissal rule; cancellation remains contract work.
+- Clarified that Analyze submission acceptance feedback is transient and local to the current surface, while ongoing processing belongs to the Document lifecycle.
 - Recorded bounded deferred Result follow-ups and marked the current visual redesign substantially complete for this application-design phase.
 - Polished Result density: one sourced primary action, a bounded high-value fact set with secondary overflow, immediate action-fact deduplication, and heading-free accordion bodies.
 - Refined Result state interpretation so complete action uncertainty is not presented as partial, and unsupported/corrupt input is not labeled unreadable.

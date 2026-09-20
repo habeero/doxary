@@ -18,6 +18,10 @@ Analysis results are persisted as a new typed local analysis version. Existing r
 
 If analysis is unavailable, partial, or fails, the local Document and its originals remain available. Classification failure leaves the Document unclassified and analyzable. A terminal failure moves the Document to needs review and is surfaced as a typed, user-safe error. Failure never deletes a local Document or invents classification data.
 
+## Analyze session draft
+
+Analyze input is a session draft. It may survive temporary root navigation before submission, is consumed when the backend operation is accepted, and is retained only when submission fails before acceptance. It is not permanently persisted. After acceptance, selected-input UI and its CTA are cleared; ongoing work belongs to the local Document and Processing lifecycle rather than the Analyze draft.
+
 ## Classification confirmation and correction
 
 AI classification is a suggestion, not a confirmed Organization or Case relationship. The user can accept, edit, reject, clear, or manually create/reuse the relationship. Only user acceptance or manual input changes confirmed classification. Confirmed relationships are preserved when a new analysis is persisted.
@@ -33,6 +37,10 @@ Analysis-derived facts retain their source Document. Tasks may be suggested or m
 Retrying unavailable or failed analysis, polling for accepted work, or resuming known in-progress work must never create a duplicate local Document. Reanalysis is user initiated and retains the existing local files and Document identity while producing a new analysis version. A retry of status observation does not create a second analysis submission; only explicit reanalysis starts new analysis work.
 
 Local pending-work state is recoverable after restart only when the local Document and pending correlation are known. Expired or otherwise unrecoverable work remains explicit and recoverable by user-initiated reanalysis.
+
+## Processing lifecycle
+
+Processing is derived only from non-terminal accepted operations locally correlated to a Document that is still processing. Terminal success or failure removes an operation from the active-processing set while the Document itself remains in its appropriate lifecycle state: a successful result is persisted locally, and a terminal failure remains available in needs review for recovery. Startup resumes only these known non-terminal correlations; it safely clears a correlation that conflicts with an already terminal local Document, without fabricating an unknown completion. Repeated identical polling states do not rewrite local Document metadata or cause unrelated Home content to reload.
 
 ## Deletion and future synchronization
 

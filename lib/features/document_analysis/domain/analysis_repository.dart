@@ -11,6 +11,10 @@ abstract interface class AnalysisRepository {
     String? failureCode,
   });
   Future<void> saveCompleted(DocumentAnalysis analysis);
+
+  /// Removes correlations which claim active work for a Document that has
+  /// already reached a local terminal lifecycle state.
+  Future<void> clearStalePendingOperations();
   Stream<List<PendingAnalysisOperation>> watchPending();
 }
 

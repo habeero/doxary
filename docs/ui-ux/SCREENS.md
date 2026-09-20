@@ -23,7 +23,7 @@ The capture sequence is Analyze → Camera Capture → single-page Review → mu
 
 ## Processing
 
-Processing explains upload, accepted, and processing as truthful semantic stages. Wireframes may show active and completed labels together as notation, but production shows only the label matching the observable state. No fake percentage or raw transport log is shown. Leaving the screen does not cancel analysis; the Document remains available in its pending state. Technical failure and unreadable/insufficient input are distinct user-facing states.
+Processing is a focused transient modal overlay shown after operation acceptance, not a route replacement. It explains accepted and processing through truthful semantic stages. Wireframes may show active and completed labels together as notation, but production shows only the label matching the observable state. No fake percentage or raw transport log is shown. Close/X and Continue in background dismiss only the overlay; analysis continues and the Document/Home lifecycle owns its background status. The Cancel action is visibly unavailable until a real cancellation contract exists. The overlay closes on terminal success or failure; completion notification remains deferred. Technical failure and unreadable/insufficient input are distinct user-facing states.
 
 ## Documents
 

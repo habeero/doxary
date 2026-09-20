@@ -85,9 +85,17 @@ class AppLocalizations {
   String get foundationMessage => _value('foundationMessage');
   String get emptyDocumentsDescription => _value('emptyDocumentsDescription');
   String get selectedDocument => _value('selectedDocument');
+  String get remove => _value('remove');
   String get startAnalysis => _value('startAnalysis');
   String get analysisUploading => _value('analysisUploading');
   String get analysisStarted => _value('analysisStarted');
+  String get processingTitle => _value('processingTitle');
+  String get processingDescription => _value('processingDescription');
+  String get processingAccepted => _value('processingAccepted');
+  String get processingWaiting => _value('processingWaiting');
+  String get continueInBackground => _value('continueInBackground');
+  String get cancelAnalysis => _value('cancelAnalysis');
+  String get cancellationUnavailable => _value('cancellationUnavailable');
   String get analysisComplete => _value('analysisComplete');
   String get analysisFailed => _value('analysisFailed');
   String get images => _value('images');
@@ -179,7 +187,7 @@ class AppLocalizations {
 
   String _bottomNavigationValue(String key) =>
       (_bottomNavigationStrings[locale.languageCode] ??
-          _bottomNavigationStrings['de']!)[key]!;
+      _bottomNavigationStrings['de']!)[key]!;
 }
 
 const _bottomNavigationStrings = <String, Map<String, String>>{
@@ -203,8 +211,7 @@ const _resultStrings = <String, Map<String, String>>{
   'de': {
     'productName': 'Doxary',
     'unavailableInputTitle': 'Dokument kann nicht verarbeitet werden',
-    'unavailableInputBody':
-        'Dieses Dokument kann in seinem aktuellen Format oder Zustand nicht analysiert werden.',
+    'unavailableInputBody': 'Dieses Dokument kann in seinem aktuellen Format oder Zustand nicht analysiert werden.',
     'chooseAnotherDocument': 'Anderes Dokument auswÃ¤hlen',
     'summary': 'Zusammenfassung',
     'importantFacts': 'Wichtige Angaben',
@@ -221,7 +228,8 @@ const _resultStrings = <String, Map<String, String>>{
     'retryAnalysis': 'Analyse erneut starten',
     'unreadableResultTitle': 'Dokument nicht ausreichend lesbar',
     'unreadableResultBody': 'Für eine verlässliche Analyse wird ein vollständigeres oder klareres Dokument benötigt.',
-    'documentRetainedMessage': 'Das importierte Dokument bleibt in Doxary erhalten.',
+    'documentRetainedMessage':
+        'Das importierte Dokument bleibt in Doxary erhalten.',
     'chooseClearerDocument': 'Klareres Dokument auswählen',
     'addTaskReminder': 'Aufgabe oder Erinnerung hinzufügen',
     'analysisDetails': 'Weitere Analysedetails',
@@ -235,7 +243,8 @@ const _resultStrings = <String, Map<String, String>>{
   'ar': {
     'productName': 'Doxary',
     'unavailableInputTitle': 'تعذر معالجة المستند',
-    'unavailableInputBody': 'لا يمكن تحليل هذا المستند بصيغته أو حالته الحالية.',
+    'unavailableInputBody':
+        'لا يمكن تحليل هذا المستند بصيغته أو حالته الحالية.',
     'chooseAnotherDocument': 'اختر مستندًا آخر',
     'summary': 'الملخص',
     'importantFacts': 'المعلومات المهمة',
@@ -492,9 +501,18 @@ const _strings = <String, Map<String, String>>{
     'emptyDocumentsDescription':
         'Importiere ein Dokument, um hier den Überblick zu behalten.',
     'selectedDocument': 'Ausgewähltes Dokument',
+    'remove': 'Entfernen',
     'startAnalysis': 'Analyse starten',
     'analysisUploading': 'Dokument wird hochgeladen …',
     'analysisStarted': 'Analyse gestartet',
+    'processingTitle': 'Analyse läuft',
+    'processingDescription':
+        'Das kann einen Moment dauern. Du kannst Doxary weiter nutzen.',
+    'processingAccepted': 'Dokument hochgeladen',
+    'processingWaiting': 'Warten auf die Analyse',
+    'continueInBackground': 'Im Hintergrund fortfahren',
+    'cancelAnalysis': 'Analyse abbrechen',
+    'cancellationUnavailable': 'Abbrechen ist noch nicht verfügbar.',
     'analysisComplete': 'Analyse abgeschlossen',
     'analysisFailed': 'Analyse konnte nicht abgeschlossen werden.',
     'images': 'Bilder',
@@ -538,9 +556,18 @@ const _strings = <String, Map<String, String>>{
     'foundationMessage': 'أساس الاستيراد المحلي للمستندات جاهز.',
     'emptyDocumentsDescription': 'استورد مستندًا للاحتفاظ بنظرة عامة هنا.',
     'selectedDocument': 'المستند المحدد',
+    'remove': 'إزالة',
     'startAnalysis': 'بدء التحليل',
     'analysisUploading': 'جارٍ رفع المستند …',
     'analysisStarted': 'بدأ التحليل',
+    'processingTitle': 'جارٍ تحليل المستند',
+    'processingDescription':
+        'قد يستغرق ذلك بعض الوقت. يمكنك متابعة استخدام دوكساري.',
+    'processingAccepted': 'تم رفع المستند',
+    'processingWaiting': 'بانتظار التحليل',
+    'continueInBackground': 'المتابعة في الخلفية',
+    'cancelAnalysis': 'إلغاء التحليل',
+    'cancellationUnavailable': 'الإلغاء غير متاح بعد.',
     'analysisComplete': 'اكتمل التحليل',
     'analysisFailed': 'تعذر إكمال التحليل.',
     'images': 'الصور',
