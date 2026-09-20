@@ -4,6 +4,8 @@ This domain is authoritative for Doxary AI architecture, provider behavior, stru
 
 ## Documents
 
+For the deferred major AI analysis-quality phase and its guardrails, see [ROADMAP.md](ROADMAP.md).
+
 - [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) — backend provider boundary, processing pipeline, temporary context, and AI data minimization.
 - [AI_OUTPUT_SCHEMAS.md](AI_OUTPUT_SCHEMAS.md) — validated, versioned public structured outputs.
 - [AI_BEHAVIOR.md](AI_BEHAVIOR.md) — extraction, explanation, uncertainty, evidence, and failure semantics.

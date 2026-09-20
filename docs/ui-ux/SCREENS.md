@@ -61,6 +61,10 @@ Facts are data-driven. Absent or meaningless values are omitted rather than rend
 
 The primary Result surface shows only the highest-value facts: the primary deadline, directly relevant amount, document date, primary appointment, and at most one or two further facts (approximately five rows total). Remaining extracted facts stay available in collapsed secondary detail. A primary action uses one concrete source in order of next action, suggested task, required document, then localized fallback; any directly associated deadline or amount is shown there once and is not immediately repeated in Important Information. Expanded detail content does not repeat the heading of its containing accordion.
 
+### Deferred Result follow-ups
+
+The Result visual redesign is substantially complete for the current application-design phase and must not be reopened without a concrete usability issue. Future UI/application follow-up work is limited to implementing actual **Open original document** behavior, improving responsive handling of long Important Information values (especially long dates and text), revisiting document-title presentation only if a deliberate short display-title capability becomes available, and reviewing classification display/semantics separately from Result layout.
+
 The route presents pre-analysis, processing, complete, partial, action-uncertain, failed, and unavailable states without creating a redundant detail-to-result route. A complete action-uncertain result remains complete and receives review guidance specific to the uncertain action requirement. A failed or unavailable analysis does not mean the Document is lost; the user can see the appropriate recovery action. Unreadable or insufficient input may direct the user to retake or reselect clearer source material, while unsupported or corrupt input must not be described as merely unreadable.
 
 ## Classification

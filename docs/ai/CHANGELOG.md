@@ -2,6 +2,7 @@
 
 ## 2026-09-20
 
+- Added the deferred AI analysis-quality roadmap, including the `analysis_result.v1` stability guardrail and a later repeatable evaluation/regression set.
 - Corrected `analysis_result.v1` documentation to match the implemented `uncertainties` and `quality_issues` contract; it does not currently expose `confidence`, `warnings`, or `quality_reasons`.
 
 ## 2026-09-19

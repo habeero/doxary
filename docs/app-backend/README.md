@@ -4,6 +4,8 @@ This domain is authoritative for the contract and interaction boundary between D
 
 ## Documents
 
+For the deferred contract, privacy, retention, and release-hardening phase, see [HARDENING_BACKLOG.md](HARDENING_BACKLOG.md).
+
 - [API_CONTRACT.md](API_CONTRACT.md) — versioned routes, identifiers, payloads, statuses, errors, and compatibility rules.
 - [INTEGRATION.md](INTEGRATION.md) — submission, polling, retry, resume, transport, and temporary-upload behavior.
 - [TESTING.md](TESTING.md) — contract and integration coverage expectations.

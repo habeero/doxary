@@ -2,6 +2,7 @@
 
 ## 2026-09-20
 
+- Recorded bounded deferred Result follow-ups and marked the current visual redesign substantially complete for this application-design phase.
 - Polished Result density: one sourced primary action, a bounded high-value fact set with secondary overflow, immediate action-fact deduplication, and heading-free accordion bodies.
 - Refined Result state interpretation so complete action uncertainty is not presented as partial, and unsupported/corrupt input is not labeled unreadable.
 
