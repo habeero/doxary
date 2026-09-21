@@ -2,6 +2,9 @@
 
 ## 2026-09-21
 
+- Closed the current UI/UX phase after a navigation, hierarchy, RTL/LTR, state, and interaction audit; consolidated roadmap status and recorded the no-Sidebar decision. Remaining visual and product gaps stay deferred in their authoritative documents.
+- Added safe ellipsis handling for long Organization, Case, and Task labels in focused headers and task rows, with focused regression assertions.
+- Replaced raw local data exception text on Home, Documents, Organization, and Tasks error states with localized user-safe messaging.
 - Completed the approved Settings hierarchy with real app-language selection and visibly unavailable non-navigating future rows; added dismissible, provenance-aware Home action attention.
 - Refined Settings as a compact bottom-navigation root: the real persisted app-language preference is shown as a human-readable value and changed through a focused sheet; unimplemented wireframe groups remain absent rather than being faked.
 - Implemented Create Case as a nested validated modal with immutable Organization context: normalized duplicates reuse only within that Organization, new creation returns to the 10A draft without classifying the Document, and cancellation creates nothing.

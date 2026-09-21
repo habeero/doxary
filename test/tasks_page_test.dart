@@ -53,6 +53,10 @@ void main() {
 
     expect(find.text('Überfällig'), findsWidgets);
     expect(find.text('Today reply'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Today reply')).overflow,
+      TextOverflow.ellipsis,
+    );
     expect(find.text('Overdue reply'), findsNothing);
     expect(find.text('Future reply'), findsNothing);
   });

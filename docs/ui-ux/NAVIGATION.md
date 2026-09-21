@@ -28,7 +28,7 @@ flowchart LR
 
 Analyze enters capture/import review. Review enters Processing only after the user starts analysis. Processing can be safely left without cancelling the work. Completion proceeds to the Result presentation when that flow is active. Result can enter classification correction. Focused flows return with Back/Close rather than exposing primary navigation.
 
-The approved, but not-yet-implemented, extension is Result to contextual Create Task/Reminder to Create/Edit Task. It must appear only for meaningful action, deadline, appointment, suggested-task, or next-action context and must retain the linked Document while deriving Organization/Case context when available.
+Result can open contextual Create Task for a confirmed action-required result. It appears only for meaningful action, deadline, appointment, suggested-task, or next-action context, retains the linked Document, derives Organization/Case context when available, and creates a Task only after explicit Save. Reminder delivery remains deferred.
 
 ## Documents hierarchy
 
@@ -41,8 +41,8 @@ Unclassified and Without Case are distinct UI states: an Unclassified Document h
 - **Home** is an actionable overview, not a second Documents library.
 - **Documents** is the complete local library and supports contextual library navigation.
 - **Analyze** is the document-understanding entry point, including camera/file review and explanation-language choice.
-- **Tasks** currently provides Today, Upcoming, and Completed bucket views; task completion and task-detail/edit navigation remain future work.
-- **Settings** currently provides app-language selection; its remaining approved sections are future work.
+- **Tasks** currently provides Today, Upcoming, Overdue, and Completed bucket views, completion/reopening, and focused Create/Edit Task flows. Reminder delivery remains future work.
+- **Settings** currently provides app-language selection; its remaining approved sections are visible as deferred, non-navigating rows until their capabilities exist.
 
 ## Deferred assistant UI
 

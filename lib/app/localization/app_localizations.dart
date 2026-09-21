@@ -190,6 +190,9 @@ class AppLocalizations {
   String get cameraReadyForAnalysis => _value('cameraReadyForAnalysis');
   String get operationRetryableError => _value('operationRetryableError');
   String get operationFailedError => _value('operationFailedError');
+  String get localDataUnavailable => locale.languageCode == 'ar'
+      ? '\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0645\u062d\u0644\u064a\u0629.'
+      : 'Lokale Daten konnten nicht geladen werden.';
   String get importError => _value('importError');
   String get analysisLanguageLabel => _value('analysisLanguageLabel');
   String get analysisLanguageArabic => _value('analysisLanguageArabic');

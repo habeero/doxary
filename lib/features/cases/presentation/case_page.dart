@@ -34,7 +34,11 @@ class _CasePageState extends ConsumerState<CasePage> {
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const BackButtonIcon(),
         ),
-        title: Text(item?.title ?? l10n.caseLabel),
+        title: Text(
+          item?.title ?? l10n.caseLabel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: documents.isEmpty
           ? AppEmptyState(

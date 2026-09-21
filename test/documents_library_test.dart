@@ -227,6 +227,10 @@ void main() {
 
     expect(find.byKey(const Key('without-case-folder')), findsOneWidget);
     expect(find.text('Normal case'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Long organization name')).overflow,
+      TextOverflow.ellipsis,
+    );
   });
 
   testWidgets(
@@ -251,6 +255,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Organization context'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text('Organization context')).overflow,
+        TextOverflow.ellipsis,
+      );
       expect(find.byKey(const Key('context-document-search')), findsOneWidget);
       expect(find.byIcon(Icons.description_outlined), findsOneWidget);
       expect(find.byType(Card), findsNothing);
@@ -351,6 +359,10 @@ void main() {
     expect(find.byIcon(Icons.description_outlined), findsOneWidget);
     expect(find.byType(ListTile), findsWidgets);
     expect(find.byType(Card), findsNothing);
+    expect(
+      tester.widget<Text>(find.text('Case title')).overflow,
+      TextOverflow.ellipsis,
+    );
   });
 
   testWidgets('Organization search filters Cases in its context', (

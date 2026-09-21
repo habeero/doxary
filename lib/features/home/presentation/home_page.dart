@@ -53,9 +53,11 @@ class HomePage extends ConsumerWidget {
                       padding: EdgeInsets.only(top: AppSpacing.xl),
                       child: LinearProgressIndicator(),
                     ),
-                    error: (error, _) => Padding(
+                    error: (_, _) => Padding(
                       padding: const EdgeInsets.only(top: AppSpacing.xl),
-                      child: AppErrorState(message: error.toString()),
+                      child: AppErrorState(
+                        message: context.l10n.localDataUnavailable,
+                      ),
                     ),
                     data: (items) => _HomeOverview(
                       query: _HomeOverviewQuery(
@@ -148,9 +150,11 @@ class _HomeOverview extends ConsumerWidget {
         padding: EdgeInsets.only(top: AppSpacing.xl),
         child: LinearProgressIndicator(),
       ),
-      error: (error, _) => Padding(
+      error: (_, _) => Padding(
         padding: const EdgeInsets.only(top: AppSpacing.xl),
-        child: AppErrorState(message: error.toString()),
+        child: AppErrorState(
+          message: context.l10n.localDataUnavailable,
+        ),
       ),
       data: (data) {
         if (data.entries.isEmpty) {

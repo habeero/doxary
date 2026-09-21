@@ -47,7 +47,11 @@ class _OrganizationPageState extends ConsumerState<OrganizationPage> {
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const BackButtonIcon(),
         ),
-        title: Text(organization?.name ?? l10n.organization),
+        title: Text(
+          organization?.name ?? l10n.organization,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -148,14 +152,19 @@ class _OrganizationWithoutCasePageState extends ConsumerState<OrganizationWithou
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(organization?.name ?? l10n.organization),
+            Text(
+              organization?.name ?? l10n.organization,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             Text(l10n.withoutCase, style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ),
       body: documents.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => AppErrorState(message: error.toString()),
+        error: (_, _) =>
+            AppErrorState(message: context.l10n.localDataUnavailable),
         data: (items) => DocumentCollection(
           documents: items
               .where(

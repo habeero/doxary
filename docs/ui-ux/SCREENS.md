@@ -89,11 +89,11 @@ Classification correction promotes or corrects suggestions without conflating th
 
 ## Tasks
 
-**Current implementation status:** Today, Upcoming, Overdue, and Completed bucketing/views are functionally implemented and reachable from the Tasks root in that order. Active tasks use local calendar dates: Overdue is before today, Today is today, and Upcoming is after today; Completed always overrides date grouping. Overdue rows use restrained due-date emphasis. Create Task and Edit Task are implemented as focused full-screen forms with title, required date, optional time, All Day, persisted reminder intent, optional Document/Case links, optional note, save, completion, explicit reopening, and confirmed delete. Row presentation remains incomplete: contextual metadata and the approved root redesign are still pending.
+**Current implementation status:** Today, Upcoming, Overdue, and Completed bucketing/views are functionally implemented and reachable from the Tasks root in that order. Active tasks use local calendar dates: Overdue is before today, Today is today, and Upcoming is after today; Completed always overrides date grouping. Overdue rows use restrained due-date emphasis. Create Task and Edit Task are implemented as focused full-screen forms with title, required date, optional time, All Day, persisted reminder intent, optional Document/Case links, optional note, save, completion, explicit reopening, and confirmed delete. The current root is functionally complete; richer contextual row metadata and the approved root redesign remain bounded future presentation work.
 
-The following is approved intended behavior for the pending Tasks implementation.
+The following remains approved intended behavior for the bounded Tasks presentation follow-up.
 
-Tasks has separate Today, Upcoming, and Completed tabs. Each tab contains only its own tasks; Today does not also show an Upcoming section. A task row may show title, linked Organization/Document context, due date, and a completion control. Completing a task moves it to Completed, where it remains reviewable.
+Tasks has separate Today, Upcoming, Overdue, and Completed tabs. Each tab contains only its own tasks; Today does not also show an Upcoming or Overdue section. A task row may show title, linked Organization/Document context, due date, and a completion control. Completing a task moves it to Completed, where it remains reviewable.
 
 ## Settings
 

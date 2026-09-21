@@ -41,7 +41,8 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
         appBar: AppBar(title: Text(l10n.documents)),
         body: documents.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => AppErrorState(message: error.toString()),
+          error: (_, _) =>
+              AppErrorState(message: context.l10n.localDataUnavailable),
           data: (items) {
             if (items.isEmpty) {
               return AppEmptyState(
@@ -354,7 +355,8 @@ class _UnclassifiedDocumentsPageState extends ConsumerState<UnclassifiedDocument
       appBar: AppBar(title: Text(l10n.unclassified)),
       body: documents.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => AppErrorState(message: error.toString()),
+        error: (_, _) =>
+            AppErrorState(message: context.l10n.localDataUnavailable),
         data: (items) => DocumentCollection(
           documents: items.where(_hasNoConfirmedOrganization).toList(),
           query: _query,

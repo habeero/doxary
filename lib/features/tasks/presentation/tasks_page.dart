@@ -77,12 +77,16 @@ class TasksPage extends ConsumerWidget {
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (error, _) =>
-                        AppErrorState(message: error.toString()),
+                    error: (_, _) =>
+                        AppErrorState(
+                          message: context.l10n.localDataUnavailable,
+                        ),
                   ),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => AppErrorState(message: error.toString()),
+                  error: (_, _) => AppErrorState(
+                    message: context.l10n.localDataUnavailable,
+                  ),
                 ),
               ),
             ],
@@ -119,7 +123,11 @@ class _TaskList extends StatelessWidget {
             return AppSectionCard(
               child: ListTile(
               leading: const Icon(Icons.check_box_outline_blank),
-              title: Text(task.title),
+              title: Text(
+                task.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               subtitle: overdue && dueAt != null
                   ? Text(
                       '${context.l10n.taskOverdue} · ${MaterialLocalizations.of(context).formatMediumDate(dueAt)}',
