@@ -59,6 +59,17 @@ class AppLocalizations {
   String get save => _value('save');
   String get cancel => _value('cancel');
   String get chooseOrganization => _value('chooseOrganization');
+  String get selectOrganization => _value('selectOrganization');
+  String get searchOrganization => _value('searchOrganization');
+  String get createOrganization => _value('createOrganization');
+  String get create => _value('create');
+  String get organizationNameRequired => _value('organizationNameRequired');
+  String get organizationCreateFailed => _value('organizationCreateFailed');
+  String get selectCase => _value('selectCase');
+  String get searchCase => _value('searchCase');
+  String get createCase => _value('createCase');
+  String get caseNameRequired => _value('caseNameRequired');
+  String get caseCreateFailed => _value('caseCreateFailed');
   String get organizationName => _value('organizationName');
   String get caseName => _value('caseName');
   String get clearCase => _value('clearCase');
@@ -449,6 +460,18 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'save': 'Speichern',
     'cancel': 'Abbrechen',
     'chooseOrganization': 'Organisation wählen',
+    'selectOrganization': 'Organisation auswählen',
+    'searchOrganization': 'Organisation suchen',
+    'createOrganization': 'Neue Organisation erstellen',
+    'create': 'Erstellen',
+    'organizationNameRequired': 'Bitte geben Sie einen Namen ein.',
+    'organizationCreateFailed':
+        'Die Organisation konnte nicht erstellt werden.',
+    'selectCase': 'Vorgang auswählen',
+    'searchCase': 'Vorgang suchen',
+    'createCase': 'Neuen Vorgang erstellen',
+    'caseNameRequired': 'Bitte geben Sie einen Vorgangsnamen ein.',
+    'caseCreateFailed': 'Der Vorgang konnte nicht erstellt werden.',
     'organizationName': 'Name der Organisation',
     'caseName': 'Name des Vorgangs',
     'clearCase': 'Vorgang entfernen',
@@ -483,6 +506,17 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'save': '\u062d\u0641\u0638',
     'cancel': '\u0625\u0644\u063a\u0627\u0621',
     'chooseOrganization': 'اختر الجهة',
+    'selectOrganization': 'اختر الجهة',
+    'searchOrganization': 'ابحث عن جهة',
+    'createOrganization': 'إنشاء جهة جديدة',
+    'create': 'إنشاء',
+    'organizationNameRequired': 'يرجى إدخال اسم الجهة.',
+    'organizationCreateFailed': 'تعذر إنشاء الجهة.',
+    'selectCase': 'اختر المعاملة',
+    'searchCase': 'ابحث عن معاملة',
+    'createCase': 'إنشاء معاملة جديدة',
+    'caseNameRequired': 'يرجى إدخال اسم المعاملة.',
+    'caseCreateFailed': 'تعذر إنشاء المعاملة.',
     'organizationName': 'اسم الجهة',
     'caseName': 'اسم المعاملة',
     'clearCase': 'إزالة المعاملة',

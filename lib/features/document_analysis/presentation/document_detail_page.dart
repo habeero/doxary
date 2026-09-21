@@ -758,8 +758,8 @@ class _ClassificationEditorSheet extends StatefulWidget {
 
 class _ClassificationEditorSheetState
     extends State<_ClassificationEditorSheet> {
-  late final TextEditingController _organizationController;
-  late final TextEditingController _caseController;
+  late List<Organization> _organizations;
+  late List<Case> _cases;
   late String? _selectedOrganizationId;
   late String? _selectedCaseId;
   late bool _clearCase;
@@ -768,13 +768,13 @@ class _ClassificationEditorSheetState
   @override
   void initState() {
     super.initState();
-    _organizationController = TextEditingController();
-    _caseController = TextEditingController();
+    _organizations = [...widget.organizations];
+    _cases = [...widget.cases];
     _selectedOrganizationId = widget.organizationId;
     _selectedCaseId = widget.caseId;
     _clearCase = widget.caseId == null;
     if (_selectedCaseId != null &&
-        !widget.cases.any(
+        !_cases.any(
           (item) =>
               item.id == _selectedCaseId &&
               item.organizationId == _selectedOrganizationId,
@@ -785,23 +785,16 @@ class _ClassificationEditorSheetState
   }
 
   @override
-  void dispose() {
-    _organizationController.dispose();
-    _caseController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final visibleCases = widget.cases
+    final visibleCases = _cases
         .where((item) => item.organizationId == _selectedOrganizationId)
         .toList();
-    final selectedOrganization = widget.organizations
+    final selectedOrganization = _organizations
         .where((item) => item.id == _selectedOrganizationId)
         .cast<Organization?>()
         .firstOrNull;
-    final selectedCase = widget.cases
+    final selectedCase = _cases
         .where((item) => item.id == _selectedCaseId)
         .cast<Case?>()
         .firstOrNull;
@@ -861,98 +854,72 @@ class _ClassificationEditorSheetState
                         ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  _ClassificationSelectField(
+                  _ClassificationSelectionField(
                     fieldKey: const Key('classification-organization-field'),
                     label: l10n.organization,
-                    value: _selectedOrganizationId ?? '__new__',
                     selectedLabel:
                         selectedOrganization?.name ?? l10n.chooseOrganization,
-                    items: [
-                      DropdownMenuItem(
-                        value: '__new__',
-                        child: Text(l10n.chooseOrganization),
-                      ),
-                      ...widget.organizations.map(
-                        (item) => DropdownMenuItem(
-                          value: item.id,
-                          child: Text(
-                            item.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() {
-                      final nextOrganizationId = value == '__new__'
-                          ? null
-                          : value;
-                      final currentCase = widget.cases
-                          .where((item) => item.id == _selectedCaseId)
-                          .cast<Case?>()
-                          .firstOrNull;
-                      _selectedOrganizationId = nextOrganizationId;
-                      if (currentCase?.organizationId != nextOrganizationId) {
-                        _selectedCaseId = null;
-                        _clearCase = currentCase != null;
-                      }
-                      _clearClassification = false;
-                    }),
+                    onTap: () async {
+                      final selection = await _showOrganizationSelector(
+                        context,
+                        ref: widget.ref,
+                        organizations: _organizations,
+                        selectedOrganizationId: _selectedOrganizationId,
+                      );
+                      if (!mounted || selection == null) return;
+                      setState(() {
+                        final nextOrganizationId = selection.organization.id;
+                        final currentCase = _cases
+                            .where((item) => item.id == _selectedCaseId)
+                            .cast<Case?>()
+                            .firstOrNull;
+                        _selectedOrganizationId = nextOrganizationId;
+                        if (!_organizations.any(
+                          (item) => item.id == selection.organization.id,
+                        )) {
+                          _organizations = [
+                            ..._organizations,
+                            selection.organization,
+                          ];
+                        }
+                        if (currentCase?.organizationId != nextOrganizationId) {
+                          _selectedCaseId = null;
+                          _clearCase = currentCase != null;
+                        }
+                        _clearClassification = false;
+                      });
+                    },
                   ),
-                  if (_selectedOrganizationId == null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    TextField(
-                      key: const Key('classification-organization-name'),
-                      controller: _organizationController,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        labelText: l10n.organizationName,
-                      ),
-                    ),
-                  ],
                   const SizedBox(height: AppSpacing.md),
-                  _ClassificationSelectField(
+                  _ClassificationSelectionField(
                     fieldKey: const Key('classification-case-field'),
                     label: l10n.caseLabel,
-                    value: _selectedCaseId ?? '__none__',
                     selectedLabel: selectedCase?.title ?? l10n.caseNotAssigned,
-                    items: [
-                      DropdownMenuItem(
-                        value: '__none__',
-                        child: Text(l10n.caseNotAssigned),
-                      ),
-                      DropdownMenuItem(
-                        value: '__new__',
-                        child: Text(l10n.caseName),
-                      ),
-                      ...visibleCases.map(
-                        (item) => DropdownMenuItem(
-                          value: item.id,
-                          child: Text(
-                            item.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() {
-                      _selectedCaseId =
-                          value == '__none__' || value == '__new__'
-                          ? null
-                          : value;
-                      _clearCase = value == '__none__';
-                      _clearClassification = false;
-                    }),
+                    onTap: selectedOrganization == null
+                        ? null
+                        : () async {
+                            final selection = await _showCaseSelector(
+                              context,
+                              ref: widget.ref,
+                              organization: selectedOrganization,
+                              cases: visibleCases,
+                              selectedCaseId: _selectedCaseId,
+                            );
+                            if (!mounted || selection == null) return;
+                            setState(() {
+                              _selectedCaseId = selection.caseItem?.id;
+                              _clearCase = selection.noCase;
+                              final caseItem = selection.caseItem;
+                              if (caseItem != null &&
+                                  !_cases.any(
+                                    (item) => item.id == caseItem.id,
+                                  )) {
+                                _cases = [..._cases, caseItem];
+                              }
+                              _clearClassification = false;
+                            });
+                          },
                   ),
-                  if (!_clearCase && _selectedCaseId == null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    TextField(
-                      key: const Key('classification-case-name'),
-                      controller: _caseController,
-                      decoration: InputDecoration(labelText: l10n.caseName),
-                    ),
-                  ],
                   const SizedBox(height: AppSpacing.lg),
                   FilledButton(
                     key: const Key('classification-editor-save'),
@@ -962,13 +929,12 @@ class _ClassificationEditorSheetState
                         widget.clientDocumentId,
                         organizationName: _clearClassification
                             ? null
-                            : selectedOrganization?.name ??
-                                  _organizationController.text,
+                            : selectedOrganization?.name,
                         caseName: _clearClassification || _clearCase
                             ? null
-                            : selectedCase?.title ?? _caseController.text,
-                        organizations: widget.organizations,
-                        cases: widget.cases,
+                            : selectedCase?.title,
+                        organizations: _organizations,
+                        cases: _cases,
                       );
                       if (context.mounted) Navigator.pop(context);
                     },
@@ -1012,44 +978,860 @@ class _ClassificationEditorSheetState
   }
 }
 
-class _ClassificationSelectField extends StatelessWidget {
-  const _ClassificationSelectField({
+class _ClassificationSelectionField extends StatelessWidget {
+  const _ClassificationSelectionField({
     required this.fieldKey,
     required this.label,
-    required this.value,
     required this.selectedLabel,
-    required this.items,
-    required this.onChanged,
+    required this.onTap,
   });
 
   final Key fieldKey;
   final String label;
-  final String value;
   final String selectedLabel;
-  final List<DropdownMenuItem<String>> items;
-  final ValueChanged<String?> onChanged;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => DropdownButtonFormField<String>(
-    key: fieldKey,
-    isExpanded: true,
-    initialValue: value,
-    decoration: InputDecoration(labelText: label),
-    selectedItemBuilder: (context) => items
-        .map(
-          (_) => Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(
-              selectedLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+  Widget build(BuildContext context) => Semantics(
+    button: onTap != null,
+    enabled: onTap != null,
+    label: label,
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: fieldKey,
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: InputDecorator(
+          decoration: InputDecoration(labelText: label),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  selectedLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              const Icon(Icons.keyboard_arrow_down),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _OrganizationSelectorResult {
+  const _OrganizationSelectorResult.select(this.organization);
+
+  final Organization organization;
+}
+
+class _CaseSelectorResult {
+  const _CaseSelectorResult.select(this.caseItem)
+    : noCase = false;
+
+  const _CaseSelectorResult.noCase()
+    : caseItem = null,
+      noCase = true;
+
+  final Case? caseItem;
+  final bool noCase;
+}
+
+Future<_OrganizationSelectorResult?> _showOrganizationSelector(
+  BuildContext context, {
+  required WidgetRef ref,
+  required List<Organization> organizations,
+  required String? selectedOrganizationId,
+}) => showModalBottomSheet<_OrganizationSelectorResult>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) => _OrganizationSelectorSheet(
+    ref: ref,
+    organizations: organizations,
+    selectedOrganizationId: selectedOrganizationId,
+  ),
+);
+
+class _OrganizationSelectorSheet extends StatefulWidget {
+  const _OrganizationSelectorSheet({
+    required this.ref,
+    required this.organizations,
+    required this.selectedOrganizationId,
+  });
+
+  final WidgetRef ref;
+  final List<Organization> organizations;
+  final String? selectedOrganizationId;
+
+  @override
+  State<_OrganizationSelectorSheet> createState() =>
+      _OrganizationSelectorSheetState();
+}
+
+class _OrganizationSelectorSheetState
+    extends State<_OrganizationSelectorSheet> {
+  late final TextEditingController _searchController;
+  var _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final normalizedQuery = _query.trim().toLowerCase();
+    final visibleOrganizations = widget.organizations
+        .where(
+          (item) =>
+              normalizedQuery.isEmpty ||
+              item.name.toLowerCase().contains(normalizedQuery),
+        )
+        .toList();
+    final media = MediaQuery.sizeOf(context);
+    return SizedBox(
+      height: media.height * .82,
+      child: Material(
+        key: const Key('organization-selector-modal'),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.productName,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('organization-selector-close'),
+                    tooltip: MaterialLocalizations.of(context)
+                        .closeButtonTooltip,
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.selectOrganization,
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              TextField(
+                key: const Key('organization-selector-search'),
+                controller: _searchController,
+                onChanged: (value) => setState(() => _query = value),
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  labelText: l10n.searchOrganization,
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _query.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: MaterialLocalizations.of(context)
+                              .clearButtonTooltip,
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _query = '');
+                          },
+                          icon: const Icon(Icons.clear),
+                        ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Expanded(
+                child: visibleOrganizations.isEmpty
+                    ? Center(
+                        child: Text(
+                          l10n.noMatchingOrganizations,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                        ),
+                      )
+                    : ListView.separated(
+                        key: const Key('organization-selector-list'),
+                        itemCount: visibleOrganizations.length,
+                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final organization = visibleOrganizations[index];
+                          final selected =
+                              organization.id == widget.selectedOrganizationId;
+                          return ListTile(
+                            key: Key(
+                              'organization-selector-${organization.id}',
+                            ),
+                            selected: selected,
+                            selectedTileColor: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer
+                                .withValues(alpha: .45),
+                            title: Text(
+                              organization.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: selected
+                                ? Icon(
+                                    Icons.check,
+                                    key: Key(
+                                      'organization-selector-selected-${organization.id}',
+                                    ),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                  )
+                                : null,
+                            onTap: () => Navigator.pop(
+                              context,
+                              _OrganizationSelectorResult.select(organization),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              OutlinedButton.icon(
+                key: const Key('organization-selector-create'),
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final created = await _showCreateOrganization(
+                    context,
+                    ref: widget.ref,
+                    organizations: widget.organizations,
+                  );
+                  if (!mounted) return;
+                  if (created == null) return;
+                  navigator.pop(
+                    _OrganizationSelectorResult.select(created),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: Text(l10n.createOrganization),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<Organization?> _showCreateOrganization(
+  BuildContext context, {
+  required WidgetRef ref,
+  required List<Organization> organizations,
+}) => showModalBottomSheet<Organization>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) =>
+      _CreateOrganizationSheet(ref: ref, organizations: organizations),
+);
+
+class _CreateOrganizationSheet extends StatefulWidget {
+  const _CreateOrganizationSheet({
+    required this.ref,
+    required this.organizations,
+  });
+
+  final WidgetRef ref;
+  final List<Organization> organizations;
+
+  @override
+  State<_CreateOrganizationSheet> createState() =>
+      _CreateOrganizationSheetState();
+}
+
+class _CreateOrganizationSheetState extends State<_CreateOrganizationSheet> {
+  late final TextEditingController _nameController;
+  var _submitting = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_submitting) return;
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = context.l10n.organizationNameRequired);
+      return;
+    }
+    final existing = matchingOrganization(widget.organizations, name);
+    if (existing != null) {
+      FocusScope.of(context).unfocus();
+      Navigator.pop(context, existing);
+      return;
+    }
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      final now = DateTime.now();
+      final organization = Organization(
+        id: widget.ref.read(idGeneratorProvider).newId(),
+        name: name,
+        category: OrganizationCategory.other,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await widget.ref.read(organizationRepositoryProvider).save(organization);
+      if (!mounted) return;
+      FocusScope.of(context).unfocus();
+      Navigator.pop(context, organization);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = context.l10n.organizationCreateFailed);
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final media = MediaQuery.sizeOf(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: media.height * .58),
+        child: Material(
+          key: const Key('create-organization-modal'),
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.productName,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('create-organization-close'),
+                      tooltip: MaterialLocalizations.of(context)
+                          .closeButtonTooltip,
+                      onPressed: _submitting
+                          ? null
+                          : () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.createOrganization,
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextField(
+                  key: const Key('create-organization-name'),
+                  controller: _nameController,
+                  enabled: !_submitting,
+                  autofocus: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _submit(),
+                  onChanged: (_) {
+                    if (_error != null) setState(() => _error = null);
+                  },
+                  decoration: InputDecoration(
+                    labelText: l10n.organizationName,
+                    errorText: _error,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FilledButton(
+                  key: const Key('create-organization-submit'),
+                  onPressed: _submitting ? null : _submit,
+                  child: _submitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.create),
+                ),
+              ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<_CaseSelectorResult?> _showCaseSelector(
+  BuildContext context, {
+  required WidgetRef ref,
+  required Organization organization,
+  required List<Case> cases,
+  required String? selectedCaseId,
+}) => showModalBottomSheet<_CaseSelectorResult>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) => _CaseSelectorSheet(
+    ref: ref,
+    organization: organization,
+    cases: cases,
+    selectedCaseId: selectedCaseId,
+  ),
+);
+
+class _CaseSelectorSheet extends StatefulWidget {
+  const _CaseSelectorSheet({
+    required this.ref,
+    required this.organization,
+    required this.cases,
+    required this.selectedCaseId,
+  });
+
+  final WidgetRef ref;
+  final Organization organization;
+  final List<Case> cases;
+  final String? selectedCaseId;
+
+  @override
+  State<_CaseSelectorSheet> createState() => _CaseSelectorSheetState();
+}
+
+class _CaseSelectorSheetState extends State<_CaseSelectorSheet> {
+  late final TextEditingController _searchController;
+  var _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final normalizedQuery = _query.trim().toLowerCase();
+    final visibleCases = widget.cases
+        .where(
+          (item) =>
+              item.organizationId == widget.organization.id &&
+              (normalizedQuery.isEmpty ||
+                  item.title.toLowerCase().contains(normalizedQuery)),
         )
-        .toList(),
-    items: items,
-    onChanged: onChanged,
-  );
+        .toList();
+    final media = MediaQuery.sizeOf(context);
+    return SizedBox(
+      height: media.height * .82,
+      child: Material(
+        key: const Key('case-selector-modal'),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.productName,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('case-selector-close'),
+                    tooltip: MaterialLocalizations.of(context)
+                        .closeButtonTooltip,
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                widget.organization.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.selectCase,
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              TextField(
+                key: const Key('case-selector-search'),
+                controller: _searchController,
+                onChanged: (value) => setState(() => _query = value),
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  labelText: l10n.searchCase,
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _query.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: MaterialLocalizations.of(context)
+                              .clearButtonTooltip,
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _query = '');
+                          },
+                          icon: const Icon(Icons.clear),
+                        ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              OutlinedButton(
+                key: const Key('case-selector-no-case'),
+                onPressed: () =>
+                    Navigator.pop(context, const _CaseSelectorResult.noCase()),
+                child: Text(l10n.withoutCase),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Expanded(
+                child: visibleCases.isEmpty
+                    ? Center(
+                        child: Text(
+                          l10n.noMatchingCases,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                        ),
+                      )
+                    : ListView.separated(
+                        key: const Key('case-selector-list'),
+                        itemCount: visibleCases.length,
+                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final item = visibleCases[index];
+                          final selected = item.id == widget.selectedCaseId;
+                          return ListTile(
+                            key: Key('case-selector-${item.id}'),
+                            selected: selected,
+                            selectedTileColor: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer
+                                .withValues(alpha: .45),
+                            title: Text(
+                              item.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: selected
+                                ? Icon(
+                                    Icons.check,
+                                    key: Key(
+                                      'case-selector-selected-${item.id}',
+                                    ),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                  )
+                                : null,
+                            onTap: () => Navigator.pop(
+                              context,
+                              _CaseSelectorResult.select(item),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              OutlinedButton.icon(
+                key: const Key('case-selector-create'),
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final created = await _showCreateCase(
+                    context,
+                    ref: widget.ref,
+                    organization: widget.organization,
+                    cases: widget.cases,
+                  );
+                  if (!mounted) return;
+                  if (created == null) return;
+                  navigator.pop(_CaseSelectorResult.select(created));
+                },
+                icon: const Icon(Icons.add),
+                label: Text(l10n.createCase),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<Case?> _showCreateCase(
+  BuildContext context, {
+  required WidgetRef ref,
+  required Organization organization,
+  required List<Case> cases,
+}) => showModalBottomSheet<Case>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) => _CreateCaseSheet(
+    ref: ref,
+    organization: organization,
+    cases: cases,
+  ),
+);
+
+class _CreateCaseSheet extends StatefulWidget {
+  const _CreateCaseSheet({
+    required this.ref,
+    required this.organization,
+    required this.cases,
+  });
+
+  final WidgetRef ref;
+  final Organization organization;
+  final List<Case> cases;
+
+  @override
+  State<_CreateCaseSheet> createState() => _CreateCaseSheetState();
+}
+
+class _CreateCaseSheetState extends State<_CreateCaseSheet> {
+  late final TextEditingController _titleController;
+  var _submitting = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_submitting) return;
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      setState(() => _error = context.l10n.caseNameRequired);
+      return;
+    }
+    final existing = matchingCase(widget.cases, widget.organization.id, title);
+    if (existing != null) {
+      FocusScope.of(context).unfocus();
+      Navigator.pop(context, existing);
+      return;
+    }
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      final now = DateTime.now();
+      final item = Case(
+        id: widget.ref.read(idGeneratorProvider).newId(),
+        organizationId: widget.organization.id,
+        title: title,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await widget.ref.read(caseRepositoryProvider).save(item);
+      if (!mounted) return;
+      FocusScope.of(context).unfocus();
+      Navigator.pop(context, item);
+    } catch (_) {
+      if (mounted) setState(() => _error = context.l10n.caseCreateFailed);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final media = MediaQuery.sizeOf(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: media.height * .64),
+        child: Material(
+          key: const Key('create-case-modal'),
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.productName,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('create-case-close'),
+                      tooltip: MaterialLocalizations.of(context)
+                          .closeButtonTooltip,
+                      onPressed: _submitting
+                          ? null
+                          : () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.createCase,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  l10n.organization,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  widget.organization.name,
+                  key: const Key('create-case-organization-context'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextField(
+                  key: const Key('create-case-name'),
+                  controller: _titleController,
+                  enabled: !_submitting,
+                  autofocus: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _submit(),
+                  onChanged: (_) {
+                    if (_error != null) setState(() => _error = null);
+                  },
+                  decoration: InputDecoration(
+                    labelText: l10n.caseName,
+                    errorText: _error,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FilledButton(
+                  key: const Key('create-case-submit'),
+                  onPressed: _submitting ? null : _submit,
+                  child: _submitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.create),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 T? _asyncValue<T>(AsyncValue<T> value) =>

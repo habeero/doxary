@@ -2,7 +2,11 @@
 
 ## 2026-09-21
 
-- Refined Change Classification into a focused draft modal with explicit Save, Close/X discard, separate Remove Case and Clear Classification actions, bounded human-readable labels, and RTL-safe fields; 10B/10C selector refinement remains pending.
+- Implemented Create Case as a nested validated modal with immutable Organization context: normalized duplicates reuse only within that Organization, new creation returns to the 10A draft without classifying the Document, and cancellation creates nothing.
+- Implemented Create Organization as a nested validated modal: trimmed normalized duplicates reuse the existing Organization, new creation returns to the 10A draft without classifying the Document, and cancellation creates nothing.
+- Implemented 10C Select Case as a focused searchable modal scoped to the draft Organization, with distinct No Case and Create Case handoffs; selection remains draft-only until 10A Save.
+- Implemented 10B Select Organization as a focused searchable local modal that returns a draft-only Organization to Change Classification, preserves Close/X state, exposes selected status, and opens nested Create Organization.
+- Refined Change Classification into a focused draft modal with explicit Save, Close/X discard, separate Remove Case and Clear Classification actions, bounded human-readable labels, and RTL-safe fields.
 - Clarified the deferred Document-level placement of Analysis History and the incomplete original-source-file experience; individual Results remain focused on one analysis.
 - Reordered Task tabs to Today, Upcoming, Overdue, Completed; classification rules are unchanged.
 - Added restrained Document Analysis History with historical-result access and confirmed single-analysis deletion that preserves the original Document and linked Tasks.
