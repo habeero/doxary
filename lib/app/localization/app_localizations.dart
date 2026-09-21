@@ -75,6 +75,29 @@ class AppLocalizations {
   String get today => _value('today');
   String get completed => _value('completed');
   String get noTasks => _value('noTasks');
+  String get createTask => _value('createTask');
+  String get editTask => _value('editTask');
+  String get taskTitle => _value('taskTitle');
+  String get taskTitleRequired => _value('taskTitleRequired');
+  String get date => _value('date');
+  String get chooseDate => _value('chooseDate');
+  String get time => _value('time');
+  String get chooseTime => _value('chooseTime');
+  String get allDay => _value('allDay');
+  String get reminder => _value('reminder');
+  String get noReminder => _value('noReminder');
+  String get reminderAtTime => _value('reminderAtTime');
+  String get reminderOneDayBefore => _value('reminderOneDayBefore');
+  String get linkedDocument => _value('linkedDocument');
+  String get linkedCase => _value('linkedCase');
+  String get noLinkedDocument => _value('noLinkedDocument');
+  String get noLinkedCase => _value('noLinkedCase');
+  String get note => _value('note');
+  String get optional => _value('optional');
+  String get markCompleted => _value('markCompleted');
+  String get deleteTask => _value('deleteTask');
+  String get deleteTaskTitle => _value('deleteTaskTitle');
+  String get deleteTaskMessage => _value('deleteTaskMessage');
   String get camera => _value('camera');
   String get image => _value('image');
   String get pdf => _value('pdf');
@@ -229,6 +252,35 @@ const _bottomNavigationStrings = <String, Map<String, String>>{
     'settings': 'Einst.',
   },
   'ar': {
+    'createTask': '\u0625\u0646\u0634\u0627\u0621 \u0645\u0647\u0645\u0629',
+    'editTask':
+        '\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'taskTitle':
+        '\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'taskTitleRequired': '\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629.',
+    'date': '\u0627\u0644\u062a\u0627\u0631\u064a\u062e',
+    'chooseDate':
+        '\u0627\u062e\u062a\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e',
+    'time': '\u0627\u0644\u0648\u0642\u062a',
+    'chooseTime': '\u0627\u062e\u062a\u0631 \u0627\u0644\u0648\u0642\u062a',
+    'allDay': '\u0637\u0648\u0627\u0644 \u0627\u0644\u064a\u0648\u0645',
+    'reminder': '\u0627\u0644\u062a\u0630\u0643\u064a\u0631',
+    'noReminder': '\u0628\u062f\u0648\u0646 \u062a\u0630\u0643\u064a\u0631',
+    'reminderAtTime': '\u0639\u0646\u062f \u0627\u0644\u0648\u0642\u062a',
+    'reminderOneDayBefore': '\u0642\u0628\u0644 \u064a\u0648\u0645',
+    'linkedDocument': '\u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0645\u0631\u062a\u0628\u0637',
+    'linkedCase': '\u0627\u0644\u0645\u0639\u0627\u0645\u0644\u0629 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629',
+    'noLinkedDocument':
+        '\u0628\u062f\u0648\u0646 \u0645\u0633\u062a\u0646\u062f',
+    'noLinkedCase':
+        '\u0628\u062f\u0648\u0646 \u0645\u0639\u0627\u0645\u0644\u0629',
+    'note': '\u0645\u0644\u0627\u062d\u0638\u0629',
+    'optional': '\u0627\u062e\u062a\u064a\u0627\u0631\u064a',
+    'markCompleted': '\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0643\u062a\u0645\u0644\u0629',
+    'deleteTask': '\u062d\u0630\u0641 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'deleteTaskTitle':
+        '\u062d\u0630\u0641 \u0627\u0644\u0645\u0647\u0645\u0629\u061f',
+    'deleteTaskMessage': '\u0633\u062a\u064f\u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0645\u0647\u0645\u0629 \u0646\u0647\u0627\u0626\u064a\u064b\u0627.',
     'home': 'الرئيسية',
     'documents': 'المستندات',
     'analyze': 'تحليل',
@@ -452,6 +504,35 @@ const _extraStrings = <String, Map<String, String>>{
         'Möglicherweise sind nicht genügend Inhalte vorhanden.',
   },
   'ar': {
+    'createTask': '\u0625\u0646\u0634\u0627\u0621 \u0645\u0647\u0645\u0629',
+    'editTask':
+        '\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'taskTitle':
+        '\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'taskTitleRequired': '\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629.',
+    'date': '\u0627\u0644\u062a\u0627\u0631\u064a\u062e',
+    'chooseDate':
+        '\u0627\u062e\u062a\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e',
+    'time': '\u0627\u0644\u0648\u0642\u062a',
+    'chooseTime': '\u0627\u062e\u062a\u0631 \u0627\u0644\u0648\u0642\u062a',
+    'allDay': '\u0637\u0648\u0627\u0644 \u0627\u0644\u064a\u0648\u0645',
+    'reminder': '\u0627\u0644\u062a\u0630\u0643\u064a\u0631',
+    'noReminder': '\u0628\u062f\u0648\u0646 \u062a\u0630\u0643\u064a\u0631',
+    'reminderAtTime': '\u0639\u0646\u062f \u0627\u0644\u0648\u0642\u062a',
+    'reminderOneDayBefore': '\u0642\u0628\u0644 \u064a\u0648\u0645',
+    'linkedDocument': '\u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0645\u0631\u062a\u0628\u0637',
+    'linkedCase': '\u0627\u0644\u0645\u0639\u0627\u0645\u0644\u0629 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629',
+    'noLinkedDocument':
+        '\u0628\u062f\u0648\u0646 \u0645\u0633\u062a\u0646\u062f',
+    'noLinkedCase':
+        '\u0628\u062f\u0648\u0646 \u0645\u0639\u0627\u0645\u0644\u0629',
+    'note': '\u0645\u0644\u0627\u062d\u0638\u0629',
+    'optional': '\u0627\u062e\u062a\u064a\u0627\u0631\u064a',
+    'markCompleted': '\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0643\u062a\u0645\u0644\u0629',
+    'deleteTask': '\u062d\u0630\u0641 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'deleteTaskTitle':
+        '\u062d\u0630\u0641 \u0627\u0644\u0645\u0647\u0645\u0629\u061f',
+    'deleteTaskMessage': '\u0633\u062a\u064f\u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0645\u0647\u0645\u0629 \u0646\u0647\u0627\u0626\u064a\u064b\u0627.',
     'analysisTitle': 'التحليل',
     'analysisReadError': 'تعذر قراءة التحليل المحفوظ.',
     'noSavedAnalysis': 'لا يوجد تحليل محفوظ بعد.',
@@ -518,6 +599,29 @@ const _strings = <String, Map<String, String>>{
     'today': 'Heute',
     'completed': 'Erledigt',
     'noTasks': 'Noch keine Aufgaben',
+    'createTask': 'Aufgabe erstellen',
+    'editTask': 'Aufgabe bearbeiten',
+    'taskTitle': 'Aufgabentitel',
+    'taskTitleRequired': 'Bitte gib einen Aufgabentitel ein.',
+    'date': 'Datum',
+    'chooseDate': 'Datum auswählen',
+    'time': 'Uhrzeit',
+    'chooseTime': 'Uhrzeit auswählen',
+    'allDay': 'Ganztägig',
+    'reminder': 'Erinnerung',
+    'noReminder': 'Keine Erinnerung',
+    'reminderAtTime': 'Zum Zeitpunkt',
+    'reminderOneDayBefore': 'Einen Tag vorher',
+    'linkedDocument': 'Verknüpftes Dokument',
+    'linkedCase': 'Verknüpfter Vorgang',
+    'noLinkedDocument': 'Kein Dokument',
+    'noLinkedCase': 'Kein Vorgang',
+    'note': 'Notiz',
+    'optional': 'Optional',
+    'markCompleted': 'Als erledigt markieren',
+    'deleteTask': 'Aufgabe löschen',
+    'deleteTaskTitle': 'Aufgabe löschen?',
+    'deleteTaskMessage': 'Diese Aufgabe wird dauerhaft gelöscht.',
     'camera': 'Kamera',
     'image': 'Bild',
     'pdf': 'PDF',
@@ -654,8 +758,7 @@ const _strings = <String, Map<String, String>>{
     'cameraPagesForAnalysis': 'الصور التي سيتم تحليلها',
     'cameraMaximumPages': 'الحد الأقصى 10 صفحات',
     'cameraDiscardPagesTitle': 'حذف الصور الملتقطة؟',
-    'cameraDiscardPagesMessage':
-        'سيتم حذف الصفحات الملتقطة ولن تُرسل للتحليل.',
+    'cameraDiscardPagesMessage': 'سيتم حذف الصفحات الملتقطة ولن تُرسل للتحليل.',
     'cameraKeepEditing': 'متابعة التعديل',
     'cameraDiscardPages': 'حذف',
     'cameraCapturedDocument': 'مستند ملتقط',

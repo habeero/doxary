@@ -40,7 +40,7 @@ Required-action content receives stronger prominence than secondary explanation.
 
 ## Sheets, dialogs, and focused forms
 
-**Current implementation status:** Create/Edit Task is an approved focused full-screen flow rather than a primary destination, but it is not implemented. Current local task persistence supports title, status, provenance, timestamps, optional due date, and optional Document/Case links, but not reminder metadata, all-day/separate-time semantics, note, delete, or task-editor UI.
+**Current implementation status:** Create/Edit Task is implemented as a focused full-screen flow rather than a primary destination. Local task persistence supports title, status, provenance, timestamps, date, All Day, optional time-of-day, reminder intent, optional note, and optional Document/Case links. Edit can mark complete without confirmation and deletes only after a confirmation Dialog. Reminder delivery/scheduling is not implemented.
 
 The Task interaction requirements below are approved intended behavior for future implementation.
 

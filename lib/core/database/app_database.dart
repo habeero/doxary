@@ -72,7 +72,8 @@ class Analyses extends Table {
       text().withDefault(const Constant('complete'))();
   TextColumn get actionRequired => text().nullable()();
   TextColumn get documentDate => text().nullable()();
-  TextColumn get detectedLanguage => text().withDefault(const Constant('undetermined'))();
+  TextColumn get detectedLanguage =>
+      text().withDefault(const Constant('undetermined'))();
   TextColumn get urgency => text().withDefault(const Constant('uncertain'))();
   RealColumn get confidence => real().nullable()();
   TextColumn get explanationStyle =>
@@ -98,45 +99,97 @@ class AnalysisNextActions extends Table {
   TextColumn get analysisId => text().references(Analyses, #id)();
   IntColumn get position => integer()();
   TextColumn get value => text()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
+
 class AnalysisUncertainties extends Table {
-  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)();
-  IntColumn get position => integer()(); TextColumn get message => text()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get message => text()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
+
 class AnalysisPracticalStates extends Table {
-  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)();
-  IntColumn get position => integer()(); TextColumn get state => text()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get state => text()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
+
 class AnalysisDeadlines extends Table {
-  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
-  TextColumn get label => text()(); TextColumn get dateOrRange => text().nullable()(); RealColumn get confidence => real().nullable()();
-  TextColumn get time => text().nullable()(); TextColumn get timezone => text().nullable()(); TextColumn get consequence => text().nullable()(); TextColumn get sourceReference => text().nullable()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get label => text()();
+  TextColumn get dateOrRange => text().nullable()();
+  RealColumn get confidence => real().nullable()();
+  TextColumn get time => text().nullable()();
+  TextColumn get timezone => text().nullable()();
+  TextColumn get consequence => text().nullable()();
+  TextColumn get sourceReference => text().nullable()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
+
 class AnalysisAppointments extends Table {
-  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
-  TextColumn get label => text()(); TextColumn get startOrDate => text().nullable()(); RealColumn get confidence => real().nullable()();
-  TextColumn get end => text().nullable()(); TextColumn get location => text().nullable()(); TextColumn get preparation => text().nullable()(); TextColumn get sourceReference => text().nullable()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get label => text()();
+  TextColumn get startOrDate => text().nullable()();
+  RealColumn get confidence => real().nullable()();
+  TextColumn get end => text().nullable()();
+  TextColumn get location => text().nullable()();
+  TextColumn get preparation => text().nullable()();
+  TextColumn get sourceReference => text().nullable()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
+
 class AnalysisAmounts extends Table {
-  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
-  TextColumn get value => text()(); TextColumn get currency => text()(); TextColumn get direction => text()(); RealColumn get confidence => real().nullable()();
-  TextColumn get dueDate => text().nullable()(); TextColumn get purpose => text().nullable()(); TextColumn get sourceReference => text().nullable()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get value => text()();
+  TextColumn get currency => text()();
+  TextColumn get direction => text()();
+  RealColumn get confidence => real().nullable()();
+  TextColumn get dueDate => text().nullable()();
+  TextColumn get purpose => text().nullable()();
+  TextColumn get sourceReference => text().nullable()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
+
 class AnalysisRequiredDocuments extends Table {
-  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
-  TextColumn get description => text()(); RealColumn get confidence => real().nullable()(); TextColumn get dueDate => text().nullable()(); TextColumn get submissionMethod => text().nullable()(); TextColumn get sourceReference => text().nullable()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get description => text()();
+  RealColumn get confidence => real().nullable()();
+  TextColumn get dueDate => text().nullable()();
+  TextColumn get submissionMethod => text().nullable()();
+  TextColumn get sourceReference => text().nullable()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
+
 class AnalysisSuggestedTasks extends Table {
-  TextColumn get id => text()(); TextColumn get analysisId => text().references(Analyses, #id)(); IntColumn get position => integer()();
-  TextColumn get title => text()(); RealColumn get confidence => real().nullable()(); TextColumn get dueDate => text().nullable()(); TextColumn get instructions => text().nullable()(); TextColumn get sourceReference => text().nullable()();
-  @override Set<Column<Object>> get primaryKey => {id};
+  TextColumn get id => text()();
+  TextColumn get analysisId => text().references(Analyses, #id)();
+  IntColumn get position => integer()();
+  TextColumn get title => text()();
+  RealColumn get confidence => real().nullable()();
+  TextColumn get dueDate => text().nullable()();
+  TextColumn get instructions => text().nullable()();
+  TextColumn get sourceReference => text().nullable()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }
 
 class SourceReferences extends Table {
@@ -158,6 +211,10 @@ class Tasks extends Table {
   TextColumn get caseId => text().nullable().references(Cases, #id)();
   TextColumn get title => text()();
   DateTimeColumn get dueAt => dateTime().nullable()();
+  BoolColumn get allDay => boolean().withDefault(const Constant(false))();
+  IntColumn get dueTimeMinutes => integer().nullable()();
+  IntColumn get reminderMinutesBefore => integer().nullable()();
+  TextColumn get note => text().nullable()();
   TextColumn get status => text()();
   TextColumn get provenance => text()();
   DateTimeColumn get createdAt => dateTime()();
@@ -237,7 +294,14 @@ class UserSettings extends Table {
     DocumentFiles,
     Analyses,
     AnalysisQualityReasons,
-    AnalysisNextActions, AnalysisUncertainties, AnalysisPracticalStates, AnalysisDeadlines, AnalysisAppointments, AnalysisAmounts, AnalysisRequiredDocuments, AnalysisSuggestedTasks,
+    AnalysisNextActions,
+    AnalysisUncertainties,
+    AnalysisPracticalStates,
+    AnalysisDeadlines,
+    AnalysisAppointments,
+    AnalysisAmounts,
+    AnalysisRequiredDocuments,
+    AnalysisSuggestedTasks,
     SourceReferences,
     Tasks,
     Deadlines,
@@ -252,11 +316,16 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (m) async => m.createAll(),
+    onCreate: (m) async {
+      await m.createAll();
+      // The generated table definition remains compatible with earlier
+      // clients; create the v7 task metadata columns explicitly as well.
+      await _addTaskFormColumns();
+    },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await m.addColumn(documentFiles, documentFiles.pageOrder);
@@ -281,12 +350,33 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(analyses, analyses.detectedLanguage);
         await m.addColumn(analyses, analyses.urgency);
         await m.addColumn(analyses, analyses.confidence);
-        await m.createTable(analysisNextActions); await m.createTable(analysisUncertainties); await m.createTable(analysisPracticalStates);
-        await m.createTable(analysisDeadlines); await m.createTable(analysisAppointments); await m.createTable(analysisAmounts);
-        await m.createTable(analysisRequiredDocuments); await m.createTable(analysisSuggestedTasks);
+        await m.createTable(analysisNextActions);
+        await m.createTable(analysisUncertainties);
+        await m.createTable(analysisPracticalStates);
+        await m.createTable(analysisDeadlines);
+        await m.createTable(analysisAppointments);
+        await m.createTable(analysisAmounts);
+        await m.createTable(analysisRequiredDocuments);
+        await m.createTable(analysisSuggestedTasks);
+      }
+      if (from < 7) {
+        await _addTaskFormColumns();
       }
     },
   );
+
+  Future<void> _addTaskFormColumns() async {
+    await customStatement(
+      'ALTER TABLE tasks ADD COLUMN all_day INTEGER NOT NULL DEFAULT 0',
+    );
+    await customStatement(
+      'ALTER TABLE tasks ADD COLUMN due_time_minutes INTEGER',
+    );
+    await customStatement(
+      'ALTER TABLE tasks ADD COLUMN reminder_minutes_before INTEGER',
+    );
+    await customStatement('ALTER TABLE tasks ADD COLUMN note TEXT');
+  }
 }
 
 LazyDatabase _openConnection() => LazyDatabase(() async {

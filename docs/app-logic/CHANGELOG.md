@@ -2,6 +2,7 @@
 
 ## 2026-09-21
 
+- Added durable local Task form state: explicit All Day, optional time-of-day, reminder intent, note, and deletion, with reminder delivery deliberately deferred.
 - Defined Analyze camera-draft editing ownership: Review uses working copies, cancel preserves the original draft, Continue replaces it, and only submission creates a Document or operation.
 - Deferred native pinch zoom and Samsung S22 camera-quality investigation after real-device CameraX/session instability; stable camera lifecycle remains the release prerequisite.
 - Refined unified Camera Review Retake into candidate discard versus in-place accepted-page replacement, and set document capture to rear-camera maximum resolution with audio disabled.

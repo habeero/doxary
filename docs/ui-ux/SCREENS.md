@@ -85,7 +85,7 @@ Classification correction promotes or corrects suggestions without conflating th
 
 ## Tasks
 
-**Current implementation status:** Today, Upcoming, and Completed bucketing/views are functionally implemented and reachable from the Tasks root. Row presentation is incomplete: contextual metadata, functional completion, and row navigation/detail are not implemented. Create Task and Edit Task are not implemented. The approved Tasks redesign is still pending.
+**Current implementation status:** Today, Upcoming, and Completed bucketing/views are functionally implemented and reachable from the Tasks root. Create Task and Edit Task are implemented as focused full-screen forms with title, required date, optional time, All Day, persisted reminder intent, optional Document/Case links, optional note, save, completion, and confirmed delete. Row presentation remains incomplete: contextual metadata and the approved root redesign are still pending.
 
 The following is approved intended behavior for the pending Tasks implementation.
 

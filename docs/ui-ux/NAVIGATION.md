@@ -8,7 +8,7 @@ Primary bottom navigation is visible only on those five primary roots. Deep link
 
 ## Focused and nested flows
 
-**Current implementation status:** Camera capture/review, Processing, the state-driven Document route, Organization, Case, Unclassified Documents, and classification correction are current focused flows. Organization/Case selection and creation are currently inline contextual UI. Create/Edit Task are approved future focused full-screen flows and are not reachable today.
+**Current implementation status:** Camera capture/review, Processing, the state-driven Document route, Organization, Case, Unclassified Documents, classification correction, and Create/Edit Task are current focused flows. Organization/Case selection and creation are currently inline contextual UI. Create Task is reachable at `/tasks/create`; Edit Task is reachable at `/tasks/edit/:taskId`.
 
 Focused or nested flows hide primary bottom navigation and provide explicit Back or Close controls. This includes camera capture/review, Processing, the state-driven Document route, Organization, Case (`المعاملة`), Unclassified Documents, classification edit/select/create, Organization/Case selection or creation, Create/Edit Task, and comparable transactional or modal flows. Where practical, Back returns to the actual origin while preserving its prior UI state.
 

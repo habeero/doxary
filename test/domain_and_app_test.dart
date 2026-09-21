@@ -342,6 +342,10 @@ class _EmptyDocuments implements DocumentRepository {
 
 class _EmptyTasks implements TaskRepository {
   @override
+  Future<void> delete(String taskId) async {}
+  @override
+  Future<LocalTask?> getById(String taskId) async => null;
+  @override
   Future<void> save(LocalTask task) async {}
   @override
   Future<void> updateStatus(

@@ -2,6 +2,8 @@
 
 ## 2026-09-21
 
+- Refined Create/Edit Task link selectors to keep internal Document/Case IDs persisted while displaying bounded human-readable labels with safe RTL ellipsis and localized missing-link fallbacks.
+- Implemented focused Create/Edit Task forms with local persistence for All Day, optional time, reminder intent, note, and Document/Case links; completion is immediate and delete requires confirmation. Result-to-Task/Reminder and notification delivery remain pending.
 - Reconciled UI/UX documentation with the verified implementation and wireframe-alignment audit: several functionally usable flows still require their approved redesign; Create/Edit Task and Result-to-Task/Reminder remain pending; Unclassified Documents interaction/hierarchy is aligned, while final runtime visual fidelity remains for manual review.
 - Added the distinct Analyze camera-draft card with ordered thumbnails, localized page count, Remove-all, and Edit Pages reuse of unified Camera Review.
 - Extended Camera Review into one unified one-to-ten-page flow: ordered thumbnails, selected-page preview/removal, Add another page through the existing Capture stage, real crop/rotate, Continue handoff, Review discard confirmation, and RTL controls without mirroring image content.

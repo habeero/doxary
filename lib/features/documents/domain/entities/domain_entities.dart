@@ -182,6 +182,7 @@ class DocumentAnalysis {
   final List<DocumentQualityReason> qualityReasons;
   final List<SourceReference> sourceReferences;
   final String detectedLanguage;
+
   /// Null is retained only for analyses created before action state persistence.
   final ActionRequirement? actionRequired;
   final AnalysisUrgency urgency;
@@ -363,6 +364,10 @@ class LocalTask {
     required this.createdAt,
     required this.updatedAt,
     this.dueAt,
+    this.allDay = false,
+    this.dueTimeMinutes,
+    this.reminderMinutesBefore,
+    this.note,
     this.clientDocumentId,
     this.caseId,
   });
@@ -373,6 +378,10 @@ class LocalTask {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? dueAt;
+  final bool allDay;
+  final int? dueTimeMinutes;
+  final int? reminderMinutesBefore;
+  final String? note;
   final String? clientDocumentId;
   final String? caseId;
 }

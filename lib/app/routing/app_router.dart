@@ -10,6 +10,7 @@ import '../../features/documents/presentation/documents_page.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/settings/presentation/profile_page.dart';
 import '../../features/tasks/presentation/tasks_page.dart';
+import '../../features/tasks/presentation/task_editor_page.dart';
 import 'app_shell.dart';
 
 abstract final class AppRoutes {
@@ -31,144 +32,133 @@ abstract final class AppRoutes {
       primaryRootLocations.contains(location.path);
 }
 
-final appRouterProvider = Provider<GoRouter>(
-  (ref) {
-    final focusedBranchRoutes = List.generate(
-      AppRoutes.primaryRootLocations.length,
-      (_) => ValueNotifier<bool>(false),
-    );
-    ref.onDispose(() {
-      for (final focusedBranchRoute in focusedBranchRoutes) {
-        focusedBranchRoute.dispose();
-      }
-    });
-    return GoRouter(
-      initialLocation: AppRoutes.home,
-      routes: [
-        StatefulShellRoute.indexedStack(
-          builder: (context, state, navigationShell) =>
-              AppShell(
-                navigationShell: navigationShell,
-                showBottomNavigation: AppRoutes.isPrimaryRootLocation(
-                  state.uri,
-                ),
-                focusedBranchRoutes: focusedBranchRoutes,
-              ),
-          branches: [
-            StatefulShellBranch(
-              observers: [
-                _FocusedBranchRouteObserver(focusedBranchRoutes[0]),
-              ],
-              routes: [
-                GoRoute(
-                  path: AppRoutes.home,
-                  builder: (context, state) => const HomePage(),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              observers: [
-                _FocusedBranchRouteObserver(focusedBranchRoutes[1]),
-              ],
-              routes: [
-                GoRoute(
-                  path: AppRoutes.documents,
-                  builder: (context, state) => const DocumentsPage(),
-                  routes: [
-                    GoRoute(
-                      path: 'unclassified',
-                      builder: (context, state) =>
-                          const UnclassifiedDocumentsPage(),
-                    ),
-                    GoRoute(
-                      path: 'organization/:organizationId',
-                      builder: (context, state) => OrganizationPage(
-                        organizationId:
-                            state.pathParameters['organizationId']!,
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: 'without-case',
-                          builder: (context, state) =>
-                              OrganizationWithoutCasePage(
-                                organizationId:
-                                    state.pathParameters['organizationId']!,
-                              ),
-                        ),
-                        GoRoute(
-                          path: 'case/:caseId',
-                          builder: (context, state) => CasePage(
-                            caseId: state.pathParameters['caseId']!,
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: ':clientDocumentId',
-                      builder: (context, state) => DocumentDetailPage(
-                        clientDocumentId:
-                            state.pathParameters['clientDocumentId']!,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              observers: [
-                _FocusedBranchRouteObserver(focusedBranchRoutes[2]),
-              ],
-              routes: [
-                GoRoute(
-                  path: AppRoutes.importDocument,
-                  builder: (context, state) => const ImportPage(),
-                  routes: [
-                    GoRoute(
-                      path: 'review',
-                      builder: (context, state) => const ImportPage(),
-                    ),
-                    GoRoute(
-                      path: 'analysis',
-                      builder: (context, state) => const ImportPage(),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              observers: [
-                _FocusedBranchRouteObserver(focusedBranchRoutes[3]),
-              ],
-              routes: [
-                GoRoute(
-                  path: AppRoutes.tasks,
-                  builder: (context, state) => const TasksPage(),
-                  routes: [
-                    GoRoute(
-                      path: ':taskId',
-                      builder: (context, state) => const TasksPage(),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              observers: [
-                _FocusedBranchRouteObserver(focusedBranchRoutes[4]),
-              ],
-              routes: [
-                GoRoute(
-                  path: AppRoutes.profile,
-                  builder: (context, state) => const ProfilePage(),
-                ),
-              ],
-            ),
-          ],
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final focusedBranchRoutes = List.generate(
+    AppRoutes.primaryRootLocations.length,
+    (_) => ValueNotifier<bool>(false),
+  );
+  ref.onDispose(() {
+    for (final focusedBranchRoute in focusedBranchRoutes) {
+      focusedBranchRoute.dispose();
+    }
+  });
+  return GoRouter(
+    initialLocation: AppRoutes.home,
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => AppShell(
+          navigationShell: navigationShell,
+          showBottomNavigation: AppRoutes.isPrimaryRootLocation(state.uri),
+          focusedBranchRoutes: focusedBranchRoutes,
         ),
-      ],
-    );
-  },
-);
+        branches: [
+          StatefulShellBranch(
+            observers: [_FocusedBranchRouteObserver(focusedBranchRoutes[0])],
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const HomePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            observers: [_FocusedBranchRouteObserver(focusedBranchRoutes[1])],
+            routes: [
+              GoRoute(
+                path: AppRoutes.documents,
+                builder: (context, state) => const DocumentsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'unclassified',
+                    builder: (context, state) =>
+                        const UnclassifiedDocumentsPage(),
+                  ),
+                  GoRoute(
+                    path: 'organization/:organizationId',
+                    builder: (context, state) => OrganizationPage(
+                      organizationId: state.pathParameters['organizationId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'without-case',
+                        builder: (context, state) =>
+                            OrganizationWithoutCasePage(
+                              organizationId:
+                                  state.pathParameters['organizationId']!,
+                            ),
+                      ),
+                      GoRoute(
+                        path: 'case/:caseId',
+                        builder: (context, state) =>
+                            CasePage(caseId: state.pathParameters['caseId']!),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: ':clientDocumentId',
+                    builder: (context, state) => DocumentDetailPage(
+                      clientDocumentId:
+                          state.pathParameters['clientDocumentId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            observers: [_FocusedBranchRouteObserver(focusedBranchRoutes[2])],
+            routes: [
+              GoRoute(
+                path: AppRoutes.importDocument,
+                builder: (context, state) => const ImportPage(),
+                routes: [
+                  GoRoute(
+                    path: 'review',
+                    builder: (context, state) => const ImportPage(),
+                  ),
+                  GoRoute(
+                    path: 'analysis',
+                    builder: (context, state) => const ImportPage(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            observers: [_FocusedBranchRouteObserver(focusedBranchRoutes[3])],
+            routes: [
+              GoRoute(
+                path: AppRoutes.tasks,
+                builder: (context, state) => const TasksPage(),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    builder: (context, state) => const TaskEditorPage.create(),
+                  ),
+                  GoRoute(
+                    path: 'edit/:taskId',
+                    builder: (context, state) => TaskEditorPage.edit(
+                      taskId: state.pathParameters['taskId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            observers: [_FocusedBranchRouteObserver(focusedBranchRoutes[4])],
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfilePage(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+});
 
 class _FocusedBranchRouteObserver extends NavigatorObserver {
   _FocusedBranchRouteObserver(this.hasFocusedRoute);

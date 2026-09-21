@@ -38,7 +38,9 @@ The Organization → Case → Document hierarchy governs confirmed browsing, whi
 
 ## Actions, tasks, and reminders
 
-Analysis-derived facts retain their source Document. Tasks may be suggested or manual and may be connected to a Document or Case. Deadlines, appointments, amounts, and required documents retain typed state and source information. A user can create or accept tasks, receive a local reminder, and mark work complete; suggestions remain editable.
+Analysis-derived facts retain their source Document. Tasks may be suggested or manual and may be connected to a Document or Case. Deadlines, appointments, amounts, and required documents retain typed state and source information. A user can create or accept tasks and mark work complete; suggestions remain editable.
+
+Local Tasks persist title, status, provenance, timestamps, required date, explicit All Day state, optional time-of-day, optional reminder intent in minutes before the task, optional note, and optional Document/Case links. All Day clears time-of-day. Reminder intent is durable local metadata only: OS notification scheduling/delivery remains a future capability and must not be implied by the stored value. Deleting a Task removes its local record after user confirmation; completion retains it for the Completed bucket.
 
 ## Retry and reanalysis
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../app/routing/app_router.dart';
 import '../../../shared/design_system/app_widgets.dart';
 import '../application/task_timeframes.dart';
 import '../../documents/domain/entities/domain_entities.dart';
@@ -17,7 +19,18 @@ class TasksPage extends ConsumerWidget {
     final completed = ref.watch(completedTasksProvider);
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(title: Text(l10n.tasks)),
+        appBar: AppBar(
+          title: Text(l10n.tasks),
+          actions: [
+            IconButton(
+              key: const Key('create-task'),
+              tooltip: l10n.createTask,
+              icon: const Icon(Icons.add_task_outlined),
+              onPressed: () =>
+                  GoRouter.of(context).go('${AppRoutes.tasks}/create'),
+            ),
+          ],
+        ),
         body: DefaultTabController(
           length: 3,
           child: Column(
@@ -92,6 +105,9 @@ class _TaskList extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.check_box_outline_blank),
               title: Text(tasks[index].title),
+              onTap: () =>
+                  GoRouter.of(context)
+                      .go('${AppRoutes.tasks}/edit/${tasks[index].id}'),
             ),
           ),
         );

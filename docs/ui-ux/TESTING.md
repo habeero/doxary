@@ -33,7 +33,7 @@ Every approved screen design defines its primary goal, information hierarchy, pr
 
 ## Result, Documents, and Tasks
 
-The Task completion, task-detail/edit, and Result-to-Task/Reminder checks in this section are future acceptance requirements. Current regression coverage verifies only task bucketing, not those unimplemented interactions.
+Result-to-Task/Reminder remains a future acceptance requirement. Current Task coverage includes bucket views and focused Create/Edit form behavior; the Tasks root redesign remains separate work.
 
 - Verify the Result hierarchy: application header, document title, concise summary, required action, applicable primary CTA, meaningful facts, classification, expandable details, and original-document access.
 - Verify required-action content outranks secondary explanation.
