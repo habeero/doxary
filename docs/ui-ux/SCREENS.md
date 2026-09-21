@@ -2,6 +2,8 @@
 
 Each screen has a clear purpose, information hierarchy, primary and secondary actions, and explicit loading, empty, failure, local/offline, and partial-analysis behavior where relevant. Entry/exit navigation is owned by [Navigation](NAVIGATION.md); interaction mechanics are owned by [Interactions](INTERACTIONS.md).
 
+The screen descriptions below are approved design intent. **Current implementation status** records verified user-visible behavior as of 2026-09-21 and must not be inferred from approved design alone. The listed reference PNGs were inspected during the audit, but production Flutter screens were not runtime-captured; pixel, spacing, typography, and other final visual alignment still require manual runtime review.
+
 ## Home
 
 Home is an actionable overview for re-entering the app, not a second Documents library. Its approved hierarchy is:
@@ -35,6 +37,10 @@ Unclassified is not an Organization: it is a distinct compact archive/folder-lik
 
 Loading, empty, and error states preserve accessible local navigation and Arabic RTL grouping. A document row uses a meaningful title, relevant date, useful status, and clear tap affordance; it does not promote a raw filename or opaque identifier when meaningful metadata exists.
 
+## Unclassified Documents
+
+**Current implementation status:** Unclassified Documents is a focused nested archive screen with Back behavior, scoped search, a document list, and opening into the Document route. Its interaction/hierarchy is aligned with the approved reference. The reference PNG was inspected, but final runtime visual fidelity remains for manual review because the production screen was not runtime-captured during the audit.
+
 ## Organization
 
 An Organization screen is a focused archive folder with explicit Back/Close behavior, the Organization name, contextual search, and Cases as the visually primary content. Cases are compact folder-like rows, not oversized cards, and show concise local document-count metadata when available. Documents associated with that Organization but no Case appear as a distinct compact **Without Case** folder/archive entry with a useful count; it opens only those organization-only Documents. Without Case is not a normal Case. Its focused screen retains the Organization context and uses the same compact searchable document rows. Empty states distinguish no Cases from no documents and retain the Organization context.
@@ -44,6 +50,8 @@ An Organization screen is a focused archive folder with explicit Back/Close beha
 A Case screen follows Documents belonging to one continuing matter. It uses compact document rows with a document icon, meaningful title, relevant dates, useful status, and a clear tap affordance. It does not require year headings; grouping, filtering, or sorting by year remains a later decision if justified.
 
 ## Document route: Result / Detail
+
+**Current implementation status:** Classification correction is reachable from the Document route and is functionally implemented. The approved contextual Task/Reminder CTA is **not implemented**: the Result presentation has no production-wired task-creation action. It remains an approved future action only when the analyzed Document has meaningful context such as a required action, deadline, appointment, suggested task, or next action. That future action must preserve the linked Document and derive Organization/Case context where available; it must not become a generic CTA on every Document.
 
 Result and Document Detail are one stable lifecycle-driven destination. The approved hierarchy is:
 
@@ -71,13 +79,23 @@ The route presents pre-analysis, processing, complete, partial, action-uncertain
 
 ## Classification
 
+**Current implementation status:** Change Classification, Organization and Case persistence, inline creation, Clear Case, organization-only classification, and leaving a Document Unclassified are functionally implemented. The current UI is usable but its Organization/Case selection and creation presentation is still simpler than the approved Bottom Sheet/modal wireframes: searchable dedicated selection hierarchy and approved creation-flow presentation remain pending. Functionally implemented; approved UI redesign still pending.
+
 Classification correction promotes or corrects suggestions without conflating them with facts. Organization and Case selection/creation are contextual lightweight flows. Creating an Organization requires only a name; creating a Case occurs under a selected Organization and cannot create an orphan Case. Organization-only classification and Unclassified Documents remain distinct.
 
 ## Tasks
 
+**Current implementation status:** Today, Upcoming, and Completed bucketing/views are functionally implemented and reachable from the Tasks root. Row presentation is incomplete: contextual metadata, functional completion, and row navigation/detail are not implemented. Create Task and Edit Task are not implemented. The approved Tasks redesign is still pending.
+
+The following is approved intended behavior for the pending Tasks implementation.
+
 Tasks has separate Today, Upcoming, and Completed tabs. Each tab contains only its own tasks; Today does not also show an Upcoming section. A task row may show title, linked Organization/Document context, due date, and a completion control. Completing a task moves it to Completed, where it remains reviewable.
 
 ## Settings
+
+**Current implementation status:** App-language selection and persistence are implemented. Default explanation-language persistence exists elsewhere in the app, but Settings has no control for it. Profile/account, plan/account, notifications, appearance, privacy/data, legal, and about remain unimplemented. Functionally partial; approved Settings redesign still pending.
+
+The following hierarchy is approved intended behavior for the pending Settings implementation.
 
 Settings is a primary destination. Its root hierarchy is Account (Profile, plan/account), Language (app language and default explanation language), Notifications, Appearance, Privacy and data, Legal, and About. Notification behavior follows a three-layer intended model—OS permission, Doxary master preference, then category preferences—but remains unimplemented until behavior is implemented and tested.
 

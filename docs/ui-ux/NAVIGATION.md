@@ -8,13 +8,15 @@ Primary bottom navigation is visible only on those five primary roots. Deep link
 
 ## Focused and nested flows
 
+**Current implementation status:** Camera capture/review, Processing, the state-driven Document route, Organization, Case, Unclassified Documents, and classification correction are current focused flows. Organization/Case selection and creation are currently inline contextual UI. Create/Edit Task are approved future focused full-screen flows and are not reachable today.
+
 Focused or nested flows hide primary bottom navigation and provide explicit Back or Close controls. This includes camera capture/review, Processing, the state-driven Document route, Organization, Case (`المعاملة`), Unclassified Documents, classification edit/select/create, Organization/Case selection or creation, Create/Edit Task, and comparable transactional or modal flows. Where practical, Back returns to the actual origin while preserving its prior UI state.
 
 The Document route is one lifecycle-driven destination rather than a redundant Detail-then-Result navigation layer. Its presentation changes with the Document’s user-visible state: pre-analysis, processing, complete, partial/uncertain, and failed/unavailable.
 
 ## Entry and exit rules
 
-The current core navigation flow is:
+The implemented core navigation flow is:
 
 ```mermaid
 flowchart LR
@@ -22,10 +24,11 @@ flowchart LR
  Review --> Processing[Analysis progress]
  Processing --> Result[Structured result]
  Result --> Correct[Correct organization/case/facts]
- Result --> Task[Accept/edit task or reminder]
 ```
 
-Analyze enters capture/import review. Review enters Processing only after the user starts analysis. Processing can be safely left without cancelling the work. Completion proceeds to the Result presentation when that flow is active. Result can enter classification correction or task/reminder work. Focused flows return with Back/Close rather than exposing primary navigation.
+Analyze enters capture/import review. Review enters Processing only after the user starts analysis. Processing can be safely left without cancelling the work. Completion proceeds to the Result presentation when that flow is active. Result can enter classification correction. Focused flows return with Back/Close rather than exposing primary navigation.
+
+The approved, but not-yet-implemented, extension is Result to contextual Create Task/Reminder to Create/Edit Task. It must appear only for meaningful action, deadline, appointment, suggested-task, or next-action context and must retain the linked Document while deriving Organization/Case context when available.
 
 ## Documents hierarchy
 
@@ -38,8 +41,8 @@ Unclassified and Without Case are distinct UI states: an Unclassified Document h
 - **Home** is an actionable overview, not a second Documents library.
 - **Documents** is the complete local library and supports contextual library navigation.
 - **Analyze** is the document-understanding entry point, including camera/file review and explanation-language choice.
-- **Tasks** uses Today, Upcoming, and Completed views.
-- **Settings** owns language, privacy, notifications, appearance, profile/account, legal, and about functionality.
+- **Tasks** currently provides Today, Upcoming, and Completed bucket views; task completion and task-detail/edit navigation remain future work.
+- **Settings** currently provides app-language selection; its remaining approved sections are future work.
 
 ## Deferred assistant UI
 

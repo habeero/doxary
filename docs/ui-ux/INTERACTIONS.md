@@ -26,15 +26,23 @@ Initial Analyze and Retry analysis are distinct actions. Retry re-analyzes the s
 
 ## Classification and search
 
+**Current implementation status:** Classification correction semantics and their local persistence are implemented through a contextual modal. The approved searchable Organization/Case selection and minimal creation presentation is not yet aligned with the wireframes; the current inline controls are functionally usable, but the approved redesign remains pending.
+
 Result → Change Classification uses lightweight modal or bottom-sheet selection for Organization and Case rather than needless full navigation destinations. Creating an Organization requires only a name. Creating a Case happens under an already selected Organization, cannot create an orphan Case, and makes the new Case the current selection. The user may confirm a suggestion, change it, clear a Case, or leave a Document Unclassified.
 
 Search is contextual: Documents root searches library-relevant content; Organization searches that Organization; Unclassified searches only Unclassified Documents; and Case searches Documents in that Case. A universal standalone Search Results screen is not required.
 
 ## Result actions
 
+**Current implementation status:** The approved contextual Result to Task/Reminder action is not implemented. When implemented, it must be offered only where required action, deadline, appointment, suggested task, or next action makes it useful; it preserves the linked Document and derives Organization/Case context where available. It must not be rendered as a permanent generic action for every Document.
+
 Required-action content receives stronger prominence than secondary explanation. Full explanation, required documents, appointments, and other secondary groups may be expandable. Important facts render only when meaningful. Original-document access is a trust action. Classification suggestions never become confirmed automatically.
 
 ## Sheets, dialogs, and focused forms
+
+**Current implementation status:** Create/Edit Task is an approved focused full-screen flow rather than a primary destination, but it is not implemented. Current local task persistence supports title, status, provenance, timestamps, optional due date, and optional Document/Case links, but not reminder metadata, all-day/separate-time semantics, note, delete, or task-editor UI.
+
+The Task interaction requirements below are approved intended behavior for future implementation.
 
 Bottom sheets are preferred for lightweight selection and small contextual creation forms, including choosing or minimally creating an Organization/Case. Confirmation dialogs are used for consequential or destructive actions. Create/Edit Task is a focused full-screen flow rather than a primary destination.
 
@@ -43,5 +51,9 @@ Use the smallest interaction surface that preserves clarity and task completion.
 Create/Edit Task may include title, date, optional time or all-day, reminder, linked Document or Case, and optional note. When All Day is selected, time is inactive and not required. When created from a Document Result, the Document association is preserved and Organization is derived from the linked Document/Case rather than becoming a conflicting editable field. Delete Task requires confirmation; completing a task normally does not.
 
 ## Settings and notifications
+
+**Current implementation status:** Settings currently exposes app-language selection only. Default explanation-language persistence exists elsewhere but has no Settings control; profile/account, plan/account, notifications, appearance, privacy/data, legal, and about remain pending.
+
+The remaining Settings and notification behavior below is approved intended behavior, not current implementation.
 
 Settings owns local language, default explanation language, privacy, notification, appearance, profile/account, legal, and about changes. Intended notification controls have three layers: OS permission, Doxary master preference, and category preferences. Turning off the master hides or disables categories; denying OS permission is explained as a device-setting restriction. Permission is requested contextually only after its value is clear, not as an unexplained first-launch prompt.

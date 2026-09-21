@@ -2,6 +2,7 @@
 
 ## 2026-09-21
 
+- Reconciled UI/UX documentation with the verified implementation and wireframe-alignment audit: several functionally usable flows still require their approved redesign; Create/Edit Task and Result-to-Task/Reminder remain pending; Unclassified Documents interaction/hierarchy is aligned, while final runtime visual fidelity remains for manual review.
 - Added the distinct Analyze camera-draft card with ordered thumbnails, localized page count, Remove-all, and Edit Pages reuse of unified Camera Review.
 - Extended Camera Review into one unified one-to-ten-page flow: ordered thumbnails, selected-page preview/removal, Add another page through the existing Capture stage, real crop/rotate, Continue handoff, Review discard confirmation, and RTL controls without mirroring image content.
 

@@ -1,5 +1,13 @@
 # UI/UX testing and validation
 
+## Current regression checks
+
+The following are implemented and have focused regression coverage: primary-root navigation; Tasks Today/Upcoming/Completed bucketing; app-language persistence; Document-route classification correction; and Unclassified Documents focused browsing, scoped search, document opening, and distinction from Without Case. The Result view has isolated presentation coverage for an optional task/reminder callback, but no production task/reminder entry point is wired.
+
+The approved wireframe PNGs for Tasks, Settings, classification, task forms, and Unclassified Documents were visually inspected in the 2026-09-21 audit. Production screens were not runtime-captured, so final pixel, spacing, typography, and visual-fidelity judgments remain manual runtime-review work.
+
+## Future acceptance requirements
+
 ## Screen-level acceptance
 
 Every approved screen design defines its primary goal, information hierarchy, primary and secondary actions, navigation entry/exit, loading/empty/error states, offline or local-only behavior, and partial-analysis behavior where relevant. Validate German and Arabic RTL layouts, accessibility semantics, focus order, contrast, dynamic type, and touch targets before substantial implementation.
@@ -25,6 +33,8 @@ Every approved screen design defines its primary goal, information hierarchy, pr
 
 ## Result, Documents, and Tasks
 
+The Task completion, task-detail/edit, and Result-to-Task/Reminder checks in this section are future acceptance requirements. Current regression coverage verifies only task bucketing, not those unimplemented interactions.
+
 - Verify the Result hierarchy: application header, document title, concise summary, required action, applicable primary CTA, meaningful facts, classification, expandable details, and original-document access.
 - Verify required-action content outranks secondary explanation.
 - Verify absent or meaningless facts are omitted, organizational unassigned states are explicit where useful, and uncertainty appears as review guidance.
@@ -40,6 +50,7 @@ Every approved screen design defines its primary goal, information hierarchy, pr
 - Verify screen-reader labels, focus order, contrast, minimum touch targets, dynamic text scaling, and reduced-motion expectations.
 - Review the approved Light-theme references on a real device. Light mode and `#F8FAFC` are the current visual baseline; dark mode is deferred and has no approved production palette.
 - Use visual/manual checks for hierarchy, spacing, restrained card usage, and application-header/brand treatment without relying on wireframe pixel coordinates.
+- Do not mark approved wireframe visual alignment as verified until the production Flutter screen has been runtime-captured or manually inspected alongside its referenced PNG.
 
 Tests use synthetic or redacted data and must not expose raw document text, identifiers, addresses, income, or other sensitive values in logs or telemetry.
 
