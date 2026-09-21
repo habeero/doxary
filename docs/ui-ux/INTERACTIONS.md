@@ -56,8 +56,36 @@ Create/Edit Task may include title, date, optional time or all-day, reminder, li
 
 ## Settings and notifications
 
-**Current implementation status:** Settings is a bottom-navigation root with Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About sections. Its app-language value row opens a focused sheet, applies the existing persisted locale preference immediately, and closes without changing state when dismissed. Default explanation-language persistence exists elsewhere but has no Settings control; profile/account, plan/account, notifications, appearance, privacy/data, legal, and about are visible but unavailable and non-navigating until their real capabilities exist.
+**Current implementation status:** Settings is a bottom-navigation root with Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About sections. Its app-language value row opens a focused sheet, applies the existing persisted locale preference immediately, and closes without changing state when dismissed. Default explanation-language persistence exists elsewhere but has no Settings control; profile/account, plan/account, notifications, appearance, privacy/data, legal, and about are visible but currently unavailable and non-navigating. These are pre-release implementation gaps, not permanent post-MVP placeholders.
 
-The remaining Settings and notification behavior below is approved intended behavior, not current implementation.
+The remaining Settings and notification behavior below is approved intended behavior and required pre-release work, not current implementation.
 
-Settings owns local language, default explanation language, privacy, notification, appearance, profile/account, legal, and about changes. Intended notification controls have three layers: OS permission, Doxary master preference, and category preferences. Turning off the master hides or disables categories; denying OS permission is explained as a device-setting restriction. Permission is requested contextually only after its value is clear, not as an unexplained first-launch prompt.
+Settings owns local language, default explanation language, privacy, notification, appearance, profile/account, legal, and about changes. The visible hierarchy must not ship with permanent unavailable rows: before public launch, each visible capability must become functional or be removed from the launch UI through an explicit product decision. The current direction is to implement the visible capabilities.
+
+### Account
+
+Account behavior requires a deliberate product design consistent with the final monetization and account model. The visible Account capability must become real before launch if it remains in the launch UI; its presence does not by itself establish that an account is required before the commercial model is decided.
+
+### Language
+
+App-language behavior is implemented. Settings must eventually expose the approved default explanation-language control while preserving the existing independent UI-language and analysis-output-language preferences, current persisted behavior, and the rule that changing a preference never silently rewrites prior analysis content.
+
+### Notifications
+
+Notifications must become real before launch, including the intended notification model and local reminder scheduling/delivery. Push infrastructure is not required for the MVP unless separately approved. Intended controls have three layers: OS permission, a Doxary master preference, and category preferences. Turning off the master hides or disables categories; denying OS permission is explained as a device-setting restriction. Permission is requested contextually only after its value is clear, not as an unexplained first-launch prompt.
+
+### Appearance
+
+Appearance must have real behavior before launch if it remains in the launch UI. Light mode and `#F8FAFC` remain the current visual baseline. Dark mode has no approved production palette, so it requires a dedicated design and implementation task rather than being represented as already supported.
+
+### Privacy & Data
+
+Privacy & Data must become functional before launch and align with local-first ownership and the future source-file/Document lifecycle. Required behavior areas include local document/source visibility, data management, clear distinctions between deleting analyses, Documents, and locally owned source copies, retention information, and AI-processing/data-handling transparency. Deletion behavior must be deliberately designed and implemented; this document does not fabricate a deletion policy.
+
+### Legal
+
+Legal must become functional before launch through approved release/legal work. Actual Privacy Policy, Terms, and required disclosures must be supplied through that work; no legal text or URLs are invented here.
+
+### About
+
+About must become functional before launch and show real application/version information. Version and build values must come from the actual application metadata rather than hard-coded fake values.

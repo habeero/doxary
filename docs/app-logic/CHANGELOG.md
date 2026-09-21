@@ -2,7 +2,9 @@
 
 ## 2026-09-21
 
+- Implemented read-only original-source access from the Document route: PDF sources use a typed platform opener, ordered image pages use a local viewer, and unavailable/unsupported/platform-failed references remain user-safe without changing Document or analysis state. Clarified that source-copy ownership, retention, and deletion remain deferred.
 - Defined durable provenance-keyed Home action-attention handling: explicit dismiss and successfully persisted source Tasks suppress only the matching alert without changing analysis truth.
+- Reclassified local reminder scheduling/delivery from an indefinite future capability to an outstanding MVP behavior; persisted reminder intent remains local metadata until implementation.
 
 - Recorded deferred Document identity and duplicate-detection requirements: deterministic fingerprints first, conservative AI comparison only when needed, and user confirmation before uncertain linking or merging.
 - Clarified deferred Document lifecycle decisions: canonical titles must remain stable across reanalysis, source-file management is not yet implemented, and future deletion distinguishes analyses, Documents, and locally owned source files.

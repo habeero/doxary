@@ -8,7 +8,7 @@ Primary bottom navigation is visible only on those five primary roots. Deep link
 
 ## Focused and nested flows
 
-**Current implementation status:** Camera capture/review, Processing, the state-driven Document route, Organization, Case, Unclassified Documents, classification correction, and Create/Edit Task are current focused flows. Organization/Case selection and creation are currently inline contextual UI. Create Task is reachable at `/tasks/create`; Edit Task is reachable at `/tasks/edit/:taskId`.
+**Current implementation status:** Camera capture/review, Processing, the state-driven Document route, Organization, Case, Unclassified Documents, classification correction, and Create/Edit Task are current focused flows. Organization/Case selection and creation are nested focused contextual sheets/modals, not standalone primary destinations. Create Task is reachable at `/tasks/create`; Edit Task is reachable at `/tasks/edit/:taskId`.
 
 Focused or nested flows hide primary bottom navigation and provide explicit Back or Close controls. This includes camera capture/review, Processing, the state-driven Document route, Organization, Case (`المعاملة`), Unclassified Documents, classification edit/select/create, Organization/Case selection or creation, Create/Edit Task, and comparable transactional or modal flows. Where practical, Back returns to the actual origin while preserving its prior UI state.
 
@@ -28,7 +28,7 @@ flowchart LR
 
 Analyze enters capture/import review. Review enters Processing only after the user starts analysis. Processing can be safely left without cancelling the work. Completion proceeds to the Result presentation when that flow is active. Result can enter classification correction. Focused flows return with Back/Close rather than exposing primary navigation.
 
-Result can open contextual Create Task for a confirmed action-required result. It appears only for meaningful action, deadline, appointment, suggested-task, or next-action context, retains the linked Document, derives Organization/Case context when available, and creates a Task only after explicit Save. Reminder delivery remains deferred.
+Result can open contextual Create Task for a confirmed action-required result. It appears only for meaningful action, deadline, appointment, suggested-task, or next-action context, retains the linked Document, derives Organization/Case context when available, and creates a Task only after explicit Save. Reminder delivery remains an outstanding MVP gap.
 
 ## Documents hierarchy
 
@@ -41,8 +41,8 @@ Unclassified and Without Case are distinct UI states: an Unclassified Document h
 - **Home** is an actionable overview, not a second Documents library.
 - **Documents** is the complete local library and supports contextual library navigation.
 - **Analyze** is the document-understanding entry point, including camera/file review and explanation-language choice.
-- **Tasks** currently provides Today, Upcoming, Overdue, and Completed bucket views, completion/reopening, and focused Create/Edit Task flows. Reminder delivery remains future work.
-- **Settings** currently provides app-language selection; its remaining approved sections are visible as deferred, non-navigating rows until their capabilities exist.
+- **Tasks** currently provides Today, Upcoming, Overdue, and Completed bucket views, completion/reopening, and focused Create/Edit Task flows. Reminder delivery remains an outstanding MVP gap.
+- **Settings** currently provides app-language selection; its remaining approved sections are visible pre-release implementation gaps and are currently unavailable/non-navigating. Before public launch, each visible capability must become functional or be removed through an explicit product decision; the current direction is to implement them.
 
 ## Deferred assistant UI
 

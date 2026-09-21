@@ -19,8 +19,10 @@ import '../features/document_analysis/domain/analysis_repository.dart';
 import '../features/document_analysis/domain/analysis_output_language.dart';
 import '../features/document_analysis/domain/analysis_submission.dart';
 import '../features/documents/data/repositories/local_document_repository.dart';
+import '../features/documents/data/source_document_opener.dart';
 import '../features/documents/domain/entities/domain_entities.dart';
 import '../features/documents/domain/repositories/document_repository.dart';
+import '../features/documents/domain/source_document_opener.dart';
 import '../features/monetization/domain/entitlement_service.dart';
 import '../features/organizations/data/repositories/local_organization_repository.dart';
 import '../features/organizations/domain/repositories/organization_repository.dart';
@@ -39,6 +41,9 @@ final idGeneratorProvider = Provider<IdGenerator>(
 );
 final documentRepositoryProvider = Provider<DocumentRepository>(
   (ref) => LocalDocumentRepository(ref.watch(databaseProvider)),
+);
+final sourceDocumentOpenerProvider = Provider<SourceDocumentOpener>(
+  (ref) => LocalSourceDocumentOpener(),
 );
 final apiConfigProvider = Provider<DoxaryApiConfig>(
   (ref) => DoxaryApiConfig.fromEnvironment(),

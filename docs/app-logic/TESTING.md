@@ -7,8 +7,9 @@ Test domain entities, use cases, and business rules without Flutter. Use reposit
 - Data invariants: stable local Document identity, nullable pre-confirmation relationships, Case-to-Organization ownership, typed concepts, ordered files, and forward-only schema behavior.
 - Classification: imported Documents remain unclassified; suggestions do not promote themselves; user confirmation/correction wins; exact normalized Organization/Case reuse is conservative; organization-only classification and unclassified visibility work.
 - Lifecycle: import persists a Document and file; complete, partial, unavailable, and failed outcomes remain explicit; failure retains the local Document; a persisted new analysis does not change confirmed relationships.
-- Actions: task bucketing separates Today, Upcoming, and Completed; manual and suggested task behavior stays distinct and editable.
+- Actions: task bucketing separates Today, Upcoming, Overdue, and Completed; manual and suggested task behavior stays distinct and editable.
 - Retry and duplicate prevention: resuming known work, observing status, and retrying failures do not create duplicate local Documents; user-initiated reanalysis keeps local files and creates another analysis version.
+- Original-source access: a PDF resolves through the typed platform opener; image sources resolve as ordered read-only pages; missing, unsupported, and platform-failed sources remain typed safe outcomes. Opening never creates or deletes a Document, analysis, Task, classification, or source metadata; analysis deletion and reanalysis retain source access.
 
 Persisted classification metadata and analysis history require migration coverage. Test Document-library behavior against an unbounded non-deleted local list, with Organization → Case navigation and original-file metadata available from local data.
 

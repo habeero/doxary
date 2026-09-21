@@ -2,6 +2,9 @@
 
 ## 2026-09-21
 
+- Implemented the Document-route Original Document trust action with localized safe feedback and a read-only ordered image-page viewer; source retention and deletion remain deferred.
+- Clarified that visible Settings rows other than app language are pre-release implementation gaps, not permanent post-MVP placeholders; each must become functional or be removed by explicit launch decision, with implementation as the current direction.
+- Corrected the navigation truth for Organization/Case selection and creation as nested focused contextual sheets/modals, and kept Overdue in the Tasks testing checklist.
 - Closed the current UI/UX phase after a navigation, hierarchy, RTL/LTR, state, and interaction audit; consolidated roadmap status and recorded the no-Sidebar decision. Remaining visual and product gaps stay deferred in their authoritative documents.
 - Added safe ellipsis handling for long Organization, Case, and Task labels in focused headers and task rows, with focused regression assertions.
 - Replaced raw local data exception text on Home, Documents, Organization, and Tasks error states with localized user-safe messaging.

@@ -2,7 +2,7 @@
 
 ## Current regression checks
 
-The following are implemented and have focused regression coverage: primary-root navigation; Tasks Today/Upcoming/Overdue/Completed bucketing and focused Create/Edit behavior; app-language persistence; Document-route classification correction; the confirmed Result-to-Create-Task handoff; and Unclassified Documents focused browsing, scoped search, document opening, and distinction from Without Case. Reminder scheduling/delivery remains a future capability.
+The following are implemented and have focused regression coverage: primary-root navigation; Tasks Today/Upcoming/Overdue/Completed bucketing and focused Create/Edit behavior; app-language persistence; Document-route classification correction; the confirmed Result-to-Create-Task handoff; and Unclassified Documents focused browsing, scoped search, document opening, and distinction from Without Case. Reminder scheduling/delivery remains an outstanding MVP capability.
 
 The approved wireframe PNGs for Tasks, Settings, classification, task forms, and Unclassified Documents were visually inspected in the 2026-09-21 audit. Production screens were not runtime-captured, so final pixel, spacing, typography, and visual-fidelity judgments remain manual runtime-review work.
 
@@ -33,22 +33,30 @@ Every approved screen design defines its primary goal, information hierarchy, pr
 
 ## Result, Documents, and Tasks
 
-The confirmed Result-to-Create-Task handoff has focused coverage; reminder scheduling and delivery remain a future acceptance requirement. Current Task coverage includes bucket views and focused Create/Edit form behavior; the Tasks root redesign remains separate work.
+The confirmed Result-to-Create-Task handoff has focused coverage; reminder scheduling and delivery remain an outstanding MVP acceptance requirement. Current Task coverage includes bucket views and focused Create/Edit form behavior; the Tasks root redesign remains separate work.
 
 - Verify the Result hierarchy: application header, document title, concise summary, required action, applicable primary CTA, meaningful facts, classification, expandable details, and original-document access.
+- Verify original-document access uses localized action/error feedback, does not expose source paths or IDs, and presents ordered image pages without mirroring image content in RTL.
 - Verify required-action content outranks secondary explanation.
 - Verify absent or meaningless facts are omitted, organizational unassigned states are explicit where useful, and uncertainty appears as review guidance.
 - Verify suggestions remain non-confirmed until user action and that Unclassified and Without Case remain distinct.
 - Verify Home includes its greeting, keeps the recent preview bounded, uses readable titles rather than opaque identifiers, and does not become the full Documents library.
 - Verify Documents Organization → Case → Document navigation and contextual search.
-- Verify Tasks keeps Today, Upcoming, and Completed separate; completing a task moves it to Completed.
+- Verify Tasks keeps Today, Upcoming, Overdue, and Completed separate; completing a task moves it to Completed.
+
+## Settings pre-release acceptance
+
+- Verify the visible Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About capabilities have real behavior before public launch, or that each removed launch row has an explicit product decision.
+- Verify Settings exposes the approved default explanation-language control independently from UI language and does not rewrite prior analysis content.
+- Verify local reminder scheduling/delivery, privacy/data lifecycle behavior, approved legal disclosures, and real application/version information before launch.
+- Verify no visible permanent unavailable placeholder Settings rows remain in a public release.
 
 ## RTL, localization, accessibility, and visual review
 
 - Verify Arabic device-locale bootstrap, explicit UI-language persistence, and independent explanation-language choice.
 - Verify directional padding/alignment, mixed Arabic/German names, dates, amounts, identifiers, filenames, and the Arabic Case term `المعاملة`.
 - Verify screen-reader labels, focus order, contrast, minimum touch targets, dynamic text scaling, and reduced-motion expectations.
-- Review the approved Light-theme references on a real device. Light mode and `#F8FAFC` are the current visual baseline; dark mode is deferred and has no approved production palette.
+- Review the approved Light-theme references on a real device. Light mode and `#F8FAFC` are the current visual baseline; dark mode requires a dedicated design pass and has no approved production palette. Any visible Appearance capability still requires real pre-release behavior.
 - Use visual/manual checks for hierarchy, spacing, restrained card usage, and application-header/brand treatment without relying on wireframe pixel coordinates.
 - Do not mark approved wireframe visual alignment as verified until the production Flutter screen has been runtime-captured or manually inspected alongside its referenced PNG.
 

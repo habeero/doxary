@@ -2,9 +2,9 @@
 
 ## Current status
 
-Commercial terms are undecided. No final price, plan name, paid-feature set, store product, billing provider, quota, credit allowance, trial, restore behavior, regional availability, or tax handling has been approved. These choices remain open and must not be inferred from product or API concepts.
+The monetization architecture exists, but no billing implementation exists and commercial terms are undecided. No final price, plan name, paid-feature set, store product, billing provider, quota, credit allowance, trial, restore behavior, regional availability, or tax handling has been approved. These choices remain open and must not be inferred from product or API concepts.
 
-No advertising is planned. Quotas and billing remain outside the approved core document-understanding scope until separately approved. An API error such as `quota_exceeded` does not imply a finalized commercial model.
+This is a pre-release requirement, not optional post-launch work: Doxary must have a deliberately chosen commercial model and a working, validated monetization implementation before public launch. This document does not choose that model. No advertising is planned, and an API error such as `quota_exceeded` does not imply a finalized commercial model.
 
 ## Entitlement architecture
 
@@ -14,6 +14,16 @@ Future pricing, plans, quota policy, credits, and providers must remain replacea
 
 Entitlement checks fail safely and communicate unavailable/retry states without blocking access to a user's existing local Documents.
 
-## Future commercial models
+## Pre-release requirements
+
+The dedicated monetization phase must, without being predetermined here:
+
+- select and document the commercial model and its free/paid access rules;
+- define entitlement, quota, usage-accounting, and account behavior where required by that model;
+- define and implement store/billing integration when the chosen model requires it;
+- implement and test purchase, restore, error, offline, unavailable, and retry behavior; and
+- preserve access to existing local Documents when entitlement cannot be verified.
+
+## Open commercial decisions
 
 The following are possibilities, not approved requirements: limited free analyses, subscriptions, one-time entitlements, and credits. Introducing any of them requires a documented decision covering the associated access and usage rules.

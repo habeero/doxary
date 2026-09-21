@@ -42,6 +42,18 @@ class AppLocalizations {
   String get originalDocument => _value('originalDocument');
   String get originalDocumentUnavailable =>
       _value('originalDocumentUnavailable');
+  String get originalDocumentAvailable => _value('originalDocumentAvailable');
+  String get openOriginalDocument => _value('openOriginalDocument');
+  String get unableToOpenOriginalDocument =>
+      _value('unableToOpenOriginalDocument');
+  String get originalDocumentUnsupported =>
+      _value('originalDocumentUnsupported');
+  String originalDocumentPageCount(int current, int total) =>
+      _value('originalDocumentPageCount')
+          .replaceFirst('{current}', '$current')
+          .replaceFirst('{total}', '$total');
+  String originalDocumentPageUnavailable(int page) =>
+      _value('originalDocumentPageUnavailable').replaceFirst('{page}', '$page');
   String get documentDate => _value('documentDate');
   String get receivedDate => _value('receivedDate');
   String get analysisState => _value('analysisState');
@@ -466,6 +478,14 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'documentFallback': 'Dokument',
     'originalDocument': 'Originaldokument',
     'originalDocumentUnavailable': 'Das Originaldokument ist nicht verfügbar.',
+    'originalDocumentAvailable': 'Originalquelle verfügbar.',
+    'openOriginalDocument': 'Original öffnen',
+    'unableToOpenOriginalDocument':
+        'Das Originaldokument konnte nicht geöffnet werden.',
+    'originalDocumentUnsupported':
+        'Dieses Originaldokument kann hier nicht geöffnet werden.',
+    'originalDocumentPageCount': 'Seite {current} von {total}',
+    'originalDocumentPageUnavailable': 'Seite {page} ist nicht verfügbar.',
     'documentDate': 'Dokumentdatum',
     'receivedDate': 'Empfangen',
     'analysisState': 'Analysestatus',
@@ -510,6 +530,13 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'documentFallback': '\u0645\u0633\u062a\u0646\u062f',
     'originalDocument': 'المستند الأصلي',
     'originalDocumentUnavailable': 'المستند الأصلي غير متاح.',
+    'originalDocumentAvailable': '\u0627\u0644\u0645\u0635\u062f\u0631 \u0627\u0644\u0623\u0635\u0644\u064a \u0645\u062a\u0627\u062d.',
+    'openOriginalDocument': '\u0641\u062a\u062d \u0627\u0644\u0623\u0635\u0644',
+    'unableToOpenOriginalDocument': '\u062a\u0639\u0630\u0631 \u0641\u062a\u062d \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a.',
+    'originalDocumentUnsupported': '\u0644\u0627 \u064a\u0645\u0643\u0646 \u0641\u062a\u062d \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u0647\u0646\u0627.',
+    'originalDocumentPageCount':
+        '\u0635\u0641\u062d\u0629 {current} \u0645\u0646 {total}',
+    'originalDocumentPageUnavailable': '\u0627\u0644\u0635\u0641\u062d\u0629 {page} \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629.',
     'documentDate': '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0645\u0633\u062a\u0646\u062f',
     'receivedDate': '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0633\u062a\u0644\u0627\u0645',
     'analysisState':

@@ -27,7 +27,7 @@ Coding agents follow [AGENTS.md](AGENTS.md). It determines which documentation i
 
 ## Product status
 
-The document-analysis foundation, local document organization, and Flutter/backend integration foundation exist. Current work focuses on product-ready UI/UX and remaining MVP work before beta hardening and release preparation. See [the roadmap](docs/ROADMAP.md) for detailed status.
+The document-analysis foundation, local document organization, and Flutter/backend integration foundation exist. The UI/UX phase is substantially complete for the current product phase; current work focuses on application behavior and remaining MVP gaps before mandatory pre-release product work, hardening, and release preparation. See [the roadmap](docs/ROADMAP.md) for detailed status.
 
 ## Development
 

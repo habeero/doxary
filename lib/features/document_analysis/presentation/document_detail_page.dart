@@ -12,9 +12,11 @@ import '../domain/analysis_repository.dart';
 import '../domain/analysis_submission.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../../documents/domain/classification/classification_selection.dart';
+import '../../documents/domain/source_document_opener.dart';
 import '../../documents/presentation/document_display.dart';
 import '../../tasks/presentation/task_draft_prefill.dart';
 import 'analysis_result_page.dart';
+import 'source_image_viewer_page.dart';
 
 class DocumentDetailPage extends ConsumerStatefulWidget {
   const DocumentDetailPage({required this.clientDocumentId, super.key});
@@ -91,6 +93,37 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
       ..invalidate(analysisByIdProvider(analysisId))
       ..invalidate(analysisHistoryProvider(widget.clientDocumentId))
       ..invalidate(documentProvider(widget.clientDocumentId));
+  }
+
+  Future<void> _openOriginalDocument(List<DocumentFile> files) async {
+    final outcome = await ref.read(sourceDocumentOpenerProvider).open(files);
+    if (!mounted) return;
+    switch (outcome) {
+      case SourceDocumentOpened():
+        return;
+      case SourceDocumentImagesOpened(:final pages):
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => SourceImageViewerPage(pages: pages),
+          ),
+        );
+        return;
+      case SourceDocumentUnavailable():
+        _showOriginalDocumentMessage(context.l10n.originalDocumentUnavailable);
+        return;
+      case SourceDocumentUnsupported():
+        _showOriginalDocumentMessage(context.l10n.originalDocumentUnsupported);
+        return;
+      case SourceDocumentOpenFailed():
+        _showOriginalDocumentMessage(context.l10n.unableToOpenOriginalDocument);
+        return;
+    }
+  }
+
+  void _showOriginalDocumentMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -206,7 +239,10 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
               cases: _asyncValue(cases) ?? const [],
             ),
           );
-    final originalSection = _OriginalDocumentSection(files: files);
+    final originalSection = _OriginalDocumentSection(
+      files: files,
+      onOpen: _openOriginalDocument,
+    );
     final historySection = _AnalysisHistorySection(
       document: localDocument,
       history: history,
@@ -608,8 +644,9 @@ class _ClassificationValue extends StatelessWidget {
 }
 
 class _OriginalDocumentSection extends StatelessWidget {
-  const _OriginalDocumentSection({required this.files});
+  const _OriginalDocumentSection({required this.files, required this.onOpen});
   final AsyncValue<List<DocumentFile>> files;
+  final ValueChanged<List<DocumentFile>> onOpen;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -632,11 +669,21 @@ class _OriginalDocumentSection extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: files.when(
-              data: (items) => Text(
-                items.isEmpty
-                    ? context.l10n.originalDocumentUnavailable
-                    : context.l10n.originalDocumentSavedLocally,
-              ),
+              data: (items) => items.isEmpty
+                  ? Text(context.l10n.originalDocumentUnavailable)
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(context.l10n.originalDocumentAvailable),
+                        const SizedBox(height: AppSpacing.xs),
+                        OutlinedButton.icon(
+                          key: const Key('open-original-document'),
+                          onPressed: () => onOpen(items),
+                          icon: const Icon(Icons.open_in_new_outlined),
+                          label: Text(context.l10n.openOriginalDocument),
+                        ),
+                      ],
+                    ),
               loading: () => const LinearProgressIndicator(),
               error: (_, _) => Text(context.l10n.originalDocumentUnavailable),
             ),
