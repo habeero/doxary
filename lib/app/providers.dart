@@ -6,6 +6,9 @@ import '../core/database/app_database.dart'
 import '../core/config/doxary_api_config.dart';
 import '../core/network/doxary_api_client.dart';
 import '../core/notifications/reminder_scheduler.dart';
+import '../core/notifications/local_reminder_scheduler.dart';
+import '../core/notifications/local_task_notification_identity_store.dart';
+import '../core/notifications/task_notification_identity_store.dart';
 import '../core/utils/id_generator.dart';
 import '../features/cases/data/repositories/local_case_repository.dart';
 import '../features/cases/domain/repositories/case_repository.dart';
@@ -30,6 +33,7 @@ import '../features/settings/data/repositories/local_settings_repository.dart';
 import '../features/settings/domain/settings_repository.dart';
 import '../features/tasks/data/repositories/local_task_repository.dart';
 import '../features/tasks/domain/repositories/task_repository.dart';
+import '../features/tasks/application/task_reminder_reconciler.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final database = AppDatabase();
@@ -110,7 +114,15 @@ final cameraCaptureGatewayProvider = Provider<CameraCaptureGateway>(
   (ref) => DeviceCameraCaptureGateway(),
 );
 final reminderSchedulerProvider = Provider<ReminderScheduler>(
-  (ref) => UnavailableReminderScheduler(),
+  (ref) => LocalReminderScheduler(
+    ref.watch(taskNotificationIdentityStoreProvider),
+  ),
+);
+final taskNotificationIdentityStoreProvider = Provider<TaskNotificationIdentityStore>(
+  (ref) => LocalTaskNotificationIdentityStore(ref.watch(databaseProvider)),
+);
+final taskReminderReconcilerProvider = Provider<TaskReminderReconciler>(
+  (ref) => TaskReminderReconciler(ref.watch(reminderSchedulerProvider)),
 );
 final entitlementServiceProvider = Provider<EntitlementService>(
   (ref) => DevelopmentEntitlementService(),

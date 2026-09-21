@@ -1,7 +1,16 @@
 # Application-logic changelog
 
+## 2026-09-22
+
+- Recorded physical-device verification of reminder selection, persistence, reconciliation, contextual Android permission, and future scheduling; notification-tap navigation and full Settings Notifications controls remain undefined/deferred.
+- Clarified and regression-covered local reminder intent: `0` minutes means notify at the due time, while only `null` means no reminder; debug-only structural tracing now identifies the editor, persisted-row, and reconciler values without logging user content.
+- Fixed Task Editor reminder control binding: its non-null visual option is derived from and writes directly to the one authoritative nullable reminder-minutes state, including explicit No reminder versus zero-minute selections.
+- Corrected Android reminder-permission retry ownership: only a granted result is session-cached, so a later explicit Task save can reach Android again after a denied or unavailable request. Added debug-only privacy-safe trace points across Task save, reconciliation, scheduler initialization, permission request, and scheduling.
+
 ## 2026-09-21
 
+- Finalized All Day Task reminders: 09:00 local device time on the due date is the MVP anchor, lead time applies from that anchor, and All Day/Timed transitions reconcile normally. Future Settings may make the anchor configurable.
+- Implemented local Task reminder delivery through a typed platform scheduler: persistence-first reconciliation, contextual permission, safe failure outcomes, cancellation on completion/deletion, reopening re-evaluation, privacy-limited notification content, and Android reboot registration.
 - Implemented read-only original-source access from the Document route: PDF sources use a typed platform opener, ordered image pages use a local viewer, and unavailable/unsupported/platform-failed references remain user-safe without changing Document or analysis state. Clarified that source-copy ownership, retention, and deletion remain deferred.
 - Defined durable provenance-keyed Home action-attention handling: explicit dismiss and successfully persisted source Tasks suppress only the matching alert without changing analysis truth.
 - Reclassified local reminder scheduling/delivery from an indefinite future capability to an outstanding MVP behavior; persisted reminder intent remains local metadata until implementation.

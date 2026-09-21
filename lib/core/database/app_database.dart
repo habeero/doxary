@@ -316,7 +316,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -327,6 +327,7 @@ class AppDatabase extends _$AppDatabase {
       await _addTaskFormColumns();
       await _addTaskProvenanceColumns();
       await _createTaskSourceActionIndex();
+      await _createTaskNotificationIds();
       await _createAnalysisAttemptHistory();
     },
     onUpgrade: (m, from, to) async {
@@ -371,6 +372,9 @@ class AppDatabase extends _$AppDatabase {
         await _createAnalysisAttemptHistory();
         await _backfillAnalysisAttemptHistory();
       }
+      if (from < 9) {
+        await _createTaskNotificationIds();
+      }
     },
   );
 
@@ -400,6 +404,13 @@ class AppDatabase extends _$AppDatabase {
     CREATE UNIQUE INDEX IF NOT EXISTS task_source_action_unique
     ON tasks (source_analysis_id, source_action_key)
     WHERE source_analysis_id IS NOT NULL AND source_action_key IS NOT NULL
+  ''');
+
+  Future<void> _createTaskNotificationIds() => customStatement('''
+    CREATE TABLE IF NOT EXISTS task_notification_ids (
+      task_id TEXT PRIMARY KEY NOT NULL,
+      notification_id INTEGER NOT NULL UNIQUE
+    )
   ''');
 
   Future<void> _createAnalysisAttemptHistory() => customStatement('''

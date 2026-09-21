@@ -1,19 +1,29 @@
-enum ReminderScheduleResult { scheduled, unavailable, rejected }
+/// Platform outcomes intentionally avoid exposing plugin exceptions to callers.
+enum ReminderScheduleResult {
+  scheduled,
+  cancelled,
+  permissionDenied,
+  unavailable,
+  platformFailure,
+}
 
 abstract interface class ReminderScheduler {
   Future<ReminderScheduleResult> schedule({
     required String taskId,
     required DateTime at,
+    required String taskTitle,
   });
-  Future<void> cancel(String taskId);
+  Future<ReminderScheduleResult> cancel(String taskId);
 }
 
 class UnavailableReminderScheduler implements ReminderScheduler {
   @override
-  Future<void> cancel(String taskId) async {}
+  Future<ReminderScheduleResult> cancel(String taskId) async =>
+      ReminderScheduleResult.unavailable;
   @override
   Future<ReminderScheduleResult> schedule({
     required String taskId,
     required DateTime at,
+    required String taskTitle,
   }) async => ReminderScheduleResult.unavailable;
 }

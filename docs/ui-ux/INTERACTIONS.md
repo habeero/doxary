@@ -44,7 +44,7 @@ Required-action content receives stronger prominence than secondary explanation.
 
 ## Sheets, dialogs, and focused forms
 
-**Current implementation status:** Create/Edit Task is implemented as a focused full-screen flow rather than a primary destination. Local task persistence supports title, status, provenance, timestamps, date, All Day, optional time-of-day, reminder intent, optional note, and optional Document/Case links. Edit can mark complete without confirmation, and a completed Task can be explicitly reopened without confirmation; ordinary edits and Save do not reopen it. Delete still requires confirmation. Reminder delivery/scheduling is not implemented.
+**Current implementation status:** Create/Edit Task is implemented as a focused full-screen flow rather than a primary destination. Local task persistence supports title, status, provenance, timestamps, date, All Day, optional time-of-day, reminder intent, optional note, and optional Document/Case links. Timed reminders schedule locally after a successful save; All Day reminders use the MVP 09:00 local due-date anchor. A safe localized message explains a denial, unavailable capability, past instant, or failure without undoing the save. The future Settings default-anchor preference is not implemented. Edit can mark complete without confirmation, and a completed Task can be explicitly reopened without confirmation; ordinary edits and Save do not reopen it. Delete still requires confirmation.
 
 The Task interaction requirements below are approved intended behavior for future implementation.
 
@@ -89,3 +89,13 @@ Legal must become functional before launch through approved release/legal work. 
 ### About
 
 About must become functional before launch and show real application/version information. Version and build values must come from the actual application metadata rather than hard-coded fake values.
+
+## Deferred product-design follow-ups
+
+### Local reminder notification tap destination
+
+Local Task reminder delivery exists, but the product behavior after tapping a delivered notification is deliberately undefined. No deep link, notification-payload navigation, Task or Document route launch, or notification-center behavior is implemented or implied. The next product-design decision must consider opening the linked Task directly, preserving normal app/navigation state, deleted or stale Tasks, Arabic/German navigation, and cold-start versus already-running app behavior. Do not infer a final destination from the current scheduling implementation.
+
+### Create/Edit Task presentation refinement
+
+Create/Edit Task is functionally implemented and is not being redesigned in this phase. A future design pass will review visual hierarchy and usability across date/time and All Day controls, reminder presentation, linked Document/Case presentation, notes, Save/completion/delete action hierarchy, spacing, RTL/LTR behavior, long labels, keyboard behavior, and consistency with the Doxary design system. This is a bounded presentation refinement only; it does not change the Task domain model or persistence semantics.

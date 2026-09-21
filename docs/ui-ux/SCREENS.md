@@ -53,7 +53,7 @@ A Case screen follows Documents belonging to one continuing matter. It uses comp
 
 ## Document route: Result / Detail
 
-**Current implementation status:** Classification correction is reachable from the Document route and is functionally implemented. Result offers **Create Task** only for a confirmed action-required result. It opens the existing editor with an editable deterministic draft; it never creates a Task automatically. The draft preserves the current Document and an already-confirmed Case, but does not infer a Case or introduce an Organization field. Informational/no-action, unavailable, and uncertain/partial results do not show a misleading task action. Reminder delivery remains unimplemented.
+**Current implementation status:** Classification correction is reachable from the Document route and is functionally implemented. Result offers **Create Task** only for a confirmed action-required result. It opens the existing editor with an editable deterministic draft; it never creates a Task automatically. The draft preserves the current Document and an already-confirmed Case, but does not infer a Case or introduce an Organization field. Informational/no-action, unavailable, and uncertain/partial results do not show a misleading task action. Timed Task reminders are delivered locally after the Task is saved; All Day reminders use the MVP 09:00 local due-date anchor.
 
 Result and Document Detail are one stable lifecycle-driven destination. The approved hierarchy is:
 
@@ -101,7 +101,7 @@ Tasks has separate Today, Upcoming, Overdue, and Completed tabs. Each tab contai
 
 The hierarchy above is visible now. Before public launch, every visible approved capability must have real functional behavior or be removed from the launch UI through an explicit product decision; the current product direction is to implement the visible capabilities.
 
-Settings is a primary destination. Its root hierarchy is Account (Profile, plan/account), Language (app language and default explanation language), Notifications, Appearance, Privacy and data, Legal, and About. Notification behavior follows a three-layer intended model—OS permission, Doxary master preference, then category preferences—but remains unimplemented until behavior is implemented and tested.
+Settings is a primary destination. Its root hierarchy is Account (Profile, plan/account), Language (app language and default explanation language), Notifications, Appearance, Privacy and data, Legal, and About. Notification behavior follows a three-layer intended model—OS permission, Doxary master preference, then category preferences. Timed local Task delivery currently implements only the contextual OS-permission/platform layer; no Doxary master/category Settings controls are implemented yet.
 
 ## Cross-screen presentation
 

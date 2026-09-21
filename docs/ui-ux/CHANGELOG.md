@@ -1,7 +1,12 @@
 # UI/UX changelog
 
+## 2026-09-22
+
+- Recorded notification-tap destination/navigation as deliberately undecided and Create/Edit Task presentation polish as a future design pass; neither changes the implemented reminder or Task behavior.
+
 ## 2026-09-21
 
+- Updated Task interaction status: timed and All Day reminders now reconcile to local delivery after save with safe localized feedback; All Day uses the MVP 09:00 local anchor and may become configurable in future Settings work.
 - Implemented the Document-route Original Document trust action with localized safe feedback and a read-only ordered image-page viewer; source retention and deletion remain deferred.
 - Clarified that visible Settings rows other than app language are pre-release implementation gaps, not permanent post-MVP placeholders; each must become functional or be removed by explicit launch decision, with implementation as the current direction.
 - Corrected the navigation truth for Organization/Case selection and creation as nested focused contextual sheets/modals, and kept Overdue in the Tasks testing checklist.

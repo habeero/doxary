@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../../../core/logging/debug_log.dart';
 import '../../../documents/domain/entities/domain_entities.dart';
 import '../../domain/repositories/task_repository.dart';
 
@@ -80,6 +82,29 @@ class LocalTaskRepository implements TaskRepository {
       ],
     );
     _database.notifyUpdates({TableUpdate.onTable(_database.tasks)});
+    reminderTaskStateDebugLog(
+      'task_repository',
+      event: 'save input persisted',
+      reminderMinutesBefore: task.reminderMinutesBefore,
+      allDay: task.allDay,
+      timePresent: task.dueTimeMinutes != null,
+      status: task.status.name,
+    );
+    if (kDebugMode) {
+      final persisted = await getById(task.id);
+      if (persisted == null) {
+        reminderDebugLog('task_repository', 'persisted row missing');
+      } else {
+        reminderTaskStateDebugLog(
+          'task_repository',
+          event: 'persisted row read',
+          reminderMinutesBefore: persisted.reminderMinutesBefore,
+          allDay: persisted.allDay,
+          timePresent: persisted.dueTimeMinutes != null,
+          status: persisted.status.name,
+        );
+      }
+    }
   }
 
   @override

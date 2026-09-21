@@ -13,7 +13,7 @@ The confirmed browsing hierarchy is `Organization 1--* Case 1--* Document 1--* D
 | ExtractedText | Document identity, text/range, extraction confidence | Available, partial, or unavailable. |
 | DocumentAnalysis | Document identity, analysis versions, output language/style, action requirement, typed facts, explanation, quality reasons, evidence, confidence | Complete, partial, or unavailable; locally versioned history is retained. `action_required` is nullable only for legacy rows created before it was persisted. |
 | AnalysisAttempt | Stable attempt ID, Document identity, started/terminal timestamps, safe status/failure metadata, optional successful analysis ID | Pending, succeeded, or failed; separate from transient polling correlation. |
-| Task | Optional Case/Document relationship, title, due date, status, reminder, optional non-cascading source analysis/action identity | Open, completed, or dismissed. |
+| Task | Optional Case/Document relationship, title, due date, status, durable reminder intent, optional non-cascading source analysis/action identity | Open, completed, or dismissed. Platform delivery is derived from the Task and is not a second durable reminder record. |
 | Deadline / Appointment | Source Document, date/time range, timezone, confidence | Active, completed/past, or cancelled. |
 | Amount | Value/currency, direction, due date, purpose | Active, paid/received, or uncertain. |
 | RequiredDocument | Description, status, due date | Requested, obtained, submitted, or not applicable. |

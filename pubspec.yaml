@@ -47,6 +47,9 @@ dependencies:
   camera: ^0.12.1
   image: ^4.10.1
   open_filex: ^4.7.0
+  flutter_local_notifications: ^19.4.2
+  flutter_timezone: ^5.1.0
+  timezone: ^0.10.1
   uuid: ^4.6.0
 
 dev_dependencies:

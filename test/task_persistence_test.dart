@@ -5,6 +5,35 @@ import 'package:doxary/features/tasks/data/repositories/local_task_repository.da
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('Task reminder lead values round-trip with zero distinct from no reminder', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    await database.customStatement('PRAGMA foreign_keys = OFF');
+    final repository = LocalTaskRepository(database);
+    final createdAt = DateTime(2026, 9, 21, 9);
+
+    for (final reminderMinutesBefore in <int?>[null, 0, 5, 60, 1440]) {
+      await repository.save(
+        LocalTask(
+          id: 'task-${reminderMinutesBefore ?? 'none'}',
+          title: 'Reply',
+          status: TaskStatus.open,
+          provenance: TaskProvenance.user,
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          dueAt: DateTime(2026, 9, 25),
+          dueTimeMinutes: 9 * 60,
+          reminderMinutesBefore: reminderMinutesBefore,
+        ),
+      );
+
+      final saved = await repository.getById(
+        'task-${reminderMinutesBefore ?? 'none'}',
+      );
+      expect(saved?.reminderMinutesBefore, reminderMinutesBefore);
+    }
+  });
+
   test(
     'Task persistence keeps form metadata, completion, and deletion',
     () async {

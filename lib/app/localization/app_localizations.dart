@@ -114,7 +114,17 @@ class AppLocalizations {
   String get reminder => _value('reminder');
   String get noReminder => _value('noReminder');
   String get reminderAtTime => _value('reminderAtTime');
+  String get reminderFiveMinutesBefore => _value('reminderFiveMinutesBefore');
+  String get reminderTenMinutesBefore => _value('reminderTenMinutesBefore');
+  String get reminderThirtyMinutesBefore =>
+      _value('reminderThirtyMinutesBefore');
+  String get reminderOneHourBefore => _value('reminderOneHourBefore');
   String get reminderOneDayBefore => _value('reminderOneDayBefore');
+  String get reminderPermissionDenied => _value('reminderPermissionDenied');
+  String get reminderPermissionNeeded => _value('reminderPermissionNeeded');
+  String get reminderUnavailable => _value('reminderUnavailable');
+  String get reminderNotScheduled => _value('reminderNotScheduled');
+  String get reminderTimePassed => _value('reminderTimePassed');
   String get linkedDocument => _value('linkedDocument');
   String get linkedCase => _value('linkedCase');
   String get noLinkedDocument => _value('noLinkedDocument');
@@ -351,6 +361,13 @@ const _bottomNavigationStrings = <String, Map<String, String>>{
     'reminder': '\u0627\u0644\u062a\u0630\u0643\u064a\u0631',
     'noReminder': '\u0628\u062f\u0648\u0646 \u062a\u0630\u0643\u064a\u0631',
     'reminderAtTime': '\u0639\u0646\u062f \u0627\u0644\u0648\u0642\u062a',
+    'reminderFiveMinutesBefore':
+        '\u0642\u0628\u0644 5 \u062f\u0642\u0627\u0626\u0642',
+    'reminderTenMinutesBefore':
+        '\u0642\u0628\u0644 10 \u062f\u0642\u0627\u0626\u0642',
+    'reminderThirtyMinutesBefore':
+        '\u0642\u0628\u0644 30 \u062f\u0642\u064a\u0642\u0629',
+    'reminderOneHourBefore': '\u0642\u0628\u0644 \u0633\u0627\u0639\u0629',
     'reminderOneDayBefore': '\u0642\u0628\u0644 \u064a\u0648\u0645',
     'linkedDocument': '\u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0645\u0631\u062a\u0628\u0637',
     'linkedCase': '\u0627\u0644\u0645\u0639\u0627\u0645\u0644\u0629 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629',
@@ -603,6 +620,16 @@ const _documentBrowserStrings = <String, Map<String, String>>{
 
 const _extraStrings = <String, Map<String, String>>{
   'de': {
+    'reminderPermissionNeeded':
+        'Erlaube Benachrichtigungen, um Aufgaben-Erinnerungen zu erhalten.',
+    'reminderPermissionDenied':
+        'Die Aufgabe wurde gespeichert. Benachrichtigungen sind nicht erlaubt.',
+    'reminderUnavailable':
+        'Die Aufgabe wurde gespeichert. Erinnerungen sind auf diesem Gerät nicht verfügbar.',
+    'reminderNotScheduled':
+        'Die Aufgabe wurde gespeichert, aber die Erinnerung konnte nicht geplant werden.',
+    'reminderTimePassed':
+        'Die Aufgabe wurde gespeichert. Der Erinnerungszeitpunkt liegt bereits in der Vergangenheit.',
     'analysisTitle': 'Analyse',
     'analysisReadError': 'Gespeicherte Analyse konnte nicht gelesen werden.',
     'noSavedAnalysis': 'Noch keine Analyse gespeichert.',
@@ -643,6 +670,16 @@ const _extraStrings = <String, Map<String, String>>{
         'Möglicherweise sind nicht genügend Inhalte vorhanden.',
   },
   'ar': {
+    'reminderPermissionNeeded':
+        'اسمح بالإشعارات لتلقي تذكيرات المهام.',
+    'reminderPermissionDenied':
+        'تم حفظ المهمة، لكن الإشعارات غير مسموح بها.',
+    'reminderUnavailable':
+        'تم حفظ المهمة، لكن التذكيرات غير متاحة على هذا الجهاز.',
+    'reminderNotScheduled':
+        'تم حفظ المهمة، لكن تعذر جدولة التذكير.',
+    'reminderTimePassed':
+        'تم حفظ المهمة. وقت التذكير أصبح في الماضي.',
     'createTask': '\u0625\u0646\u0634\u0627\u0621 \u0645\u0647\u0645\u0629',
     'editTask':
         '\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0647\u0645\u0629',
@@ -658,6 +695,13 @@ const _extraStrings = <String, Map<String, String>>{
     'reminder': '\u0627\u0644\u062a\u0630\u0643\u064a\u0631',
     'noReminder': '\u0628\u062f\u0648\u0646 \u062a\u0630\u0643\u064a\u0631',
     'reminderAtTime': '\u0639\u0646\u062f \u0627\u0644\u0648\u0642\u062a',
+    'reminderFiveMinutesBefore':
+        '\u0642\u0628\u0644 5 \u062f\u0642\u0627\u0626\u0642',
+    'reminderTenMinutesBefore':
+        '\u0642\u0628\u0644 10 \u062f\u0642\u0627\u0626\u0642',
+    'reminderThirtyMinutesBefore':
+        '\u0642\u0628\u0644 30 \u062f\u0642\u064a\u0642\u0629',
+    'reminderOneHourBefore': '\u0642\u0628\u0644 \u0633\u0627\u0639\u0629',
     'reminderOneDayBefore': '\u0642\u0628\u0644 \u064a\u0648\u0645',
     'linkedDocument': '\u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0645\u0631\u062a\u0628\u0637',
     'linkedCase': '\u0627\u0644\u0645\u0639\u0627\u0645\u0644\u0629 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629',
@@ -752,6 +796,10 @@ const _strings = <String, Map<String, String>>{
     'reminder': 'Erinnerung',
     'noReminder': 'Keine Erinnerung',
     'reminderAtTime': 'Zum Zeitpunkt',
+    'reminderFiveMinutesBefore': '5 Minuten vorher',
+    'reminderTenMinutesBefore': '10 Minuten vorher',
+    'reminderThirtyMinutesBefore': '30 Minuten vorher',
+    'reminderOneHourBefore': 'Eine Stunde vorher',
     'reminderOneDayBefore': 'Einen Tag vorher',
     'linkedDocument': 'Verknüpftes Dokument',
     'linkedCase': 'Verknüpfter Vorgang',

@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/logging/debug_log.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../../documents/presentation/document_display.dart';
+import '../application/task_reminder_reconciler.dart';
 import 'task_draft_prefill.dart';
 
 class TaskEditorPage extends ConsumerStatefulWidget {
@@ -93,7 +95,7 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
+    final now = ref.read(currentTimeProvider);
     final value = await showDatePicker(
       context: context,
       initialDate: _date ?? now,
@@ -120,6 +122,14 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
     setState(() => _saving = true);
     final now = DateTime.now();
     final existing = _existing;
+    reminderTaskStateDebugLog(
+      'task_editor',
+      event: 'save state',
+      reminderMinutesBefore: _reminderMinutesBefore,
+      allDay: _allDay,
+      timePresent: _time != null,
+      status: (existing?.status ?? TaskStatus.open).name,
+    );
     final task = LocalTask(
       id: existing?.id ?? ref.read(idGeneratorProvider).newId(),
       title: _title.text.trim(),
@@ -141,7 +151,21 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
       sourceActionKey:
           existing?.sourceActionKey ?? widget.prefill?.sourceActionKey,
     );
+    reminderTaskStateDebugLog(
+      'task_editor',
+      event: 'save payload',
+      reminderMinutesBefore: task.reminderMinutesBefore,
+      allDay: task.allDay,
+      timePresent: task.dueTimeMinutes != null,
+      status: task.status.name,
+    );
     await ref.read(taskRepositoryProvider).save(task);
+    reminderDebugLog('task_save', 'persistence returned');
+    reminderDebugLog('task_save', 'reconciliation started');
+    final reminderOutcome = await ref
+        .read(taskReminderReconcilerProvider)
+        .reconcile(task);
+    reminderDebugLog('task_save', 'reconciliation outcome=${reminderOutcome.name}');
     if (task.sourceAnalysisId != null && task.sourceActionKey != null) {
       await ref
           .read(settingsRepositoryProvider)
@@ -150,20 +174,36 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
             'handled',
           );
     }
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    _showReminderFeedback(reminderOutcome);
+    Navigator.of(context).pop();
   }
 
   Future<void> _complete() async {
     await ref
         .read(taskRepositoryProvider)
-        .updateStatus(_existing!.id, TaskStatus.completed, DateTime.now());
+        .updateStatus(
+          _existing!.id,
+          TaskStatus.completed,
+          ref.read(currentTimeProvider),
+        );
+    await ref.read(taskReminderReconcilerProvider).reconcile(
+      _withStatus(_existing!, TaskStatus.completed),
+    );
     if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _reopen() async {
     await ref
         .read(taskRepositoryProvider)
-        .updateStatus(_existing!.id, TaskStatus.open, DateTime.now());
+        .updateStatus(
+          _existing!.id,
+          TaskStatus.open,
+          ref.read(currentTimeProvider),
+        );
+    await ref.read(taskReminderReconcilerProvider).reconcile(
+      _withStatus(_existing!, TaskStatus.open),
+    );
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -187,8 +227,25 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
       ),
     );
     if (confirmed != true || _existing == null) return;
+    // Attempt platform cleanup first; a platform failure must never block the
+    // user-owned local deletion.
+    await ref.read(taskReminderReconcilerProvider).cancel(_existing!.id);
     await ref.read(taskRepositoryProvider).delete(_existing!.id);
     if (mounted) Navigator.of(context).pop();
+  }
+
+  void _showReminderFeedback(TaskReminderOutcome outcome) {
+    final l10n = context.l10n;
+    final message = switch (outcome) {
+      TaskReminderOutcome.permissionDenied => l10n.reminderPermissionDenied,
+      TaskReminderOutcome.unavailable => l10n.reminderUnavailable,
+      TaskReminderOutcome.platformFailure => l10n.reminderNotScheduled,
+      TaskReminderOutcome.reminderTimePassed => l10n.reminderTimePassed,
+      _ => null,
+    };
+    if (message != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override
@@ -308,20 +365,34 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
                 onPressed: _allDay ? null : _pickTime,
               ),
               const SizedBox(height: AppSpacing.md),
-              DropdownButtonFormField<int?>(
-                key: ValueKey('task-reminder-$_reminderMinutesBefore'),
-                initialValue: _reminderMinutesBefore,
+              DropdownButtonFormField<_ReminderOption>(
+                key: const Key('task-reminder'),
+                initialValue: _ReminderOption.fromMinutes(
+                  _reminderMinutesBefore,
+                ),
                 decoration: InputDecoration(labelText: l10n.reminder),
-                items: [
-                  DropdownMenuItem(value: null, child: Text(l10n.noReminder)),
-                  DropdownMenuItem(value: 0, child: Text(l10n.reminderAtTime)),
-                  DropdownMenuItem(
-                    value: 1440,
-                    child: Text(l10n.reminderOneDayBefore),
-                  ),
-                ],
-                onChanged: (value) =>
-                    setState(() => _reminderMinutesBefore = value),
+                items: _ReminderOption.values
+                    .map(
+                      (option) => DropdownMenuItem<_ReminderOption>(
+                        key: Key('task-reminder-option-${option.name}'),
+                        value: option,
+                        child: Text(option.label(l10n)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (option) {
+                  if (option == null) return;
+                  final reminderMinutesBefore = option.reminderMinutesBefore;
+                  reminderDebugLog(
+                    'task_editor',
+                    'reminder selection changed '
+                    'reminderPresent=${reminderMinutesBefore != null} '
+                    'reminderMinutesBefore=$reminderMinutesBefore',
+                  );
+                  setState(
+                    () => _reminderMinutesBefore = reminderMinutesBefore,
+                  );
+                },
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String?>(
@@ -401,6 +472,56 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
 }
 
 T? _firstOrNull<T>(List<T> values) => values.isEmpty ? null : values.first;
+
+/// Presentation-only option mapping. The editor's only reminder state remains
+/// [_TaskEditorPageState._reminderMinutesBefore].
+enum _ReminderOption {
+  none(null),
+  atTime(0),
+  fiveMinutes(5),
+  tenMinutes(10),
+  thirtyMinutes(30),
+  oneHour(60),
+  oneDay(1440);
+
+  const _ReminderOption(this.reminderMinutesBefore);
+
+  final int? reminderMinutesBefore;
+
+  static _ReminderOption fromMinutes(int? value) => _ReminderOption.values
+      .firstWhere(
+        (option) => option.reminderMinutesBefore == value,
+        orElse: () => _ReminderOption.none,
+      );
+
+  String label(AppLocalizations l10n) => switch (this) {
+    _ReminderOption.none => l10n.noReminder,
+    _ReminderOption.atTime => l10n.reminderAtTime,
+    _ReminderOption.fiveMinutes => l10n.reminderFiveMinutesBefore,
+    _ReminderOption.tenMinutes => l10n.reminderTenMinutesBefore,
+    _ReminderOption.thirtyMinutes => l10n.reminderThirtyMinutesBefore,
+    _ReminderOption.oneHour => l10n.reminderOneHourBefore,
+    _ReminderOption.oneDay => l10n.reminderOneDayBefore,
+  };
+}
+
+LocalTask _withStatus(LocalTask task, TaskStatus status) => LocalTask(
+  id: task.id,
+  title: task.title,
+  status: status,
+  provenance: task.provenance,
+  createdAt: task.createdAt,
+  updatedAt: task.updatedAt,
+  dueAt: task.dueAt,
+  allDay: task.allDay,
+  dueTimeMinutes: task.dueTimeMinutes,
+  reminderMinutesBefore: task.reminderMinutesBefore,
+  note: task.note,
+  clientDocumentId: task.clientDocumentId,
+  caseId: task.caseId,
+  sourceAnalysisId: task.sourceAnalysisId,
+  sourceActionKey: task.sourceActionKey,
+);
 
 String _dropdownItemLabel(DropdownMenuItem<String?> item) =>
     (item.child as _DropdownLabel).label;
