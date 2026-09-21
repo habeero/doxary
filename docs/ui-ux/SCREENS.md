@@ -51,7 +51,7 @@ A Case screen follows Documents belonging to one continuing matter. It uses comp
 
 ## Document route: Result / Detail
 
-**Current implementation status:** Classification correction is reachable from the Document route and is functionally implemented. The approved contextual Task/Reminder CTA is **not implemented**: the Result presentation has no production-wired task-creation action. It remains an approved future action only when the analyzed Document has meaningful context such as a required action, deadline, appointment, suggested task, or next action. That future action must preserve the linked Document and derive Organization/Case context where available; it must not become a generic CTA on every Document.
+**Current implementation status:** Classification correction is reachable from the Document route and is functionally implemented. Result offers **Create Task** only for a confirmed action-required result. It opens the existing editor with an editable deterministic draft; it never creates a Task automatically. The draft preserves the current Document and an already-confirmed Case, but does not infer a Case or introduce an Organization field. Informational/no-action, unavailable, and uncertain/partial results do not show a misleading task action. Reminder delivery remains unimplemented.
 
 Result and Document Detail are one stable lifecycle-driven destination. The approved hierarchy is:
 
@@ -64,6 +64,8 @@ Result and Document Detail are one stable lifecycle-driven destination. The appr
 7. Classification.
 8. Expandable secondary details.
 9. Original-document access.
+
+Document Detail also shows a restrained newest-first Analysis History: the Document-added time, each safe success/failure outcome and timestamp, and Open result for a successful historical version. A history item never exposes internal IDs or raw backend errors. Deleting an individual successful analysis requires confirmation that the original Document, other analyses, and linked Tasks remain; it does not offer Document deletion.
 
 Required-action information outranks long or secondary explanation. Sender suggestion, document type, plain explanation, action requirement, deadlines, appointments, amounts, requested documents, next actions, and quality/uncertainty guidance appear only when returned and meaningful.
 
@@ -85,7 +87,7 @@ Classification correction promotes or corrects suggestions without conflating th
 
 ## Tasks
 
-**Current implementation status:** Today, Upcoming, and Completed bucketing/views are functionally implemented and reachable from the Tasks root. Create Task and Edit Task are implemented as focused full-screen forms with title, required date, optional time, All Day, persisted reminder intent, optional Document/Case links, optional note, save, completion, and confirmed delete. Row presentation remains incomplete: contextual metadata and the approved root redesign are still pending.
+**Current implementation status:** Today, Upcoming, Overdue, and Completed bucketing/views are functionally implemented and reachable from the Tasks root in that order. Active tasks use local calendar dates: Overdue is before today, Today is today, and Upcoming is after today; Completed always overrides date grouping. Overdue rows use restrained due-date emphasis. Create Task and Edit Task are implemented as focused full-screen forms with title, required date, optional time, All Day, persisted reminder intent, optional Document/Case links, optional note, save, completion, explicit reopening, and confirmed delete. Row presentation remains incomplete: contextual metadata and the approved root redesign are still pending.
 
 The following is approved intended behavior for the pending Tasks implementation.
 

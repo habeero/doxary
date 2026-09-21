@@ -25,13 +25,28 @@ class LocalTaskRepository implements TaskRepository {
   }
 
   @override
+  Future<LocalTask?> findBySourceAction(
+    String sourceAnalysisId,
+    String sourceActionKey,
+  ) async {
+    final rows = await _select(
+      where: 'source_analysis_id = ? AND source_action_key = ?',
+      variables: [
+        Variable<String>(sourceAnalysisId),
+        Variable<String>(sourceActionKey),
+      ],
+    ).get();
+    return rows.isEmpty ? null : _toEntity(rows.single);
+  }
+
+  @override
   Future<void> save(LocalTask task) async {
     await _database.customStatement(
       '''INSERT INTO tasks (
           id, client_document_id, case_id, title, due_at, all_day,
           due_time_minutes, reminder_minutes_before, note, status, provenance,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          source_analysis_id, source_action_key, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           client_document_id = excluded.client_document_id,
           case_id = excluded.case_id,
@@ -43,6 +58,8 @@ class LocalTaskRepository implements TaskRepository {
           note = excluded.note,
           status = excluded.status,
           provenance = excluded.provenance,
+          source_analysis_id = excluded.source_analysis_id,
+          source_action_key = excluded.source_action_key,
           updated_at = excluded.updated_at''',
       [
         task.id,
@@ -56,6 +73,8 @@ class LocalTaskRepository implements TaskRepository {
         task.note,
         task.status.name,
         task.provenance.name,
+        task.sourceAnalysisId,
+        task.sourceActionKey,
         _milliseconds(task.createdAt),
         _milliseconds(task.updatedAt),
       ],
@@ -96,6 +115,7 @@ class LocalTaskRepository implements TaskRepository {
   }) => _database.customSelect(
     '''SELECT id, client_document_id, case_id, title, due_at, all_day,
         due_time_minutes, reminder_minutes_before, note, status, provenance,
+        source_analysis_id, source_action_key,
         created_at, updated_at FROM tasks
         ${where == null ? '' : 'WHERE $where'}
         ${orderBy == null ? '' : 'ORDER BY $orderBy'}''',
@@ -122,6 +142,8 @@ class LocalTaskRepository implements TaskRepository {
     note: row.readNullable<String>('note'),
     clientDocumentId: row.readNullable<String>('client_document_id'),
     caseId: row.readNullable<String>('case_id'),
+    sourceAnalysisId: row.readNullable<String>('source_analysis_id'),
+    sourceActionKey: row.readNullable<String>('source_action_key'),
   );
 
   int? _milliseconds(DateTime? value) => value?.millisecondsSinceEpoch;

@@ -12,6 +12,7 @@ import 'package:doxary/core/database/app_database.dart'
         AnalysisSuggestedTask;
 import 'package:doxary/core/utils/id_generator.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
+import 'package:doxary/features/document_analysis/domain/analysis_repository.dart';
 import 'package:doxary/features/document_analysis/presentation/analysis_result_page.dart';
 import 'package:doxary/features/document_analysis/presentation/document_detail_page.dart';
 import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
@@ -28,6 +29,7 @@ void main() {
     await _pumpAnalysis(tester, _analysis());
 
     expect(find.byKey(const Key('no-action-state')), findsOneWidget);
+    expect(find.text('Aufgabe erstellen'), findsNothing);
     expect(find.text('Muss etwas getan werden?'), findsOneWidget);
     expect(find.text('Keine Aktion erforderlich'), findsOneWidget);
     expect(find.text('A clear summary'), findsOneWidget);
@@ -128,7 +130,7 @@ void main() {
     expect(find.text('Muss etwas getan werden?'), findsOneWidget);
     expect(find.byKey(const Key('action-required-context')), findsNothing);
     expect(find.text('Reply to the letter'), findsOneWidget);
-    await tester.tap(find.text('Aufgabe oder Erinnerung hinzufügen'));
+    await tester.tap(find.text('Aufgabe erstellen'));
     expect(added, isTrue);
   });
 
@@ -550,6 +552,9 @@ void main() {
                 .overrideWithValue(const AsyncValue.data([])),
             latestAnalysisProvider('doc')
                 .overrideWithValue(AsyncValue.data(_analysis())),
+            analysisHistoryProvider('doc').overrideWithValue(
+              const AsyncValue.data(<AnalysisAttempt>[]),
+            ),
             organizationsProvider.overrideWithValue(const AsyncValue.data([])),
             casesProvider.overrideWithValue(const AsyncValue.data([])),
           ],
@@ -638,6 +643,9 @@ void main() {
           casesProvider.overrideWithValue(const AsyncValue.data([])),
           latestAnalysisProvider('doc')
               .overrideWithValue(AsyncValue.data(_analysis())),
+          analysisHistoryProvider('doc').overrideWithValue(
+            const AsyncValue.data(<AnalysisAttempt>[]),
+          ),
         ],
         child: _app(const DocumentsPage(), const Locale('de')),
       ),

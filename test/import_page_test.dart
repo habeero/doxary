@@ -116,6 +116,9 @@ void main() {
             activeAnalysisOperationsProvider.overrideWithValue(
               const AsyncValue.data([]),
             ),
+            analysisHistoryProvider('generated-1').overrideWithValue(
+              const AsyncValue.data([]),
+            ),
             organizationsProvider.overrideWithValue(const AsyncValue.data([])),
             casesProvider.overrideWithValue(const AsyncValue.data([])),
           ],
@@ -149,13 +152,7 @@ void main() {
       final operations = await database
           .select(database.analysisOperations)
           .get();
-      expect(operations, hasLength(1));
-      expect(
-        operations.every(
-          (row) => row.state == AnalysisLifecycleState.failed.name,
-        ),
-        isTrue,
-      );
+      expect(operations, isEmpty);
       expect(
         (await database.select(database.documents).get()).single.status,
         'needsReview',
@@ -465,6 +462,9 @@ void main() {
             activeAnalysisOperationsProvider.overrideWithValue(
               const AsyncValue.data([]),
             ),
+            analysisHistoryProvider('generated-1').overrideWithValue(
+              const AsyncValue.data([]),
+            ),
             organizationsProvider.overrideWithValue(const AsyncValue.data([])),
             casesProvider.overrideWithValue(const AsyncValue.data([])),
           ],
@@ -624,6 +624,12 @@ void main() {
           idGeneratorProvider.overrideWithValue(_SequenceIdGenerator()),
           importGatewayProvider.overrideWithValue(_SelectionGateway()),
           analysisRemoteDataSourceProvider.overrideWithValue(remote),
+          activeAnalysisOperationsProvider.overrideWithValue(
+            const AsyncValue.data([]),
+          ),
+          analysisHistoryProvider('generated-1').overrideWithValue(
+            const AsyncValue.data([]),
+          ),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
         ],

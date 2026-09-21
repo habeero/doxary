@@ -30,6 +30,8 @@ void main() {
           note: 'Bring documents',
           clientDocumentId: 'document-1',
           caseId: 'case-1',
+          sourceAnalysisId: 'analysis-1',
+          sourceActionKey: 'suggested-task:0',
         ),
       );
 
@@ -40,6 +42,15 @@ void main() {
       expect(saved?.note, 'Bring documents');
       expect(saved?.clientDocumentId, 'document-1');
       expect(saved?.caseId, 'case-1');
+      expect(saved?.sourceAnalysisId, 'analysis-1');
+      expect(saved?.sourceActionKey, 'suggested-task:0');
+      expect(
+        (await repository.findBySourceAction(
+          'analysis-1',
+          'suggested-task:0',
+        ))?.id,
+        id,
+      );
 
       await repository.save(
         LocalTask(
@@ -52,6 +63,12 @@ void main() {
           dueAt: DateTime(2026, 9, 25),
           allDay: true,
           dueTimeMinutes: null,
+          reminderMinutesBefore: 1440,
+          note: 'Bring documents',
+          clientDocumentId: 'document-1',
+          caseId: 'case-1',
+          sourceAnalysisId: 'analysis-1',
+          sourceActionKey: 'suggested-task:0',
         ),
       );
       final allDay = await repository.getById(id);
@@ -60,6 +77,17 @@ void main() {
 
       await repository.updateStatus(id, TaskStatus.completed, createdAt);
       expect((await repository.getById(id))?.status, TaskStatus.completed);
+      await repository.updateStatus(id, TaskStatus.open, createdAt);
+      final reopened = await repository.getById(id);
+      expect(reopened?.status, TaskStatus.open);
+      expect(reopened?.id, id);
+      expect(reopened?.dueAt, DateTime(2026, 9, 25));
+      expect(reopened?.allDay, isTrue);
+      expect(reopened?.dueTimeMinutes, isNull);
+      expect(reopened?.reminderMinutesBefore, 1440);
+      expect(reopened?.note, 'Bring documents');
+      expect(reopened?.clientDocumentId, 'document-1');
+      expect(reopened?.caseId, 'case-1');
       await repository.delete(id);
       expect(await repository.getById(id), isNull);
     },

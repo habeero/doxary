@@ -51,6 +51,7 @@ final apiClientProvider = Provider<DoxaryApiClient>((ref) {
 final deviceLocaleProvider = Provider<Locale>(
   (ref) => WidgetsBinding.instance.platformDispatcher.locale,
 );
+final currentTimeProvider = Provider<DateTime>((ref) => DateTime.now());
 final analysisRemoteDataSourceProvider =
     Provider<DocumentAnalysisRemoteDataSource>(
       (ref) =>
@@ -63,6 +64,14 @@ final latestAnalysisProvider = FutureProvider.family<DocumentAnalysis?, String>(
   (ref, clientDocumentId) =>
       ref.watch(analysisRepositoryProvider).getLatest(clientDocumentId),
 );
+final analysisByIdProvider = FutureProvider.family<DocumentAnalysis?, String>(
+  (ref, analysisId) => ref.watch(analysisRepositoryProvider).getById(analysisId),
+);
+final analysisHistoryProvider =
+    FutureProvider.family<List<AnalysisAttempt>, String>(
+      (ref, clientDocumentId) =>
+          ref.watch(analysisRepositoryProvider).getHistory(clientDocumentId),
+    );
 final analysisWorkflowProvider = Provider<AnalysisWorkflow>(
   (ref) => AnalysisWorkflow(
     ref.watch(analysisRemoteDataSourceProvider),
@@ -129,6 +138,12 @@ final openTasksProvider = StreamProvider<List<LocalTask>>(
 final completedTasksProvider = StreamProvider<List<LocalTask>>(
   (ref) => ref.watch(taskRepositoryProvider).watchCompleted(),
 );
+final taskForSourceActionProvider =
+    FutureProvider.family<LocalTask?, ({String analysisId, String actionKey})>(
+      (ref, source) => ref
+          .watch(taskRepositoryProvider)
+          .findBySourceAction(source.analysisId, source.actionKey),
+    );
 
 Locale defaultUiLocaleForDevice(Locale deviceLocale) =>
     deviceLocale.languageCode == 'ar' ? const Locale('ar') : const Locale('de');

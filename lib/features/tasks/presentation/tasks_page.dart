@@ -17,6 +17,7 @@ class TasksPage extends ConsumerWidget {
     final l10n = context.l10n;
     final open = ref.watch(openTasksProvider);
     final completed = ref.watch(completedTasksProvider);
+    final now = ref.watch(currentTimeProvider);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -32,13 +33,14 @@ class TasksPage extends ConsumerWidget {
           ],
         ),
         body: DefaultTabController(
-          length: 3,
+          length: 4,
           child: Column(
             children: [
               TabBar(
                 tabs: [
                   Tab(text: l10n.today),
                   Tab(text: l10n.upcoming),
+                  Tab(text: l10n.overdue),
                   Tab(text: l10n.completed),
                 ],
               ),
@@ -49,7 +51,7 @@ class TasksPage extends ConsumerWidget {
                       final buckets = bucketTasks(
                         open: openItems,
                         completed: completedItems,
-                        now: DateTime.now(),
+                        now: now,
                       );
                       return TabBarView(
                         children: [
@@ -60,6 +62,11 @@ class TasksPage extends ConsumerWidget {
                           _TaskList(
                             tasks: buckets.upcoming,
                             emptyTitle: l10n.noUpcomingTasks,
+                          ),
+                          _TaskList(
+                            tasks: buckets.overdue,
+                            emptyTitle: l10n.noTasks,
+                            overdue: true,
                           ),
                           _TaskList(
                             tasks: buckets.completed,
@@ -87,9 +94,14 @@ class TasksPage extends ConsumerWidget {
 }
 
 class _TaskList extends StatelessWidget {
-  const _TaskList({required this.tasks, required this.emptyTitle});
+  const _TaskList({
+    required this.tasks,
+    required this.emptyTitle,
+    this.overdue = false,
+  });
   final List<LocalTask> tasks;
   final String emptyTitle;
+  final bool overdue;
   @override
   Widget build(BuildContext context) => tasks.isEmpty
       ? AppEmptyState(
@@ -101,14 +113,26 @@ class _TaskList extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           itemCount: tasks.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (_, index) => AppSectionCard(
-            child: ListTile(
+          itemBuilder: (_, index) {
+            final task = tasks[index];
+            final dueAt = task.dueAt;
+            return AppSectionCard(
+              child: ListTile(
               leading: const Icon(Icons.check_box_outline_blank),
-              title: Text(tasks[index].title),
+              title: Text(task.title),
+              subtitle: overdue && dueAt != null
+                  ? Text(
+                      '${context.l10n.taskOverdue} · ${MaterialLocalizations.of(context).formatMediumDate(dueAt)}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    )
+                  : null,
               onTap: () =>
                   GoRouter.of(context)
-                      .go('${AppRoutes.tasks}/edit/${tasks[index].id}'),
-            ),
-          ),
+                      .go('${AppRoutes.tasks}/edit/${task.id}'),
+              ),
+            );
+          },
         );
 }

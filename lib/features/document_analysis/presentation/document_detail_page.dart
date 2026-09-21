@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
+import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/errors/app_error.dart';
 import '../domain/analysis_output_language.dart';
+import '../domain/analysis_repository.dart';
 import '../domain/analysis_submission.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../../documents/domain/classification/classification_selection.dart';
 import '../../documents/presentation/document_display.dart';
+import '../../tasks/presentation/task_draft_prefill.dart';
 import 'analysis_result_page.dart';
 
 class DocumentDetailPage extends ConsumerStatefulWidget {
@@ -23,6 +27,7 @@ class DocumentDetailPage extends ConsumerStatefulWidget {
 class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
   bool _retrying = false;
   String? _actionMessage;
+  String? _selectedAnalysisId;
 
   Future<void> _retryAnalysis(List<DocumentFile> files) async {
     if (_retrying || files.isEmpty) return;
@@ -44,9 +49,10 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
       await workflow.poll(accepted.operationId, widget.clientDocumentId);
       ref
         ..invalidate(documentProvider(widget.clientDocumentId))
-        ..invalidate(latestAnalysisProvider(widget.clientDocumentId));
+        ..invalidate(latestAnalysisProvider(widget.clientDocumentId))
+        ..invalidate(analysisHistoryProvider(widget.clientDocumentId));
     } catch (error) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() {
         _actionMessage = error is RemoteApiError && error.retryable
             ? context.l10n.operationRetryableError
@@ -57,18 +63,59 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     }
   }
 
+  Future<void> _deleteAnalysis(String analysisId) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l.deleteAnalysisTitle),
+        content: Text(l.deleteAnalysisMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.deleteAnalysis),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(analysisRepositoryProvider).deleteAnalysis(analysisId);
+    if (!mounted) return;
+    setState(() => _selectedAnalysisId = null);
+    ref
+      ..invalidate(latestAnalysisProvider(widget.clientDocumentId))
+      ..invalidate(analysisByIdProvider(analysisId))
+      ..invalidate(analysisHistoryProvider(widget.clientDocumentId))
+      ..invalidate(documentProvider(widget.clientDocumentId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final document = ref.watch(documentProvider(widget.clientDocumentId));
     final files = ref.watch(documentFilesProvider(widget.clientDocumentId));
-    final analysis = ref.watch(latestAnalysisProvider(widget.clientDocumentId));
+    final latestAnalysis = ref.watch(
+      latestAnalysisProvider(widget.clientDocumentId),
+    );
+    final analysis = _selectedAnalysisId == null
+        ? latestAnalysis
+        : ref.watch(analysisByIdProvider(_selectedAnalysisId!));
+    final history = ref.watch(analysisHistoryProvider(widget.clientDocumentId));
     final organizations = ref.watch(organizationsProvider);
     final cases = ref.watch(casesProvider);
     final localDocument = _asyncValue(document);
-    final latest = _asyncValue(analysis);
+    final latest = _asyncValue(latestAnalysis);
+    final selected = _asyncValue(analysis);
     final organizationId = localDocument?.organizationId;
     final caseId = localDocument?.caseId;
+    final confirmedCaseId =
+        localDocument?.classificationState == ClassificationState.confirmed
+        ? caseId
+        : null;
     final organizationName = organizationId == null
         ? null
         : _findOrganization(_asyncValue(organizations), organizationId);
@@ -96,6 +143,41 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
       file: _first(_asyncValue(files)),
       organizationName: organizationName,
     );
+    final taskPrefill = selected == null
+        ? null
+        : TaskDraftPrefill.fromAnalysis(
+            analysis: selected,
+            clientDocumentId: widget.clientDocumentId,
+            caseId: confirmedCaseId,
+            l10n: l10n,
+          );
+    final existingSourceTask = taskPrefill?.sourceAnalysisId == null ||
+            taskPrefill?.sourceActionKey == null
+        ? null
+        : ref
+            .watch(
+              taskForSourceActionProvider((
+                analysisId: taskPrefill!.sourceAnalysisId!,
+                actionKey: taskPrefill.sourceActionKey!,
+              )),
+            )
+            .asData
+            ?.value;
+    Future<void> createTask() async {
+      final task = await ref
+          .read(taskRepositoryProvider)
+          .findBySourceAction(
+            taskPrefill!.sourceAnalysisId!,
+            taskPrefill.sourceActionKey!,
+          );
+      if (!context.mounted) return;
+      GoRouter.of(context).go(
+        task == null
+            ? '${AppRoutes.tasks}/create'
+            : '${AppRoutes.tasks}/edit/${task.id}',
+        extra: task == null ? taskPrefill : null,
+      );
+    }
     final classificationSection = localDocument == null
         ? null
         : _ClassificationSection(
@@ -123,6 +205,12 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
             ),
           );
     final originalSection = _OriginalDocumentSection(files: files);
+    final historySection = _AnalysisHistorySection(
+      document: localDocument,
+      history: history,
+      onOpen: (analysisId) => setState(() => _selectedAnalysisId = analysisId),
+      onDelete: _deleteAnalysis,
+    );
     final fileItems = _asyncValue(files) ?? const <DocumentFile>[];
     final body = switch (analysis) {
       AsyncLoading() => const Center(child: CircularProgressIndicator()),
@@ -130,6 +218,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
         title: title,
         technicalFailure: true,
         classificationSection: classificationSection,
+        analysisHistorySection: historySection,
         originalDocumentSection: originalSection,
         onRetry: fileItems.isEmpty ? null : () => _retryAnalysis(fileItems),
         actionInProgress: _retrying,
@@ -142,6 +231,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                       title: title,
                       technicalFailure: true,
                       classificationSection: classificationSection,
+                      analysisHistorySection: historySection,
                       originalDocumentSection: originalSection,
                       onRetry: fileItems.isEmpty
                           ? null
@@ -152,13 +242,19 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                   : _NoAnalysisView(
                       title: title,
                       classificationSection: classificationSection,
+                      analysisHistorySection: historySection,
                       originalDocumentSection: originalSection,
                     )
             : DocumentResultView(
                 title: title,
                 analysis: value,
                 classificationSection: classificationSection,
+                analysisHistorySection: historySection,
                 originalDocumentSection: originalSection,
+                onAddTask: taskPrefill == null ? null : createTask,
+                taskActionLabel: existingSourceTask == null
+                    ? null
+                    : l10n.viewTask,
                 actionInProgress: _retrying,
                 actionMessage: _actionMessage,
               ),
@@ -182,10 +278,12 @@ class _NoAnalysisView extends StatelessWidget {
   const _NoAnalysisView({
     required this.title,
     required this.classificationSection,
+    required this.analysisHistorySection,
     required this.originalDocumentSection,
   });
   final String title;
   final Widget? classificationSection;
+  final Widget analysisHistorySection;
   final Widget originalDocumentSection;
 
   @override
@@ -209,6 +307,8 @@ class _NoAnalysisView extends StatelessWidget {
       ),
       const SizedBox(height: AppSpacing.lg),
       Text(context.l10n.noSavedAnalysis),
+      const SizedBox(height: AppSpacing.lg),
+      analysisHistorySection,
       if (classificationSection != null) ...[
         const SizedBox(height: AppSpacing.lg),
         classificationSection!,
@@ -217,6 +317,126 @@ class _NoAnalysisView extends StatelessWidget {
       originalDocumentSection,
     ],
   );
+}
+
+class _AnalysisHistorySection extends StatelessWidget {
+  const _AnalysisHistorySection({
+    required this.document,
+    required this.history,
+    required this.onOpen,
+    required this.onDelete,
+  });
+
+  final LocalDocument? document;
+  final AsyncValue<List<AnalysisAttempt>> history;
+  final ValueChanged<String> onOpen;
+  final ValueChanged<String> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final items = history.asData?.value ?? const <AnalysisAttempt>[];
+    final dateFormat = MaterialLocalizations.of(context);
+    String dateTime(DateTime value) =>
+        '${dateFormat.formatMediumDate(value)} ${dateFormat.formatTimeOfDay(TimeOfDay.fromDateTime(value))}';
+    return Column(
+      key: const Key('analysis-history-section'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l.analysisHistory,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (document != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text('${l.documentAdded}: ${dateTime(document!.createdAt)}'),
+        ],
+        const SizedBox(height: AppSpacing.sm),
+        if (history.isLoading)
+          const SizedBox(height: AppSpacing.xs)
+        else if (items.isEmpty)
+          Text(l.noSavedAnalysis)
+        else
+          for (final attempt in items)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withValues(alpha: .7),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        switch (attempt.status) {
+                          AnalysisAttemptStatus.succeeded => Icons.check_circle_outline,
+                          AnalysisAttemptStatus.failed => Icons.error_outline,
+                          AnalysisAttemptStatus.pending => Icons.hourglass_top_outlined,
+                        },
+                        color: switch (attempt.status) {
+                          AnalysisAttemptStatus.succeeded => AppColors.successFor(Theme.of(context).brightness),
+                          AnalysisAttemptStatus.failed => Theme.of(context).colorScheme.error,
+                          AnalysisAttemptStatus.pending => Theme.of(context).colorScheme.primary,
+                        },
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              switch (attempt.status) {
+                                AnalysisAttemptStatus.succeeded => l.analysisSuccessful,
+                                AnalysisAttemptStatus.failed => l.analysisFailedHistory,
+                                AnalysisAttemptStatus.pending => l.analysisPendingHistory,
+                              },
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            Text(
+                              '${l.analysisDate}: ${dateTime(attempt.terminalAt ?? attempt.startedAt)}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            if (attempt.analysisId != null) ...[
+                              const SizedBox(height: AppSpacing.xs),
+                              Wrap(
+                                spacing: AppSpacing.sm,
+                                children: [
+                                  TextButton(
+                                    key: Key('open-analysis-${attempt.analysisId}'),
+                                    onPressed: () => onOpen(attempt.analysisId!),
+                                    child: Text(l.openResult),
+                                  ),
+                                  TextButton(
+                                    key: Key('delete-analysis-${attempt.analysisId}'),
+                                    onPressed: () => onDelete(attempt.analysisId!),
+                                    child: Text(
+                                      l.deleteAnalysis,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.error,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+      ],
+    );
+  }
 }
 
 class _ClassificationSection extends StatelessWidget {

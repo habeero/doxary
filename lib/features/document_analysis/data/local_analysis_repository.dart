@@ -36,6 +36,48 @@ class LocalAnalysisRepository implements AnalysisRepository {
         .asyncMap((rows) => rows.isEmpty ? null : _toDomain(rows.single));
   }
 
+  @override
+  Future<DocumentAnalysis?> getById(String analysisId) async {
+    final row = await (_database.select(
+      _database.analyses,
+    )..where((item) => item.id.equals(analysisId))).getSingleOrNull();
+    return row == null ? null : _toDomain(row);
+  }
+
+  @override
+  Future<List<AnalysisAttempt>> getHistory(String clientDocumentId) =>
+      _historyQuery(clientDocumentId)
+          .get()
+          .then((rows) => rows.map(_attemptFromRow).toList(growable: false));
+
+  @override
+  Stream<List<AnalysisAttempt>> watchHistory(String clientDocumentId) =>
+      _historyQuery(clientDocumentId)
+          .watch()
+          .map((rows) => rows.map(_attemptFromRow).toList(growable: false));
+
+  Selectable<QueryRow> _historyQuery(String clientDocumentId) =>
+      _database.customSelect(
+        '''SELECT attempt_id, client_document_id, started_at, terminal_at,
+            status, result_analysis_id, failure_code, retryable
+           FROM analysis_attempt_history
+           WHERE client_document_id = ?
+           ORDER BY COALESCE(terminal_at, started_at) DESC, started_at DESC''',
+        variables: [Variable<String>(clientDocumentId)],
+        readsFrom: {_database.analyses, _database.analysisOperations},
+      );
+
+  AnalysisAttempt _attemptFromRow(QueryRow row) => AnalysisAttempt(
+    id: row.read<String>('attempt_id'),
+    clientDocumentId: row.read<String>('client_document_id'),
+    startedAt: _dateTime(row.read<int>('started_at')),
+    terminalAt: _dateTimeOrNull(row.readNullable<int>('terminal_at')),
+    status: AnalysisAttemptStatus.values.byName(row.read<String>('status')),
+    analysisId: row.readNullable<String>('result_analysis_id'),
+    failureCode: row.readNullable<String>('failure_code'),
+    retryable: _boolOrNull(row.readNullable<int>('retryable')),
+  );
+
   Future<DocumentAnalysis> _toDomain(Analyse row) async {
     final qualityRows = await (_database.select(
       _database.analysisQualityReasons,
@@ -187,6 +229,7 @@ class LocalAnalysisRepository implements AnalysisRepository {
     required String clientDocumentId,
     required AnalysisLifecycleState state,
     String? failureCode,
+    bool? retryable,
   }) async {
     final now = DateTime.now();
     await _database.transaction(() async {
@@ -211,6 +254,29 @@ class LocalAnalysisRepository implements AnalysisRepository {
               updatedAt: now,
             ),
           );
+      await _database.customStatement(
+        '''INSERT INTO analysis_attempt_history (
+            attempt_id, client_document_id, started_at, terminal_at, status,
+            result_analysis_id, failure_code, retryable
+          ) VALUES (?, ?, ?, ?, ?, NULL, ?, ?)
+          ON CONFLICT(attempt_id) DO UPDATE SET
+            terminal_at = excluded.terminal_at,
+            status = excluded.status,
+            failure_code = excluded.failure_code,
+            retryable = excluded.retryable''',
+        [
+          operationId,
+          clientDocumentId,
+          now.millisecondsSinceEpoch,
+          state == AnalysisLifecycleState.failed ||
+                  state == AnalysisLifecycleState.expired
+              ? now.millisecondsSinceEpoch
+              : null,
+          _attemptStatus(state).name,
+          failureCode,
+          retryable == null ? null : (retryable ? 1 : 0),
+        ],
+      );
       await (_database.update(
         _database.documents,
       )..where((row) => row.clientDocumentId.equals(clientDocumentId))).write(
@@ -219,12 +285,31 @@ class LocalAnalysisRepository implements AnalysisRepository {
           updatedAt: Value(now),
         ),
       );
+      if (state == AnalysisLifecycleState.failed ||
+          state == AnalysisLifecycleState.expired) {
+        await (_database.delete(_database.analysisOperations)
+              ..where((row) => row.operationId.equals(operationId)))
+            .go();
+      }
     });
   }
 
   @override
   Future<void> saveCompleted(DocumentAnalysis analysis) async {
     await _database.transaction(() async {
+      final pendingOperation =
+          await (_database.select(_database.analysisOperations)
+                ..where(
+                  (row) =>
+                      row.clientDocumentId.equals(analysis.clientDocumentId) &
+                      row.state.isIn([
+                        AnalysisLifecycleState.accepted.name,
+                        AnalysisLifecycleState.processing.name,
+                      ]),
+                )
+                ..orderBy([(row) => OrderingTerm.desc(row.createdAt)])
+                ..limit(1))
+              .getSingleOrNull();
       await _database
           .into(_database.analyses)
           .insertOnConflictUpdate(
@@ -442,7 +527,98 @@ class LocalAnalysisRepository implements AnalysisRepository {
             (row) => row.clientDocumentId.equals(analysis.clientDocumentId),
           ))
           .go();
+      await _database.customStatement(
+        '''INSERT INTO analysis_attempt_history (
+            attempt_id, client_document_id, started_at, terminal_at, status,
+            result_analysis_id, failure_code, retryable
+          ) VALUES (?, ?, ?, ?, 'succeeded', ?, NULL, NULL)
+          ON CONFLICT(attempt_id) DO UPDATE SET
+            terminal_at = excluded.terminal_at,
+            status = 'succeeded',
+            result_analysis_id = excluded.result_analysis_id,
+            failure_code = NULL,
+            retryable = NULL''',
+        [
+          pendingOperation?.operationId ?? 'analysis:${analysis.id}',
+          analysis.clientDocumentId,
+          pendingOperation?.createdAt.millisecondsSinceEpoch ??
+              analysis.createdAt.millisecondsSinceEpoch,
+          analysis.createdAt.millisecondsSinceEpoch,
+          analysis.id,
+        ],
+      );
     });
+  }
+
+  @override
+  Future<void> deleteAnalysis(String analysisId) async {
+    await _database.transaction(() async {
+      final analysis = await (_database.select(
+        _database.analyses,
+      )..where((row) => row.id.equals(analysisId))).getSingleOrNull();
+      if (analysis == null) return;
+      await _deleteAnalysisChildren(analysisId);
+      await (_database.delete(
+        _database.analyses,
+      )..where((row) => row.id.equals(analysisId))).go();
+      await _database.customStatement(
+        'DELETE FROM analysis_attempt_history WHERE result_analysis_id = ?',
+        [analysisId],
+      );
+      final remaining = await (_database.select(_database.analyses)
+            ..where(
+              (row) => row.clientDocumentId.equals(analysis.clientDocumentId),
+            )
+            ..limit(1))
+          .getSingleOrNull();
+      await (_database.update(_database.documents)
+            ..where(
+              (row) => row.clientDocumentId.equals(analysis.clientDocumentId),
+            ))
+          .write(
+            DocumentsCompanion(
+              status: Value(
+                remaining == null
+                    ? DocumentStatus.needsReview.name
+                    : DocumentStatus.analyzed.name,
+              ),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
+    });
+  }
+
+  Future<void> _deleteAnalysisChildren(String analysisId) async {
+    await (_database.delete(_database.analysisQualityReasons)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.sourceReferences)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisNextActions)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisUncertainties)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisPracticalStates)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisDeadlines)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisAppointments)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisAmounts)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisRequiredDocuments)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
+    await (_database.delete(_database.analysisSuggestedTasks)
+          ..where((item) => item.analysisId.equals(analysisId)))
+        .go();
   }
 
   @override
@@ -516,4 +692,17 @@ class LocalAnalysisRepository implements AnalysisRepository {
       result.analysisStatus == AnalysisStatus.complete
       ? DocumentStatus.analyzed
       : DocumentStatus.needsReview;
+
+  AnalysisAttemptStatus _attemptStatus(AnalysisLifecycleState state) =>
+      switch (state) {
+        AnalysisLifecycleState.failed || AnalysisLifecycleState.expired =>
+          AnalysisAttemptStatus.failed,
+        AnalysisLifecycleState.succeeded => AnalysisAttemptStatus.succeeded,
+        _ => AnalysisAttemptStatus.pending,
+      };
+
+  DateTime _dateTime(int value) => DateTime.fromMillisecondsSinceEpoch(value);
+  DateTime? _dateTimeOrNull(int? value) =>
+      value == null ? null : _dateTime(value);
+  bool? _boolOrNull(int? value) => value == null ? null : value != 0;
 }

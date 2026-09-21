@@ -86,6 +86,7 @@ class AnalysisWorkflow {
             clientDocumentId: clientDocumentId,
             state: AnalysisLifecycleState.failed,
             failureCode: operation.failureCode,
+            retryable: operation.failureRetryable,
           );
           throw RemoteApiError(
             'The analysis operation failed.',
@@ -115,6 +116,7 @@ class AnalysisWorkflow {
             clientDocumentId: operation.clientDocumentId,
             state: AnalysisLifecycleState.expired,
             failureCode: error.code,
+            retryable: error.retryable,
           );
         }
       } on RemoteError {

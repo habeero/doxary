@@ -6,12 +6,14 @@ import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../documents/domain/entities/domain_entities.dart';
 import '../../documents/presentation/document_display.dart';
+import 'task_draft_prefill.dart';
 
 class TaskEditorPage extends ConsumerStatefulWidget {
-  const TaskEditorPage.create({super.key}) : taskId = null;
-  const TaskEditorPage.edit({super.key, required this.taskId});
+  const TaskEditorPage.create({super.key, this.prefill}) : taskId = null;
+  const TaskEditorPage.edit({super.key, required this.taskId}) : prefill = null;
 
   final String? taskId;
+  final TaskDraftPrefill? prefill;
 
   @override
   ConsumerState<TaskEditorPage> createState() => _TaskEditorPageState();
@@ -36,7 +38,27 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
   @override
   void initState() {
     super.initState();
-    if (_editing) _load();
+    if (_editing) {
+      _load();
+    } else {
+      _applyPrefill(widget.prefill);
+    }
+  }
+
+  void _applyPrefill(TaskDraftPrefill? prefill) {
+    if (prefill == null) return;
+    _title.text = prefill.title;
+    _note.text = prefill.note ?? '';
+    _date = prefill.dueDate;
+    _allDay = prefill.allDay;
+    _time = prefill.dueTimeMinutes == null
+        ? null
+        : TimeOfDay(
+            hour: prefill.dueTimeMinutes! ~/ 60,
+            minute: prefill.dueTimeMinutes! % 60,
+          );
+    _documentId = prefill.clientDocumentId;
+    _caseId = prefill.caseId;
   }
 
   Future<void> _load() async {
@@ -114,6 +136,10 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
       note: _note.text.trim().isEmpty ? null : _note.text.trim(),
       clientDocumentId: _documentId,
       caseId: _caseId,
+      sourceAnalysisId:
+          existing?.sourceAnalysisId ?? widget.prefill?.sourceAnalysisId,
+      sourceActionKey:
+          existing?.sourceActionKey ?? widget.prefill?.sourceActionKey,
     );
     await ref.read(taskRepositoryProvider).save(task);
     if (mounted) Navigator.of(context).pop();
@@ -123,6 +149,13 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
     await ref
         .read(taskRepositoryProvider)
         .updateStatus(_existing!.id, TaskStatus.completed, DateTime.now());
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _reopen() async {
+    await ref
+        .read(taskRepositoryProvider)
+        .updateStatus(_existing!.id, TaskStatus.open, DateTime.now());
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -321,11 +354,19 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
               if (_editing && _existing != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 OutlinedButton(
-                  key: const Key('task-complete'),
+                  key: Key(
+                    _existing!.status == TaskStatus.completed
+                        ? 'task-reopen'
+                        : 'task-complete',
+                  ),
                   onPressed: _existing!.status == TaskStatus.completed
-                      ? null
+                      ? _reopen
                       : _complete,
-                  child: Text(l10n.markCompleted),
+                  child: Text(
+                    _existing!.status == TaskStatus.completed
+                        ? l10n.reopenTask
+                        : l10n.markCompleted,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 TextButton(

@@ -10,6 +10,7 @@ import '../../features/documents/presentation/documents_page.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/settings/presentation/profile_page.dart';
 import '../../features/tasks/presentation/tasks_page.dart';
+import '../../features/tasks/presentation/task_draft_prefill.dart';
 import '../../features/tasks/presentation/task_editor_page.dart';
 import 'app_shell.dart';
 
@@ -133,7 +134,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'create',
-                    builder: (context, state) => const TaskEditorPage.create(),
+                    builder: (context, state) => TaskEditorPage.create(
+                      prefill: state.extra as TaskDraftPrefill?,
+                    ),
                   ),
                   GoRoute(
                     path: 'edit/:taskId',

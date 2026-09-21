@@ -174,9 +174,14 @@ void main() {
     },
   );
 
-  test('task buckets separate today, upcoming, and completed', () {
+  test('task buckets separate overdue, today, upcoming, and completed', () {
     final now = DateTime(2026, 1, 10, 9);
-    LocalTask task(String id, TaskStatus status, DateTime? dueAt) => LocalTask(
+    LocalTask task(
+      String id,
+      TaskStatus status,
+      DateTime? dueAt, {
+      bool allDay = false,
+    }) => LocalTask(
       id: id,
       title: id,
       status: status,
@@ -184,18 +189,38 @@ void main() {
       createdAt: now,
       updatedAt: now,
       dueAt: dueAt,
+      allDay: allDay,
     );
     final buckets = bucketTasks(
       open: [
+        task('overdue', TaskStatus.open, DateTime(2026, 1, 9)),
+        task('timed-overdue', TaskStatus.open, DateTime(2026, 1, 9, 23)),
+        task(
+          'all-day-overdue',
+          TaskStatus.open,
+          DateTime(2026, 1, 9),
+          allDay: true,
+        ),
+        task('done-in-open', TaskStatus.completed, DateTime(2026, 1, 9)),
         task('today', TaskStatus.open, DateTime(2026, 1, 10, 18)),
         task('later', TaskStatus.open, DateTime(2026, 1, 11)),
       ],
-      completed: [task('done', TaskStatus.completed, null)],
+      completed: [
+        task('done-yesterday', TaskStatus.completed, DateTime(2026, 1, 9)),
+        task('done-today', TaskStatus.completed, DateTime(2026, 1, 10)),
+      ],
       now: now,
+    );
+    expect(
+      buckets.overdue.map((task) => task.id),
+      ['overdue', 'timed-overdue', 'all-day-overdue'],
     );
     expect(buckets.today.single.id, 'today');
     expect(buckets.upcoming.single.id, 'later');
-    expect(buckets.completed.single.id, 'done');
+    expect(
+      buckets.completed.map((task) => task.id),
+      ['done-yesterday', 'done-today', 'done-in-open'],
+    );
   });
 
   test('unavailable import is an explicit typed capability failure', () async {
@@ -345,6 +370,11 @@ class _EmptyTasks implements TaskRepository {
   Future<void> delete(String taskId) async {}
   @override
   Future<LocalTask?> getById(String taskId) async => null;
+  @override
+  Future<LocalTask?> findBySourceAction(
+    String sourceAnalysisId,
+    String sourceActionKey,
+  ) async => null;
   @override
   Future<void> save(LocalTask task) async {}
   @override

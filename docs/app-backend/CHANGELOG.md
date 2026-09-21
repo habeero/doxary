@@ -1,5 +1,9 @@
 # App/backend integration changelog
 
+## 2026-09-21
+
+- Clarified that terminal operation correlation is distinct from Flutter-local durable analysis-attempt history and never becomes a server Document lifecycle.
+
 ## 2026-09-20
 
 - Recorded the implemented transient Processing-overlay dismissal behavior; completion notification and real cancellation remain deferred.

@@ -18,7 +18,7 @@ The client performs bounded polling of a known operation. `accepted` and `proces
 
 Only user-initiated reanalysis may start a new submission and idempotency key; it retains the existing local Document and its files. A terminal backend failure is surfaced as a typed, user-safe client error and must not silently resubmit. Expiry or another unrecoverable operation state is explicit and recoverable through user-initiated reanalysis.
 
-After restart, the client resumes only known accepted or processing operations whose locally correlated Document is still processing. It does not infer or rediscover unknown backend work. A correlation conflicting with an already terminal local Document is cleared without fabricating completion. Completion removes the pending-operation correlation after the result has been safely persisted; terminal failure leaves the Document in its recovery lifecycle but no longer in the active-processing set.
+After restart, the client resumes only known accepted or processing operations whose locally correlated Document is still processing. It does not infer or rediscover unknown backend work. A correlation conflicting with an already terminal local Document is cleared without fabricating completion. Completion removes the pending-operation correlation after the result has been safely persisted; terminal failure leaves the Document in its recovery lifecycle but no longer in the active-processing set. Flutter-local durable attempt history records only safe outcome metadata and remains separate from this transient correlation; it does not expose backend operation identifiers or create a server Document lifecycle.
 
 ## Processing dismissal and cancellation contract
 

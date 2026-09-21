@@ -2,6 +2,11 @@
 
 ## 2026-09-21
 
+- Established independent Document/Analysis lifecycles: successful versions and safe failed-attempt history are retained per Document, while active operation correlation remains transient; analysis deletion preserves Documents, files, classification, and Tasks.
+- Added non-cascading Result-action Task provenance and source-action idempotency; an existing source Task is reopened rather than duplicated.
+- Defined the future separate Document/source-file deletion decision and its required distinctions.
+- Defined local-calendar Task grouping (Overdue/Today/Upcoming/Completed) and explicit reopen semantics that preserve Task metadata and due date.
+- Added the ephemeral Result-to-Task draft boundary: deterministic analysis prefill is editable, preserves authoritative Document/Case IDs, and never persists or creates a Task before explicit Save.
 - Added durable local Task form state: explicit All Day, optional time-of-day, reminder intent, note, and deletion, with reminder delivery deliberately deferred.
 - Defined Analyze camera-draft editing ownership: Review uses working copies, cancel preserves the original draft, Continue replaces it, and only submission creates a Document or operation.
 - Deferred native pinch zoom and Samsung S22 camera-quality investigation after real-device CameraX/session instability; stable camera lifecycle remains the release prerequisite.

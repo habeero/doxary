@@ -316,7 +316,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -325,6 +325,9 @@ class AppDatabase extends _$AppDatabase {
       // The generated table definition remains compatible with earlier
       // clients; create the v7 task metadata columns explicitly as well.
       await _addTaskFormColumns();
+      await _addTaskProvenanceColumns();
+      await _createTaskSourceActionIndex();
+      await _createAnalysisAttemptHistory();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -362,6 +365,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 7) {
         await _addTaskFormColumns();
       }
+      if (from < 8) {
+        await _addTaskProvenanceColumns();
+        await _createTaskSourceActionIndex();
+        await _createAnalysisAttemptHistory();
+        await _backfillAnalysisAttemptHistory();
+      }
     },
   );
 
@@ -376,6 +385,54 @@ class AppDatabase extends _$AppDatabase {
       'ALTER TABLE tasks ADD COLUMN reminder_minutes_before INTEGER',
     );
     await customStatement('ALTER TABLE tasks ADD COLUMN note TEXT');
+  }
+
+  Future<void> _addTaskProvenanceColumns() async {
+    await customStatement('ALTER TABLE tasks ADD COLUMN source_analysis_id TEXT');
+    await customStatement('ALTER TABLE tasks ADD COLUMN source_action_key TEXT');
+  }
+
+  Future<void> _createTaskSourceActionIndex() => customStatement('''
+    CREATE UNIQUE INDEX IF NOT EXISTS task_source_action_unique
+    ON tasks (source_analysis_id, source_action_key)
+    WHERE source_analysis_id IS NOT NULL AND source_action_key IS NOT NULL
+  ''');
+
+  Future<void> _createAnalysisAttemptHistory() => customStatement('''
+    CREATE TABLE IF NOT EXISTS analysis_attempt_history (
+      attempt_id TEXT PRIMARY KEY NOT NULL,
+      client_document_id TEXT NOT NULL,
+      started_at INTEGER NOT NULL,
+      terminal_at INTEGER,
+      status TEXT NOT NULL,
+      result_analysis_id TEXT,
+      failure_code TEXT,
+      retryable INTEGER
+    )
+  ''');
+
+  Future<void> _backfillAnalysisAttemptHistory() async {
+    await customStatement('''
+      INSERT OR IGNORE INTO analysis_attempt_history (
+        attempt_id, client_document_id, started_at, terminal_at, status,
+        result_analysis_id, failure_code, retryable
+      )
+      SELECT 'analysis:' || id, client_document_id,
+        created_at, created_at,
+        'succeeded', id, NULL, NULL
+      FROM analyses
+    ''');
+    await customStatement('''
+      INSERT OR IGNORE INTO analysis_attempt_history (
+        attempt_id, client_document_id, started_at, terminal_at, status,
+        result_analysis_id, failure_code, retryable
+      )
+      SELECT 'operation:' || operation_id, client_document_id,
+        created_at, updated_at,
+        CASE WHEN state IN ('failed', 'expired') THEN 'failed' ELSE 'pending' END,
+        NULL, last_failure_code, NULL
+      FROM analysis_operations
+    ''');
   }
 }
 

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
+import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../shared/design_system/app_widgets.dart';
 import '../../documents/domain/entities/domain_entities.dart';
+import '../../tasks/presentation/task_draft_prefill.dart';
 
 class AnalysisResultPage extends ConsumerWidget {
   const AnalysisResultPage({
@@ -19,17 +22,62 @@ class AnalysisResultPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final document = ref.watch(documentProvider(clientDocumentId)).asData?.value;
     final body = ref
         .watch(latestAnalysisProvider(clientDocumentId))
         .when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, _) => Center(child: Text(context.l10n.analysisReadError)),
-          data: (analysis) => analysis == null
-              ? Center(child: Text(context.l10n.noSavedAnalysis))
-              : DocumentResultView(
-                  title: context.l10n.analysisTitle,
-                  analysis: analysis,
-                ),
+          data: (analysis) {
+            if (analysis == null) {
+              return Center(child: Text(context.l10n.noSavedAnalysis));
+            }
+            final prefill = TaskDraftPrefill.fromAnalysis(
+              analysis: analysis,
+              clientDocumentId: clientDocumentId,
+              caseId:
+                  document?.classificationState == ClassificationState.confirmed
+                  ? document?.caseId
+                  : null,
+              l10n: context.l10n,
+            );
+            final sourceAnalysisId = prefill?.sourceAnalysisId;
+            final sourceActionKey = prefill?.sourceActionKey;
+            final existingTask = sourceAnalysisId == null || sourceActionKey == null
+                ? null
+                : ref
+                    .watch(
+                      taskForSourceActionProvider((
+                        analysisId: sourceAnalysisId,
+                        actionKey: sourceActionKey,
+                      )),
+                    )
+                    .asData
+                    ?.value;
+            return DocumentResultView(
+              title: context.l10n.analysisTitle,
+              analysis: analysis,
+              onAddTask: prefill == null
+                  ? null
+                  : () async {
+                      final task = await ref
+                          .read(taskRepositoryProvider)
+                          .findBySourceAction(
+                            prefill.sourceAnalysisId!,
+                            prefill.sourceActionKey!,
+                          );
+                      if (!context.mounted) return;
+                      GoRouter.of(context).go(
+                        task == null
+                            ? '${AppRoutes.tasks}/create'
+                            : '${AppRoutes.tasks}/edit/${task.id}',
+                        extra: task == null ? prefill : null,
+                      );
+                    },
+              taskActionLabel:
+                  existingTask == null ? null : context.l10n.viewTask,
+            );
+          },
         );
     if (embedded) return body;
     return Scaffold(body: SafeArea(child: body));
@@ -45,10 +93,12 @@ class DocumentResultView extends StatelessWidget {
     this.analysis,
     this.technicalFailure = false,
     this.classificationSection,
+    this.analysisHistorySection,
     this.originalDocumentSection,
     this.onRetry,
     this.onReplaceDocument,
     this.onAddTask,
+    this.taskActionLabel,
     this.actionInProgress = false,
     this.actionMessage,
   }) : assert(analysis != null || technicalFailure);
@@ -57,10 +107,12 @@ class DocumentResultView extends StatelessWidget {
   final DocumentAnalysis? analysis;
   final bool technicalFailure;
   final Widget? classificationSection;
+  final Widget? analysisHistorySection;
   final Widget? originalDocumentSection;
   final VoidCallback? onRetry;
   final VoidCallback? onReplaceDocument;
   final VoidCallback? onAddTask;
+  final String? taskActionLabel;
   final bool actionInProgress;
   final String? actionMessage;
 
@@ -100,6 +152,7 @@ class DocumentResultView extends StatelessWidget {
           primaryAction: primaryAction,
           primaryFacts: factSelection.primary,
           onAddTask: onAddTask,
+          taskActionLabel: taskActionLabel,
           actionInProgress: actionInProgress,
         ),
       );
@@ -113,6 +166,10 @@ class DocumentResultView extends StatelessWidget {
     if (!recovery && classificationSection != null) {
       content.add(const SizedBox(height: AppSpacing.lg));
       content.add(classificationSection!);
+    }
+    if (analysisHistorySection != null) {
+      content.add(const SizedBox(height: AppSpacing.lg));
+      content.add(analysisHistorySection!);
     }
     if (!recovery &&
         analysis != null &&
@@ -163,6 +220,7 @@ List<Widget> _analysisSections(
   required _PrimaryAction? primaryAction,
   required List<_ResultFact> primaryFacts,
   required VoidCallback? onAddTask,
+  required String? taskActionLabel,
   required bool actionInProgress,
 }) {
   final l = context.l10n;
@@ -177,6 +235,7 @@ List<Widget> _analysisSections(
       analysis: analysis,
       primaryAction: primaryAction,
       onAddTask: onAddTask,
+      taskActionLabel: taskActionLabel,
       actionInProgress: actionInProgress,
     ),
   );
@@ -269,12 +328,14 @@ class _ActionSection extends StatelessWidget {
     required this.analysis,
     required this.primaryAction,
     required this.onAddTask,
+    required this.taskActionLabel,
     required this.actionInProgress,
   });
 
   final DocumentAnalysis analysis;
   final _PrimaryAction? primaryAction;
   final VoidCallback? onAddTask;
+  final String? taskActionLabel;
   final bool actionInProgress;
 
   @override
@@ -289,7 +350,7 @@ class _ActionSection extends StatelessWidget {
         color: AppColors.errorFor(Theme.of(context).brightness),
         title: l.actionRequired,
         description: primaryAction!.text,
-        actionLabel: onAddTask == null ? null : l.addTaskReminder,
+        actionLabel: onAddTask == null ? null : (taskActionLabel ?? l.createTask),
         onAction: onAddTask,
         actionInProgress: actionInProgress,
         supportingFacts: primaryAction!.facts,

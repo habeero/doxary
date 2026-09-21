@@ -2,6 +2,11 @@
 
 ## 2026-09-21
 
+- Reordered Task tabs to Today, Upcoming, Overdue, Completed; classification rules are unchanged.
+- Added restrained Document Analysis History with historical-result access and confirmed single-analysis deletion that preserves the original Document and linked Tasks.
+- Made Result-to-Task action idempotent per persisted analysis action, resolving an existing source Task to View Task.
+- Added the Tasks Overdue tab with restrained due-date emphasis and explicit completed-task reopening; completed status remains authoritative until the user reopens it.
+- Added contextual Result-to-Create-Task handoff for confirmed actionable results: one editable deterministic prefill preserves Document/confirmed Case links and requires explicit Save; reminder delivery remains deferred.
 - Refined Create/Edit Task link selectors to keep internal Document/Case IDs persisted while displaying bounded human-readable labels with safe RTL ellipsis and localized missing-link fallbacks.
 - Implemented focused Create/Edit Task forms with local persistence for All Day, optional time, reminder intent, note, and Document/Case links; completion is immediate and delete requires confirmation. Result-to-Task/Reminder and notification delivery remain pending.
 - Reconciled UI/UX documentation with the verified implementation and wireframe-alignment audit: several functionally usable flows still require their approved redesign; Create/Edit Task and Result-to-Task/Reminder remain pending; Unclassified Documents interaction/hierarchy is aligned, while final runtime visual fidelity remains for manual review.

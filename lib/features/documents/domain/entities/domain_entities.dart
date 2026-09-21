@@ -370,6 +370,8 @@ class LocalTask {
     this.note,
     this.clientDocumentId,
     this.caseId,
+    this.sourceAnalysisId,
+    this.sourceActionKey,
   });
   final String id;
   final String title;
@@ -384,4 +386,8 @@ class LocalTask {
   final String? note;
   final String? clientDocumentId;
   final String? caseId;
+  /// Non-cascading provenance for an action-derived Task. It remains useful
+  /// even if its source analysis is later deliberately deleted.
+  final String? sourceAnalysisId;
+  final String? sourceActionKey;
 }

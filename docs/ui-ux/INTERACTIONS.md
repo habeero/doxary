@@ -34,13 +34,13 @@ Search is contextual: Documents root searches library-relevant content; Organiza
 
 ## Result actions
 
-**Current implementation status:** The approved contextual Result to Task/Reminder action is not implemented. When implemented, it must be offered only where required action, deadline, appointment, suggested task, or next action makes it useful; it preserves the linked Document and derives Organization/Case context where available. It must not be rendered as a permanent generic action for every Document.
+**Current implementation status:** A confirmed action-required Result may open Create Task with one editable in-memory draft. The action is absent for no-action, partial, unavailable, and action-uncertain results. The handoff preserves the current Document link and prepopulates a confirmed Case only when already associated with that Document; it never infers a Case or creates a Task until the user saves. After save, the exact source analysis/action identity resolves to View Task—including completed Tasks—instead of creating a duplicate. Deleting that Task restores Create Task; manual Task creation and different actions remain unrestricted.
 
 Required-action content receives stronger prominence than secondary explanation. Full explanation, required documents, appointments, and other secondary groups may be expandable. Important facts render only when meaningful. Original-document access is a trust action. Classification suggestions never become confirmed automatically.
 
 ## Sheets, dialogs, and focused forms
 
-**Current implementation status:** Create/Edit Task is implemented as a focused full-screen flow rather than a primary destination. Local task persistence supports title, status, provenance, timestamps, date, All Day, optional time-of-day, reminder intent, optional note, and optional Document/Case links. Edit can mark complete without confirmation and deletes only after a confirmation Dialog. Reminder delivery/scheduling is not implemented.
+**Current implementation status:** Create/Edit Task is implemented as a focused full-screen flow rather than a primary destination. Local task persistence supports title, status, provenance, timestamps, date, All Day, optional time-of-day, reminder intent, optional note, and optional Document/Case links. Edit can mark complete without confirmation, and a completed Task can be explicitly reopened without confirmation; ordinary edits and Save do not reopen it. Delete still requires confirmation. Reminder delivery/scheduling is not implemented.
 
 The Task interaction requirements below are approved intended behavior for future implementation.
 
@@ -48,7 +48,7 @@ Bottom sheets are preferred for lightweight selection and small contextual creat
 
 Use the smallest interaction surface that preserves clarity and task completion. Lightweight contextual selection uses a Bottom Sheet or modal; small contextual creation/edit forms use a Bottom Sheet where appropriate; consequential or destructive confirmation uses a Dialog; and multi-step, information-dense, interruption-sensitive, or task-focused work uses a focused full-screen flow. In Doxary, Organization/Case selection and minimal Organization/Case creation use Bottom Sheets, classification correction uses a Bottom Sheet/modal, delete confirmation uses a Dialog, Processing uses its transient modal overlay, and Document Detail/Result, camera review, and Create/Edit Task remain focused full-screen flows. Do not create a full-screen route for a lightweight contextual interaction solely because navigation is convenient.
 
-Create/Edit Task may include title, date, optional time or all-day, reminder, linked Document or Case, and optional note. When All Day is selected, time is inactive and not required. When created from a Document Result, the Document association is preserved and Organization is derived from the linked Document/Case rather than becoming a conflicting editable field. Delete Task requires confirmation; completing a task normally does not.
+Create/Edit Task may include title, date, optional time or all-day, reminder, linked Document or Case, and optional note. When All Day is selected, time is inactive and not required. When created from a Document Result, the Document association is preserved and Organization is derived from the linked Document/Case rather than becoming a conflicting editable field. The deterministic prefill order is suggested task, next action, required-action fallback; a suggested-task date, then primary deadline, then primary appointment supplies an editable date/time only when parseable. Delete Task requires confirmation; completing a task normally does not.
 
 ## Settings and notifications
 

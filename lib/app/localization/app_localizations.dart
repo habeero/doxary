@@ -73,6 +73,8 @@ class AppLocalizations {
   String get noMatchingOrganizations => _value('noMatchingOrganizations');
   String get noMatchingCases => _value('noMatchingCases');
   String get today => _value('today');
+  String get overdue => _value('overdue');
+  String get taskOverdue => _value('taskOverdue');
   String get completed => _value('completed');
   String get noTasks => _value('noTasks');
   String get createTask => _value('createTask');
@@ -95,6 +97,7 @@ class AppLocalizations {
   String get note => _value('note');
   String get optional => _value('optional');
   String get markCompleted => _value('markCompleted');
+  String get reopenTask => _value('reopenTask');
   String get deleteTask => _value('deleteTask');
   String get deleteTaskTitle => _value('deleteTaskTitle');
   String get deleteTaskMessage => _value('deleteTaskMessage');
@@ -219,6 +222,7 @@ class AppLocalizations {
   String get unavailableInputBody => _value('unavailableInputBody');
   String get chooseAnotherDocument => _value('chooseAnotherDocument');
   String get addTaskReminder => _value('addTaskReminder');
+  String get followUpDocument => _value('followUpDocument');
   String get analysisDetails => _value('analysisDetails');
   String get suggestedTasks => _value('suggestedTasks');
   String get deadline => _value('deadline');
@@ -226,6 +230,17 @@ class AppLocalizations {
   String get amount => _value('amount');
   String get originalDocumentSavedLocally =>
       _value('originalDocumentSavedLocally');
+  String get analysisHistory => locale.languageCode == 'ar' ? '\u0633\u062c\u0644 \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisHistory');
+  String get documentAdded => locale.languageCode == 'ar' ? '\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0645\u0633\u062a\u0646\u062f' : _value('documentAdded');
+  String get analysisSuccessful => locale.languageCode == 'ar' ? '\u0646\u0627\u062c\u062d' : _value('analysisSuccessful');
+  String get analysisFailedHistory => locale.languageCode == 'ar' ? '\u0641\u0634\u0644 \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisFailedHistory');
+  String get analysisPendingHistory => locale.languageCode == 'ar' ? '\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisPendingHistory');
+  String get analysisDate => locale.languageCode == 'ar' ? '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisDate');
+  String get openResult => locale.languageCode == 'ar' ? '\u0641\u062a\u062d \u0627\u0644\u0646\u062a\u064a\u062c\u0629' : _value('openResult');
+  String get deleteAnalysis => locale.languageCode == 'ar' ? '\u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('deleteAnalysis');
+  String get deleteAnalysisTitle => locale.languageCode == 'ar' ? '\u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644\u061f' : _value('deleteAnalysisTitle');
+  String get deleteAnalysisMessage => locale.languageCode == 'ar' ? '\u0633\u064a\u064f\u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u062a\u062d\u0644\u064a\u0644 \u0641\u0642\u0637. \u064a\u0628\u0642\u0649 \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u0648\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a \u0627\u0644\u0623\u062e\u0631\u0649 \u0648\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629 \u0645\u062d\u0641\u0648\u0638\u0629.' : _value('deleteAnalysisMessage');
+  String get viewTask => locale.languageCode == 'ar' ? '\u0639\u0631\u0636 \u0627\u0644\u0645\u0647\u0645\u0629' : _value('viewTask');
   String _value(String key) =>
       (_strings[locale.languageCode] ?? _strings['de']!)[key] ??
       (_resultStrings[locale.languageCode] ?? _resultStrings['de']!)[key] ??
@@ -314,11 +329,23 @@ const _resultStrings = <String, Map<String, String>>{
         'Das importierte Dokument bleibt in Doxary erhalten.',
     'chooseClearerDocument': 'Klareres Dokument auswählen',
     'addTaskReminder': 'Aufgabe oder Erinnerung hinzufügen',
+    'followUpDocument': 'Zum Dokument nachfassen',
     'analysisDetails': 'Weitere Analysedetails',
     'suggestedTasks': 'Vorgeschlagene Aufgaben',
     'deadline': 'Frist',
     'appointment': 'Termin',
     'amount': 'Betrag',
+    'analysisHistory': 'Analyseverlauf',
+    'documentAdded': 'Dokument hinzugefügt',
+    'analysisSuccessful': 'Erfolgreich',
+    'analysisFailedHistory': 'Fehlgeschlagen',
+    'analysisPendingHistory': 'Wird analysiert',
+    'analysisDate': 'Analysiert',
+    'openResult': 'Ergebnis öffnen',
+    'deleteAnalysis': 'Analyse löschen',
+    'deleteAnalysisTitle': 'Analyse löschen?',
+    'deleteAnalysisMessage': 'Nur dieses Analyseergebnis wird gelöscht. Das Originaldokument, andere Analysen und verknüpfte Aufgaben bleiben in Doxary erhalten.',
+    'viewTask': 'Aufgabe ansehen',
     'originalDocumentSavedLocally':
         'Das Original ist lokal gespeichert. Öffnen ist noch nicht verfügbar.',
   },
@@ -349,6 +376,7 @@ const _resultStrings = <String, Map<String, String>>{
     'documentRetainedMessage': 'يبقى المستند المستورد محفوظًا في Doxary.',
     'chooseClearerDocument': 'اختيار مستند أوضح',
     'addTaskReminder': 'إضافة مهمة أو تذكير',
+    'followUpDocument': '\u0645\u062a\u0627\u0628\u0639\u0629 \u0627\u0644\u0645\u0633\u062a\u0646\u062f',
     'analysisDetails': 'تفاصيل التحليل الإضافية',
     'suggestedTasks': 'المهام المقترحة',
     'deadline': 'المهلة',
@@ -597,6 +625,8 @@ const _strings = <String, Map<String, String>>{
     'noUpcomingTasks': 'Keine anstehenden Aufgaben',
     'noDocuments': 'Noch keine Dokumente',
     'today': 'Heute',
+    'overdue': 'Überfällig',
+    'taskOverdue': 'Überfällig',
     'completed': 'Erledigt',
     'noTasks': 'Noch keine Aufgaben',
     'createTask': 'Aufgabe erstellen',
@@ -619,6 +649,7 @@ const _strings = <String, Map<String, String>>{
     'note': 'Notiz',
     'optional': 'Optional',
     'markCompleted': 'Als erledigt markieren',
+    'reopenTask': 'Aufgabe wieder öffnen',
     'deleteTask': 'Aufgabe löschen',
     'deleteTaskTitle': 'Aufgabe löschen?',
     'deleteTaskMessage': 'Diese Aufgabe wird dauerhaft gelöscht.',
@@ -708,8 +739,11 @@ const _strings = <String, Map<String, String>>{
     'noUpcomingTasks': 'لا توجد مهام قادمة',
     'noDocuments': 'لا توجد مستندات بعد',
     'today': 'اليوم',
+    'overdue': '\u0645\u062a\u0623\u062e\u0631\u0629',
+    'taskOverdue': '\u0645\u062a\u0623\u062e\u0631\u0629',
     'completed': 'مكتملة',
     'noTasks': 'لا توجد مهام بعد',
+    'reopenTask': '\u0625\u0639\u0627\u062f\u0629 \u0641\u062a\u062d \u0627\u0644\u0645\u0647\u0645\u0629',
     'camera': 'الكاميرا',
     'image': 'صورة',
     'pdf': 'PDF',

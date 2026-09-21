@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:doxary/core/config/doxary_api_config.dart';
 import 'package:doxary/core/database/app_database.dart'
@@ -19,7 +19,9 @@ import 'package:doxary/features/document_analysis/data/analysis_result_mapper.da
 import 'package:doxary/features/document_analysis/data/doxary_document_analysis_remote_data_source.dart';
 import 'package:doxary/features/document_analysis/data/local_analysis_repository.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
+import 'package:doxary/features/document_analysis/domain/analysis_repository.dart';
 import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
+import 'package:doxary/features/tasks/data/repositories/local_task_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -502,8 +504,10 @@ void main() {
       final documents = await database.select(database.documents).get();
       expect(remote.getCalls, 1);
       expect(remote.submitCalls, 0);
-      expect(operations.single.state, AnalysisLifecycleState.failed.name);
-      expect(operations.single.lastFailureCode, 'processing_failed');
+      expect(operations, isEmpty);
+      final history = await local.getHistory('document-failed');
+      expect(history.single.status, AnalysisAttemptStatus.failed);
+      expect(history.single.failureCode, 'processing_failed');
       expect(documents.single.status, DocumentStatus.needsReview.name);
       expect(await local.watchPending().first, isEmpty);
     },
@@ -547,7 +551,11 @@ void main() {
     final operations = await database.select(database.analysisOperations).get();
     expect(remote.getCalls, 2);
     expect(remote.submitCalls, 0);
-    expect(operations.single.state, AnalysisLifecycleState.failed.name);
+    expect(operations, isEmpty);
+    final history = await local.getHistory('document-processing-failed');
+    expect(history.single.status, AnalysisAttemptStatus.failed);
+    expect(history.single.failureCode, 'analysis_unavailable');
+    expect(history.single.retryable, isTrue);
     expect(await local.watchPending().first, isEmpty);
   });
 
@@ -734,6 +742,121 @@ void main() {
         '[DoxaryAnalysis][domain_mapping] failed path=amounts[0].direction type=ArgumentError token_category=uppercase_variant',
       ),
     );
+  });
+
+  test('analysis history keeps failures and successful versions independently', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    const documentId = 'history-document';
+    await _insertDocument(database, documentId);
+    final repository = LocalAnalysisRepository(database);
+    await repository.saveOperation(
+      operationId: 'failed-attempt',
+      clientDocumentId: documentId,
+      state: AnalysisLifecycleState.failed,
+      failureCode: 'processing_failed',
+      retryable: true,
+    );
+    await repository.saveOperation(
+      operationId: 'successful-attempt',
+      clientDocumentId: documentId,
+      state: AnalysisLifecycleState.accepted,
+    );
+    final firstCreated = DateTime(2026, 9, 20, 9);
+    final secondCreated = DateTime(2026, 9, 21, 9);
+    await repository.saveCompleted(
+      DocumentAnalysis(
+        id: 'analysis-one',
+        clientDocumentId: documentId,
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        createdAt: firstCreated,
+      ),
+    );
+    await repository.saveOperation(
+      operationId: 'successful-attempt-two',
+      clientDocumentId: documentId,
+      state: AnalysisLifecycleState.accepted,
+    );
+    await repository.saveCompleted(
+      DocumentAnalysis(
+        id: 'analysis-two',
+        clientDocumentId: documentId,
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        createdAt: secondCreated,
+      ),
+    );
+
+    final history = await repository.getHistory(documentId);
+    expect(history, hasLength(3));
+    expect(
+      history.where((item) => item.status == AnalysisAttemptStatus.succeeded),
+      hasLength(2),
+    );
+    expect(history.any((item) => item.analysisId == 'analysis-two'), isTrue);
+    expect(await repository.getById('analysis-one'), isNotNull);
+
+    await repository.deleteAnalysis('analysis-two');
+    expect(await repository.getById('analysis-two'), isNull);
+    expect(await repository.getById('analysis-one'), isNotNull);
+    final remainingHistory = await repository.getHistory(documentId);
+    expect(remainingHistory, hasLength(2));
+    expect(
+      remainingHistory.any((item) => item.status == AnalysisAttemptStatus.failed),
+      isTrue,
+    );
+  });
+
+  test('deleting an analysis preserves its Document, file, and Task', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    const documentId = 'retained-document';
+    await _insertDocument(database, documentId);
+    await database.into(database.documentFiles).insert(
+          DocumentFilesCompanion.insert(
+            id: 'retained-file',
+            clientDocumentId: documentId,
+            localUri: 'file:///retained.pdf',
+            mediaType: 'application/pdf',
+            importedAt: DateTime(2026, 9, 20),
+          ),
+        );
+    final repository = LocalAnalysisRepository(database);
+    await repository.saveCompleted(
+      DocumentAnalysis(
+        id: 'retained-analysis',
+        clientDocumentId: documentId,
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        createdAt: DateTime(2026, 9, 21),
+      ),
+    );
+    final tasks = LocalTaskRepository(database);
+    await tasks.save(
+      LocalTask(
+        id: 'retained-task',
+        title: 'Keep me',
+        status: TaskStatus.open,
+        provenance: TaskProvenance.analysis,
+        createdAt: DateTime(2026, 9, 21),
+        updatedAt: DateTime(2026, 9, 21),
+        clientDocumentId: documentId,
+        sourceAnalysisId: 'retained-analysis',
+        sourceActionKey: 'action-required',
+      ),
+    );
+
+    await repository.deleteAnalysis('retained-analysis');
+
+    expect(
+      await (database.select(database.documents)
+            ..where((row) => row.clientDocumentId.equals(documentId)))
+          .getSingleOrNull(),
+      isNotNull,
+    );
+    expect(await database.select(database.documentFiles).get(), hasLength(1));
+    expect(await tasks.getById('retained-task'), isNotNull);
   });
 }
 
