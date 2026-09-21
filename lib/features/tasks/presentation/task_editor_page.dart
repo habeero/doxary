@@ -217,7 +217,10 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
         ),
     };
     final documentItems = <DropdownMenuItem<String?>>[
-      DropdownMenuItem(value: null, child: _DropdownLabel(l10n.noLinkedDocument)),
+      DropdownMenuItem(
+        value: null,
+        child: _DropdownLabel(l10n.noLinkedDocument),
+      ),
       ...documents.map(
         (document) => DropdownMenuItem<String?>(
           value: document.clientDocumentId,
@@ -339,8 +342,9 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
                 isExpanded: true,
                 decoration: InputDecoration(labelText: l10n.linkedCase),
                 items: caseItems,
-                selectedItemBuilder: (context) =>
-                    caseItems.map((item) => _DropdownLabel(_dropdownItemLabel(item))).toList(),
+                selectedItemBuilder: (context) => caseItems
+                    .map((item) => _DropdownLabel(_dropdownItemLabel(item)))
+                    .toList(),
                 onChanged: (value) => setState(() => _caseId = value),
               ),
               const SizedBox(height: AppSpacing.md),

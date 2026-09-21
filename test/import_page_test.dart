@@ -116,9 +116,8 @@ void main() {
             activeAnalysisOperationsProvider.overrideWithValue(
               const AsyncValue.data([]),
             ),
-            analysisHistoryProvider('generated-1').overrideWithValue(
-              const AsyncValue.data([]),
-            ),
+            analysisHistoryProvider('generated-1')
+                .overrideWithValue(const AsyncValue.data([])),
             organizationsProvider.overrideWithValue(const AsyncValue.data([])),
             casesProvider.overrideWithValue(const AsyncValue.data([])),
           ],
@@ -462,9 +461,8 @@ void main() {
             activeAnalysisOperationsProvider.overrideWithValue(
               const AsyncValue.data([]),
             ),
-            analysisHistoryProvider('generated-1').overrideWithValue(
-              const AsyncValue.data([]),
-            ),
+            analysisHistoryProvider('generated-1')
+                .overrideWithValue(const AsyncValue.data([])),
             organizationsProvider.overrideWithValue(const AsyncValue.data([])),
             casesProvider.overrideWithValue(const AsyncValue.data([])),
           ],
@@ -627,9 +625,8 @@ void main() {
           activeAnalysisOperationsProvider.overrideWithValue(
             const AsyncValue.data([]),
           ),
-          analysisHistoryProvider('generated-1').overrideWithValue(
-            const AsyncValue.data([]),
-          ),
+          analysisHistoryProvider('generated-1')
+              .overrideWithValue(const AsyncValue.data([])),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
         ],
@@ -1130,8 +1127,14 @@ void main() {
     final editedSecond = tester.widget<Image>(
       find.byKey(const Key('camera-draft-thumbnail-1')),
     );
-    expect((editedFirst.image as FileImage).file.uri.path, '/camera-edit-1.jpg');
-    expect((editedSecond.image as FileImage).file.uri.path, '/camera-edit-2.jpg');
+    expect(
+      (editedFirst.image as FileImage).file.uri.path,
+      '/camera-edit-1.jpg',
+    );
+    expect(
+      (editedSecond.image as FileImage).file.uri.path,
+      '/camera-edit-2.jpg',
+    );
   });
 
   testWidgets('camera draft Remove clears every captured page from Analyze', (
@@ -1164,52 +1167,56 @@ void main() {
     expect(camera.session.discardCalls, 1);
   });
 
-  testWidgets('editing a camera draft preserves it on cancel and replaces it on Continue', (
-    tester,
-  ) async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    final camera = _FakeCameraCaptureGateway();
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          databaseProvider.overrideWithValue(database),
-          cameraCaptureGatewayProvider.overrideWithValue(camera),
-        ],
-        child: _app(),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('capture-document-action')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('camera-review-continue')));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'editing a camera draft preserves it on cancel and replaces it on Continue',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final camera = _FakeCameraCaptureGateway();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-continue')));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('edit-camera-draft')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
-    expect(camera.session.duplicateCalls, 1);
-    await tester.tap(find.byKey(const Key('camera-review-back')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('camera-review-discard-pages')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('selected-import-draft')), findsOneWidget);
-    final original = tester.widget<Image>(
-      find.byKey(const Key('camera-draft-thumbnail-0')),
-    );
-    expect((original.image as FileImage).file.uri.path, '/camera-capture-1.jpg');
+      await tester.tap(find.byKey(const Key('edit-camera-draft')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
+      expect(camera.session.duplicateCalls, 1);
+      await tester.tap(find.byKey(const Key('camera-review-back')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-discard-pages')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('selected-import-draft')), findsOneWidget);
+      final original = tester.widget<Image>(
+        find.byKey(const Key('camera-draft-thumbnail-0')),
+      );
+      expect(
+        (original.image as FileImage).file.uri.path,
+        '/camera-capture-1.jpg',
+      );
 
-    await tester.tap(find.byKey(const Key('edit-camera-draft')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('camera-review-continue')));
-    await tester.pumpAndSettle();
-    final edited = tester.widget<Image>(
-      find.byKey(const Key('camera-draft-thumbnail-0')),
-    );
-    expect((edited.image as FileImage).file.uri.path, '/camera-edit-2.jpg');
-  });
+      await tester.tap(find.byKey(const Key('edit-camera-draft')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-continue')));
+      await tester.pumpAndSettle();
+      final edited = tester.widget<Image>(
+        find.byKey(const Key('camera-draft-thumbnail-0')),
+      );
+      expect((edited.image as FileImage).file.uri.path, '/camera-edit-2.jpg');
+    },
+  );
 
   testWidgets(
     'removing camera-review pages updates selection and returns to Capture',

@@ -65,7 +65,8 @@ final latestAnalysisProvider = FutureProvider.family<DocumentAnalysis?, String>(
       ref.watch(analysisRepositoryProvider).getLatest(clientDocumentId),
 );
 final analysisByIdProvider = FutureProvider.family<DocumentAnalysis?, String>(
-  (ref, analysisId) => ref.watch(analysisRepositoryProvider).getById(analysisId),
+  (ref, analysisId) =>
+      ref.watch(analysisRepositoryProvider).getById(analysisId),
 );
 final analysisHistoryProvider =
     FutureProvider.family<List<AnalysisAttempt>, String>(

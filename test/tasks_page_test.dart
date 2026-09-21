@@ -9,7 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Today is the first Tasks tab and classification stays intact', (tester) async {
+  testWidgets('Today is the first Tasks tab and classification stays intact', (
+    tester,
+  ) async {
     final now = DateTime(2026, 9, 21, 9);
     LocalTask task(String id, DateTime dueAt) => LocalTask(
       id: id,

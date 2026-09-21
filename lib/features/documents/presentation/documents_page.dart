@@ -56,19 +56,17 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
             final visibleOrganizations = allOrganizations
                 .where((organization) => _matches(organization.name, _query))
                 .toList();
-            final unclassified = items.where(_hasNoConfirmedOrganization).toList();
+            final unclassified = items
+                .where(_hasNoConfirmedOrganization)
+                .toList();
             final matchingDocuments = _query.trim().isEmpty
                 ? const <LocalDocument>[]
                 : items
-                    .where(
-                      (document) => _documentMatchesQuery(
-                        ref,
-                        document,
-                        l10n,
-                        _query,
-                      ),
-                    )
-                    .toList();
+                      .where(
+                        (document) =>
+                            _documentMatchesQuery(ref, document, l10n, _query),
+                      )
+                      .toList();
             return ListView(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,
@@ -81,7 +79,8 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                   controller: _searchController,
                   viewMode: _viewMode,
                   onQueryChanged: (value) => setState(() => _query = value),
-                  onViewModeChanged: (value) => setState(() => _viewMode = value),
+                  onViewModeChanged: (value) =>
+                      setState(() => _viewMode = value),
                 ),
                 if (unclassified.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.md),
@@ -95,7 +94,10 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                 ],
                 if (visibleOrganizations.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
-                  Text(l10n.organizations, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    l10n.organizations,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   _OrganizationBrowser(
                     organizations: visibleOrganizations,
@@ -116,7 +118,8 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                     _SearchableDocumentListTile(
                       document: document,
                       query: _query,
-                      onTap: () => _openDocument(context, document.clientDocumentId),
+                      onTap: () =>
+                          _openDocument(context, document.clientDocumentId),
                     ),
                 ],
               ],
@@ -163,7 +166,9 @@ class _LibraryToolbar extends StatelessWidget {
         const SizedBox(width: AppSpacing.sm),
         IconButton(
           key: const Key('documents-view-toggle'),
-          tooltip: nextMode == DocumentsViewMode.grid ? l10n.gridView : l10n.listView,
+          tooltip: nextMode == DocumentsViewMode.grid
+              ? l10n.gridView
+              : l10n.listView,
           onPressed: () => onViewModeChanged(nextMode),
           icon: Icon(
             viewMode == DocumentsViewMode.grid
@@ -199,7 +204,8 @@ class _OrganizationBrowser extends StatelessWidget {
             _FolderListRow(
               title: organization.name,
               subtitle: _organizationMetadata(context.l10n, organization.id),
-              onTap: () => context.push('/documents/organization/${organization.id}'),
+              onTap: () =>
+                  context.push('/documents/organization/${organization.id}'),
             ),
         ],
       );
@@ -223,7 +229,8 @@ class _OrganizationBrowser extends StatelessWidget {
             return _FolderGridTile(
               title: organization.name,
               subtitle: _organizationMetadata(context.l10n, organization.id),
-              onTap: () => context.push('/documents/organization/${organization.id}'),
+              onTap: () =>
+                  context.push('/documents/organization/${organization.id}'),
             );
           },
         );
@@ -239,7 +246,9 @@ class _OrganizationBrowser extends StatelessWidget {
               document.organizationId == organizationId,
         )
         .length;
-    final caseCount = cases.where((item) => item.organizationId == organizationId).length;
+    final caseCount = cases
+        .where((item) => item.organizationId == organizationId)
+        .length;
     if (caseCount == 0) return _countLabel(l10n, documentCount);
     return '${_caseCountLabel(l10n, caseCount)} · ${_countLabel(l10n, documentCount)}';
   }
@@ -268,7 +277,11 @@ class _FolderGridTile extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_outlined, size: 46, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.folder_outlined,
+              size: 46,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               title,
@@ -282,7 +295,8 @@ class _FolderGridTile extends StatelessWidget {
               subtitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -333,7 +347,12 @@ class _SpecialFolderRow extends StatelessWidget {
   Widget build(BuildContext context) => Material(
     color: Theme.of(context).colorScheme.primaryContainer,
     borderRadius: BorderRadius.circular(10),
-    child: _FolderListRow(title: title, subtitle: subtitle, icon: icon, onTap: onTap),
+    child: _FolderListRow(
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
+      onTap: onTap,
+    ),
   );
 }
 
@@ -341,10 +360,12 @@ class UnclassifiedDocumentsPage extends ConsumerStatefulWidget {
   const UnclassifiedDocumentsPage({super.key});
 
   @override
-  ConsumerState<UnclassifiedDocumentsPage> createState() => _UnclassifiedDocumentsPageState();
+  ConsumerState<UnclassifiedDocumentsPage> createState() =>
+      _UnclassifiedDocumentsPageState();
 }
 
-class _UnclassifiedDocumentsPageState extends ConsumerState<UnclassifiedDocumentsPage> {
+class _UnclassifiedDocumentsPageState
+    extends ConsumerState<UnclassifiedDocumentsPage> {
   String _query = '';
 
   @override
@@ -419,7 +440,8 @@ class DocumentListTile extends ConsumerWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => _DocumentListTile(document: document, onTap: onTap);
+  Widget build(BuildContext context, WidgetRef ref) =>
+      _DocumentListTile(document: document, onTap: onTap);
 }
 
 class _SearchableDocumentListTile extends ConsumerWidget {
@@ -439,7 +461,11 @@ class _SearchableDocumentListTile extends ConsumerWidget {
 }
 
 class _DocumentListTile extends ConsumerWidget {
-  const _DocumentListTile({required this.document, this.onTap, this.query = ''});
+  const _DocumentListTile({
+    required this.document,
+    this.onTap,
+    this.query = '',
+  });
   final LocalDocument document;
   final VoidCallback? onTap;
   final String query;
@@ -447,12 +473,16 @@ class _DocumentListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final analysis = ref.watch(latestAnalysisProvider(document.clientDocumentId));
+    final analysis = ref.watch(
+      latestAnalysisProvider(document.clientDocumentId),
+    );
     final files = ref.watch(documentFilesProvider(document.clientDocumentId));
     final title = documentDisplayTitle(
       document,
       l10n,
-      analysis: analysis is AsyncData<DocumentAnalysis?> ? analysis.value : null,
+      analysis: analysis is AsyncData<DocumentAnalysis?>
+          ? analysis.value
+          : null,
       file: _first(_asyncValue(files)),
     );
     if (!_matches(title, query)) return const SizedBox.shrink();
@@ -462,14 +492,17 @@ class _DocumentListTile extends ConsumerWidget {
       onTap: onTap,
       leading: const Icon(Icons.description_outlined),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text('${_compactDate(date)} · ${documentClassificationLabel(l10n, document.classificationState)}'),
+      subtitle: Text(
+        '${_compactDate(date)} · ${documentClassificationLabel(l10n, document.classificationState)}',
+      ),
       trailing: const Icon(Icons.chevron_right),
     );
   }
 }
 
 bool _matches(String value, String query) =>
-    query.trim().isEmpty || value.toLowerCase().contains(query.trim().toLowerCase());
+    query.trim().isEmpty ||
+    value.toLowerCase().contains(query.trim().toLowerCase());
 
 bool _hasNoConfirmedOrganization(LocalDocument document) =>
     document.classificationState != ClassificationState.confirmed ||
@@ -507,7 +540,9 @@ void _openDocument(BuildContext context, String clientDocumentId) {
     return;
   }
   Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => DocumentDetailPage(clientDocumentId: clientDocumentId)),
+    MaterialPageRoute(
+      builder: (_) => DocumentDetailPage(clientDocumentId: clientDocumentId),
+    ),
   );
 }
 
@@ -516,11 +551,13 @@ void _openUnclassified(BuildContext context) {
     context.push('/documents/unclassified');
     return;
   }
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => const UnclassifiedDocumentsPage()),
-  );
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const UnclassifiedDocumentsPage()));
 }
 
-T? _asyncValue<T>(AsyncValue<T> value) => value is AsyncData<T> ? value.value : null;
+T? _asyncValue<T>(AsyncValue<T> value) =>
+    value is AsyncData<T> ? value.value : null;
 
-T? _first<T>(List<T>? values) => values == null || values.isEmpty ? null : values.first;
+T? _first<T>(List<T>? values) =>
+    values == null || values.isEmpty ? null : values.first;

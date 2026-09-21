@@ -23,6 +23,10 @@ void main() {
           activeAnalysisOperationsProvider.overrideWithValue(
             const AsyncValue.data([]),
           ),
+          openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          completedTasksProvider.overrideWithValue(
+            const AsyncValue.data([]),
+          ),
           for (final document in documents)
             ..._documentOverrides(document.clientDocumentId),
         ],
@@ -56,6 +60,10 @@ void main() {
             activeAnalysisOperationsProvider.overrideWithValue(
               const AsyncValue.data([]),
             ),
+            openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+            completedTasksProvider.overrideWithValue(
+              const AsyncValue.data([]),
+            ),
             ..._documentOverrides(document.clientDocumentId),
           ],
           child: _app(Scaffold(body: HomePage())),
@@ -84,6 +92,10 @@ void main() {
                 state: AnalysisLifecycleState.processing,
               ),
             ]),
+          ),
+          openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          completedTasksProvider.overrideWithValue(
+            const AsyncValue.data([]),
           ),
           ..._documentOverrides(document.clientDocumentId),
         ],

@@ -386,6 +386,7 @@ class LocalTask {
   final String? note;
   final String? clientDocumentId;
   final String? caseId;
+
   /// Non-cascading provenance for an action-derived Task. It remains useful
   /// even if its source analysis is later deliberately deleted.
   final String? sourceAnalysisId;

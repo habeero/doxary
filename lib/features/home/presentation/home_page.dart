@@ -152,9 +152,7 @@ class _HomeOverview extends ConsumerWidget {
       ),
       error: (_, _) => Padding(
         padding: const EdgeInsets.only(top: AppSpacing.xl),
-        child: AppErrorState(
-          message: context.l10n.localDataUnavailable,
-        ),
+        child: AppErrorState(message: context.l10n.localDataUnavailable),
       ),
       data: (data) {
         if (data.entries.isEmpty) {
@@ -190,7 +188,10 @@ class _HomeOverview extends ConsumerWidget {
                     if (attentionId == null) return;
                     await ref
                         .read(settingsRepositoryProvider)
-                        .write(_homeAttentionSettingKey(attentionId), 'handled');
+                        .write(
+                          _homeAttentionSettingKey(attentionId),
+                          'handled',
+                        );
                     ref.invalidate(_homeOverviewProvider(query));
                   },
                 ),
@@ -544,8 +545,7 @@ String _activeIdentity(Set<String> activeDocumentIds) =>
 Set<String> _taskAttentionIds(AsyncValue<List<LocalTask>> tasks) => tasks.when(
   data: (items) => items
       .where(
-        (task) =>
-            task.sourceAnalysisId != null && task.sourceActionKey != null,
+        (task) => task.sourceAnalysisId != null && task.sourceActionKey != null,
       )
       .map(
         (task) => _homeAttentionIdFromParts(
@@ -655,7 +655,8 @@ final _homeOverviewProvider = FutureProvider.autoDispose
                 .read(settingsRepositoryProvider)
                 .write(_homeAttentionSettingKey(attentionId), 'handled');
           }
-          final attentionHandled = attentionId != null &&
+          final attentionHandled =
+              attentionId != null &&
               await ref
                       .read(settingsRepositoryProvider)
                       .read(_homeAttentionSettingKey(attentionId)) ==

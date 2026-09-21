@@ -744,76 +744,83 @@ void main() {
     );
   });
 
-  test('analysis history keeps failures and successful versions independently', () async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    const documentId = 'history-document';
-    await _insertDocument(database, documentId);
-    final repository = LocalAnalysisRepository(database);
-    await repository.saveOperation(
-      operationId: 'failed-attempt',
-      clientDocumentId: documentId,
-      state: AnalysisLifecycleState.failed,
-      failureCode: 'processing_failed',
-      retryable: true,
-    );
-    await repository.saveOperation(
-      operationId: 'successful-attempt',
-      clientDocumentId: documentId,
-      state: AnalysisLifecycleState.accepted,
-    );
-    final firstCreated = DateTime(2026, 9, 20, 9);
-    final secondCreated = DateTime(2026, 9, 21, 9);
-    await repository.saveCompleted(
-      DocumentAnalysis(
-        id: 'analysis-one',
+  test(
+    'analysis history keeps failures and successful versions independently',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      const documentId = 'history-document';
+      await _insertDocument(database, documentId);
+      final repository = LocalAnalysisRepository(database);
+      await repository.saveOperation(
+        operationId: 'failed-attempt',
         clientDocumentId: documentId,
-        schemaVersion: 'analysis_result.v1',
-        targetLanguage: 'de',
-        createdAt: firstCreated,
-      ),
-    );
-    await repository.saveOperation(
-      operationId: 'successful-attempt-two',
-      clientDocumentId: documentId,
-      state: AnalysisLifecycleState.accepted,
-    );
-    await repository.saveCompleted(
-      DocumentAnalysis(
-        id: 'analysis-two',
+        state: AnalysisLifecycleState.failed,
+        failureCode: 'processing_failed',
+        retryable: true,
+      );
+      await repository.saveOperation(
+        operationId: 'successful-attempt',
         clientDocumentId: documentId,
-        schemaVersion: 'analysis_result.v1',
-        targetLanguage: 'de',
-        createdAt: secondCreated,
-      ),
-    );
+        state: AnalysisLifecycleState.accepted,
+      );
+      final firstCreated = DateTime(2026, 9, 20, 9);
+      final secondCreated = DateTime(2026, 9, 21, 9);
+      await repository.saveCompleted(
+        DocumentAnalysis(
+          id: 'analysis-one',
+          clientDocumentId: documentId,
+          schemaVersion: 'analysis_result.v1',
+          targetLanguage: 'de',
+          createdAt: firstCreated,
+        ),
+      );
+      await repository.saveOperation(
+        operationId: 'successful-attempt-two',
+        clientDocumentId: documentId,
+        state: AnalysisLifecycleState.accepted,
+      );
+      await repository.saveCompleted(
+        DocumentAnalysis(
+          id: 'analysis-two',
+          clientDocumentId: documentId,
+          schemaVersion: 'analysis_result.v1',
+          targetLanguage: 'de',
+          createdAt: secondCreated,
+        ),
+      );
 
-    final history = await repository.getHistory(documentId);
-    expect(history, hasLength(3));
-    expect(
-      history.where((item) => item.status == AnalysisAttemptStatus.succeeded),
-      hasLength(2),
-    );
-    expect(history.any((item) => item.analysisId == 'analysis-two'), isTrue);
-    expect(await repository.getById('analysis-one'), isNotNull);
+      final history = await repository.getHistory(documentId);
+      expect(history, hasLength(3));
+      expect(
+        history.where((item) => item.status == AnalysisAttemptStatus.succeeded),
+        hasLength(2),
+      );
+      expect(history.any((item) => item.analysisId == 'analysis-two'), isTrue);
+      expect(await repository.getById('analysis-one'), isNotNull);
 
-    await repository.deleteAnalysis('analysis-two');
-    expect(await repository.getById('analysis-two'), isNull);
-    expect(await repository.getById('analysis-one'), isNotNull);
-    final remainingHistory = await repository.getHistory(documentId);
-    expect(remainingHistory, hasLength(2));
-    expect(
-      remainingHistory.any((item) => item.status == AnalysisAttemptStatus.failed),
-      isTrue,
-    );
-  });
+      await repository.deleteAnalysis('analysis-two');
+      expect(await repository.getById('analysis-two'), isNull);
+      expect(await repository.getById('analysis-one'), isNotNull);
+      final remainingHistory = await repository.getHistory(documentId);
+      expect(remainingHistory, hasLength(2));
+      expect(
+        remainingHistory.any(
+          (item) => item.status == AnalysisAttemptStatus.failed,
+        ),
+        isTrue,
+      );
+    },
+  );
 
   test('deleting an analysis preserves its Document, file, and Task', () async {
     final database = AppDatabase(NativeDatabase.memory());
     addTearDown(database.close);
     const documentId = 'retained-document';
     await _insertDocument(database, documentId);
-    await database.into(database.documentFiles).insert(
+    await database
+        .into(database.documentFiles)
+        .insert(
           DocumentFilesCompanion.insert(
             id: 'retained-file',
             clientDocumentId: documentId,

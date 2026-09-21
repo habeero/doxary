@@ -78,7 +78,9 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         deviceLocaleProvider.overrideWithValue(locale),
-        settingsRepositoryProvider.overrideWithValue(settings ?? _MemorySettings()),
+        settingsRepositoryProvider.overrideWithValue(
+          settings ?? _MemorySettings(),
+        ),
       ],
       child: MaterialApp(
         locale: locale,
@@ -98,8 +100,7 @@ Future<void> _pump(
 }
 
 class _MemorySettings implements SettingsRepository {
-  _MemorySettings([Map<String, String>? values])
-    : values = {...?values};
+  _MemorySettings([Map<String, String>? values]) : values = {...?values};
 
   final Map<String, String> values;
 

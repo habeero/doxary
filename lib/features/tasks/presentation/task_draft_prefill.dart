@@ -71,12 +71,13 @@ class TaskDraftPrefill {
 
 /// Stable provenance for the one actionable surface derived from an analysis.
 /// It is shared by Result-to-Task and Home attention handling.
-String sourceActionKeyForAnalysis(DocumentAnalysis analysis) => _sourceActionKey(
-  analysis: analysis,
-  suggestedTask: _firstSuggestedTask(analysis.suggestedTasks),
-  nextAction: _firstMeaningful(analysis.nextActions),
-  requiredDocument: _firstRequiredDocument(analysis.requiredDocuments),
-);
+String sourceActionKeyForAnalysis(DocumentAnalysis analysis) =>
+    _sourceActionKey(
+      analysis: analysis,
+      suggestedTask: _firstSuggestedTask(analysis.suggestedTasks),
+      nextAction: _firstMeaningful(analysis.nextActions),
+      requiredDocument: _firstRequiredDocument(analysis.requiredDocuments),
+    );
 
 String _sourceActionKey({
   required DocumentAnalysis analysis,
@@ -172,7 +173,8 @@ _TaskDateTime? _parseDateTime(String? value, {String? time}) {
   if (parsed == null) {
     return null;
   }
-  final explicitTime = _timeMinutes(time) ??
+  final explicitTime =
+      _timeMinutes(time) ??
       (_containsTime(source) ? parsed.hour * 60 + parsed.minute : null);
   return _TaskDateTime(
     DateTime(parsed.year, parsed.month, parsed.day),
@@ -189,11 +191,14 @@ DateTime? _parseDmyDate(String source) {
   final month = int.parse(match.group(2)!);
   final year = int.parse(match.group(3)!);
   final date = DateTime(year, month, day);
-  return date.year == year && date.month == month && date.day == day ? date : null;
+  return date.year == year && date.month == month && date.day == day
+      ? date
+      : null;
 }
 
 int? _timeMinutes(String? value) {
-  final match = RegExp(r'\b([01]?\d|2[0-3]):([0-5]\d)\b').firstMatch(value ?? '');
+  final match = RegExp(r'\b([01]?\d|2[0-3]):([0-5]\d)\b')
+      .firstMatch(value ?? '');
   if (match == null) {
     return null;
   }

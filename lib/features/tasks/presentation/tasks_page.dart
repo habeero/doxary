@@ -77,16 +77,14 @@ class TasksPage extends ConsumerWidget {
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (_, _) =>
-                        AppErrorState(
-                          message: context.l10n.localDataUnavailable,
-                        ),
+                    error: (_, _) => AppErrorState(
+                      message: context.l10n.localDataUnavailable,
+                    ),
                   ),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (_, _) => AppErrorState(
-                    message: context.l10n.localDataUnavailable,
-                  ),
+                  error: (_, _) =>
+                      AppErrorState(message: context.l10n.localDataUnavailable),
                 ),
               ),
             ],
@@ -122,23 +120,23 @@ class _TaskList extends StatelessWidget {
             final dueAt = task.dueAt;
             return AppSectionCard(
               child: ListTile(
-              leading: const Icon(Icons.check_box_outline_blank),
-              title: Text(
-                task.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: overdue && dueAt != null
-                  ? Text(
-                      '${context.l10n.taskOverdue} · ${MaterialLocalizations.of(context).formatMediumDate(dueAt)}',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    )
-                  : null,
-              onTap: () =>
-                  GoRouter.of(context)
-                      .go('${AppRoutes.tasks}/edit/${task.id}'),
+                leading: const Icon(Icons.check_box_outline_blank),
+                title: Text(
+                  task.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: overdue && dueAt != null
+                    ? Text(
+                        '${context.l10n.taskOverdue} · ${MaterialLocalizations.of(context).formatMediumDate(dueAt)}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      )
+                    : null,
+                onTap: () =>
+                    GoRouter.of(context)
+                        .go('${AppRoutes.tasks}/edit/${task.id}'),
               ),
             );
           },

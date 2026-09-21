@@ -33,42 +33,105 @@ class ProfilePage extends ConsumerWidget {
                   _SettingsSection(
                     title: l10n.account,
                     children: [
-                      _SettingsSelectionRow(label: l10n.profile, icon: Icons.person_outline, deferred: true),
-                      _SettingsSelectionRow(label: l10n.planAccount, icon: Icons.workspace_premium_outlined, deferred: true),
+                      _SettingsSelectionRow(
+                        label: l10n.profile,
+                        icon: Icons.person_outline,
+                        deferred: true,
+                      ),
+                      _SettingsSelectionRow(
+                        label: l10n.planAccount,
+                        icon: Icons.workspace_premium_outlined,
+                        deferred: true,
+                      ),
                     ],
                   ),
                   _SettingsSection(
                     title: l10n.language,
                     children: [
-                  _SettingsSelectionRow(
-                    rowKey: const Key('settings-app-language'),
-                    icon: Icons.language_outlined,
-                    label: l10n.applicationLanguage,
-                    value: currentLanguage,
-                    onTap: () => _showLanguageSelection(context),
-                  ),
+                      _SettingsSelectionRow(
+                        rowKey: const Key('settings-app-language'),
+                        icon: Icons.language_outlined,
+                        label: l10n.applicationLanguage,
+                        value: currentLanguage,
+                        onTap: () => _showLanguageSelection(context),
+                      ),
                     ],
                   ),
-                  _SettingsSection(title: l10n.notifications, children: [
-                    _SettingsSelectionRow(label: l10n.analysisNotifications, icon: Icons.analytics_outlined, deferred: true),
-                    _SettingsSelectionRow(label: l10n.taskNotifications, icon: Icons.notifications_outlined, deferred: true),
-                  ]),
-                  _SettingsSection(title: l10n.appearance, children: [
-                    _SettingsSelectionRow(label: l10n.darkAppearance, icon: Icons.dark_mode_outlined, deferred: true),
-                  ]),
-                  _SettingsSection(title: l10n.privacyAndData, children: [
-                    _SettingsSelectionRow(label: l10n.localDocuments, icon: Icons.folder_outlined, deferred: true),
-                    _SettingsSelectionRow(label: l10n.dataManagement, icon: Icons.storage_outlined, deferred: true),
-                  ]),
-                  _SettingsSection(title: l10n.legal, children: [
-                    _SettingsSelectionRow(label: l10n.privacyPolicy, icon: Icons.privacy_tip_outlined, deferred: true),
-                    _SettingsSelectionRow(label: l10n.terms, icon: Icons.description_outlined, deferred: true),
-                  ]),
-                  _SettingsSection(title: l10n.about, children: [
-                    _SettingsSelectionRow(label: l10n.rateApp, icon: Icons.star_outline, deferred: true),
-                    _SettingsSelectionRow(label: l10n.shareApp, icon: Icons.share_outlined, deferred: true),
-                    _SettingsSelectionRow(label: l10n.appVersion, icon: Icons.info_outline, deferred: true),
-                  ]),
+                  _SettingsSection(
+                    title: l10n.notifications,
+                    children: [
+                      _SettingsSelectionRow(
+                        label: l10n.analysisNotifications,
+                        icon: Icons.analytics_outlined,
+                        deferred: true,
+                      ),
+                      _SettingsSelectionRow(
+                        label: l10n.taskNotifications,
+                        icon: Icons.notifications_outlined,
+                        deferred: true,
+                      ),
+                    ],
+                  ),
+                  _SettingsSection(
+                    title: l10n.appearance,
+                    children: [
+                      _SettingsSelectionRow(
+                        label: l10n.darkAppearance,
+                        icon: Icons.dark_mode_outlined,
+                        deferred: true,
+                      ),
+                    ],
+                  ),
+                  _SettingsSection(
+                    title: l10n.privacyAndData,
+                    children: [
+                      _SettingsSelectionRow(
+                        label: l10n.localDocuments,
+                        icon: Icons.folder_outlined,
+                        deferred: true,
+                      ),
+                      _SettingsSelectionRow(
+                        label: l10n.dataManagement,
+                        icon: Icons.storage_outlined,
+                        deferred: true,
+                      ),
+                    ],
+                  ),
+                  _SettingsSection(
+                    title: l10n.legal,
+                    children: [
+                      _SettingsSelectionRow(
+                        label: l10n.privacyPolicy,
+                        icon: Icons.privacy_tip_outlined,
+                        deferred: true,
+                      ),
+                      _SettingsSelectionRow(
+                        label: l10n.terms,
+                        icon: Icons.description_outlined,
+                        deferred: true,
+                      ),
+                    ],
+                  ),
+                  _SettingsSection(
+                    title: l10n.about,
+                    children: [
+                      _SettingsSelectionRow(
+                        label: l10n.rateApp,
+                        icon: Icons.star_outline,
+                        deferred: true,
+                      ),
+                      _SettingsSelectionRow(
+                        label: l10n.shareApp,
+                        icon: Icons.share_outlined,
+                        deferred: true,
+                      ),
+                      _SettingsSelectionRow(
+                        label: l10n.appVersion,
+                        icon: Icons.info_outline,
+                        deferred: true,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -121,18 +184,16 @@ class _SettingsHeader extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   l10n.productName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
               l10n.settings,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -164,7 +225,8 @@ class _SettingsSelectionRow extends StatelessWidget {
     enabled: !deferred,
     label: value == null ? label : '$label: $value',
     child: Material(
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: deferred ? .72 : 1),
+      color: Theme.of(context).colorScheme.surface
+          .withValues(alpha: deferred ? .72 : 1),
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         key: rowKey,
@@ -177,34 +239,42 @@ class _SettingsSelectionRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: deferred ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).colorScheme.primary),
+              Icon(
+                icon,
+                color: deferred
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : Theme.of(context).colorScheme.primary,
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
               if (value != null) ...[
                 const SizedBox(width: AppSpacing.sm),
-                Flexible(child: Text(
-                  value!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                Flexible(
+                  child: Text(
+                    value!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                )),
+                ),
                 const SizedBox(width: AppSpacing.xs),
                 const Icon(Icons.chevron_right),
               ] else if (deferred)
                 Text(
                   context.l10n.notAvailableYet,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
@@ -228,9 +298,8 @@ class _SettingsSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: AppSpacing.sm),
         ...children.expand(
@@ -293,9 +362,8 @@ class _LanguageSelectionSheet extends ConsumerWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               l10n.applicationLanguage,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.md),
             _LanguageOption(

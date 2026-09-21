@@ -41,8 +41,7 @@ void main() {
       clientDocumentId: documentId,
       localUri: Uri.parse('file:///document.pdf'),
       mediaType: 'application/pdf',
-      originalFilename:
-          'Betriebskostenabrechnung mit einem sehr langen Dokumenttitel 2026.pdf',
+      originalFilename: 'Betriebskostenabrechnung mit einem sehr langen Dokumenttitel 2026.pdf',
       importedAt: now,
     );
 
@@ -65,12 +64,10 @@ void main() {
               ),
             ]),
           ),
-          latestAnalysisProvider(documentId).overrideWithValue(
-            const AsyncValue.data(null),
-          ),
-          documentFilesProvider(documentId).overrideWithValue(
-            AsyncValue.data([file]),
-          ),
+          latestAnalysisProvider(documentId)
+              .overrideWithValue(const AsyncValue.data(null)),
+          documentFilesProvider(documentId)
+              .overrideWithValue(AsyncValue.data([file])),
         ],
         child: MaterialApp(
           locale: const Locale('ar'),
@@ -152,7 +149,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('\u0645\u0633\u062a\u0646\u062f'), findsOneWidget);
-    expect(find.text('\u063a\u064a\u0631 \u0645\u062d\u062f\u062f\u0629'), findsOneWidget);
+    expect(
+      find.text('\u063a\u064a\u0631 \u0645\u062d\u062f\u062f\u0629'),
+      findsOneWidget,
+    );
     expect(find.text(documentId), findsNothing);
     expect(find.text(caseId), findsNothing);
   });
@@ -203,9 +203,8 @@ void main() {
               ),
             ]),
           ),
-          latestAnalysisProvider(documentId).overrideWithValue(
-            const AsyncValue.data(null),
-          ),
+          latestAnalysisProvider(documentId)
+              .overrideWithValue(const AsyncValue.data(null)),
           documentFilesProvider(documentId).overrideWithValue(
             AsyncValue.data([
               DocumentFile(
@@ -339,6 +338,7 @@ class _TaskRepository implements TaskRepository {
     saves++;
     saved = task;
   }
+
   @override
   Future<void> updateStatus(
     String taskId,
@@ -347,6 +347,7 @@ class _TaskRepository implements TaskRepository {
   ) async {
     statusUpdate = (id: taskId, status: status, updatedAt: updatedAt);
   }
+
   @override
   Stream<List<LocalTask>> watchCompleted() => Stream.value([]);
   @override

@@ -630,19 +630,18 @@ void main() {
     expect(documents.classificationUpdates, isEmpty);
   });
 
-  testWidgets(
-    'closing Case selector preserves the existing draft context',
-    (tester) async {
-      await _pump(tester, const Locale('de'), withCase: true);
-      await tester.tap(find.byKey(const Key('classification-change')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('classification-case-field')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('case-selector-close')));
-      await tester.pumpAndSettle();
-      expect(find.text('Nebenkosten 2025'), findsWidgets);
-    },
-  );
+  testWidgets('closing Case selector preserves the existing draft context', (
+    tester,
+  ) async {
+    await _pump(tester, const Locale('de'), withCase: true);
+    await tester.tap(find.byKey(const Key('classification-change')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('classification-case-field')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('case-selector-close')));
+    await tester.pumpAndSettle();
+    expect(find.text('Nebenkosten 2025'), findsWidgets);
+  });
 
   testWidgets('Create Case opens a nested Organization-scoped modal', (
     tester,
@@ -655,7 +654,10 @@ void main() {
     expect(find.byKey(const Key('create-case-name')), findsOneWidget);
     expect(find.byKey(const Key('create-case-submit')), findsOneWidget);
     expect(
-      find.descendant(of: modal, matching: find.text('Neuen Vorgang erstellen')),
+      find.descendant(
+        of: modal,
+        matching: find.text('Neuen Vorgang erstellen'),
+      ),
       findsOneWidget,
     );
     expect(
@@ -836,7 +838,9 @@ void main() {
     );
   });
 
-  testWidgets('Create Case bounds inherited context in Arabic RTL', (tester) async {
+  testWidgets('Create Case bounds inherited context in Arabic RTL', (
+    tester,
+  ) async {
     const name = 'Sehr lange Organisation mit einem aussagekraeftigen Namen';
     await _pump(
       tester,
@@ -1109,5 +1113,7 @@ class _RecordingCases implements CaseRepository {
 
   @override
   Stream<List<Case>> watchForOrganization(String organizationId) =>
-      Stream.value(saved.where((item) => item.organizationId == organizationId).toList());
+      Stream.value(
+        saved.where((item) => item.organizationId == organizationId).toList(),
+      );
 }

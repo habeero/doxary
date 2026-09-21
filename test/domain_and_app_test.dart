@@ -211,16 +211,18 @@ void main() {
       ],
       now: now,
     );
-    expect(
-      buckets.overdue.map((task) => task.id),
-      ['overdue', 'timed-overdue', 'all-day-overdue'],
-    );
+    expect(buckets.overdue.map((task) => task.id), [
+      'overdue',
+      'timed-overdue',
+      'all-day-overdue',
+    ]);
     expect(buckets.today.single.id, 'today');
     expect(buckets.upcoming.single.id, 'later');
-    expect(
-      buckets.completed.map((task) => task.id),
-      ['done-yesterday', 'done-today', 'done-in-open'],
-    );
+    expect(buckets.completed.map((task) => task.id), [
+      'done-yesterday',
+      'done-today',
+      'done-in-open',
+    ]);
   });
 
   test('unavailable import is an explicit typed capability failure', () async {

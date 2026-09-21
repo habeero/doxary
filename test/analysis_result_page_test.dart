@@ -552,9 +552,8 @@ void main() {
                 .overrideWithValue(const AsyncValue.data([])),
             latestAnalysisProvider('doc')
                 .overrideWithValue(AsyncValue.data(_analysis())),
-            analysisHistoryProvider('doc').overrideWithValue(
-              const AsyncValue.data(<AnalysisAttempt>[]),
-            ),
+            analysisHistoryProvider('doc')
+                .overrideWithValue(const AsyncValue.data(<AnalysisAttempt>[])),
             organizationsProvider.overrideWithValue(const AsyncValue.data([])),
             casesProvider.overrideWithValue(const AsyncValue.data([])),
           ],
@@ -643,9 +642,8 @@ void main() {
           casesProvider.overrideWithValue(const AsyncValue.data([])),
           latestAnalysisProvider('doc')
               .overrideWithValue(AsyncValue.data(_analysis())),
-          analysisHistoryProvider('doc').overrideWithValue(
-            const AsyncValue.data(<AnalysisAttempt>[]),
-          ),
+          analysisHistoryProvider('doc')
+              .overrideWithValue(const AsyncValue.data(<AnalysisAttempt>[])),
         ],
         child: _app(const DocumentsPage(), const Locale('de')),
       ),

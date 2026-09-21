@@ -287,9 +287,9 @@ class LocalAnalysisRepository implements AnalysisRepository {
       );
       if (state == AnalysisLifecycleState.failed ||
           state == AnalysisLifecycleState.expired) {
-        await (_database.delete(_database.analysisOperations)
-              ..where((row) => row.operationId.equals(operationId)))
-            .go();
+        await (_database.delete(
+          _database.analysisOperations,
+        )..where((row) => row.operationId.equals(operationId))).go();
       }
     });
   }
@@ -565,16 +565,17 @@ class LocalAnalysisRepository implements AnalysisRepository {
         'DELETE FROM analysis_attempt_history WHERE result_analysis_id = ?',
         [analysisId],
       );
-      final remaining = await (_database.select(_database.analyses)
-            ..where(
-              (row) => row.clientDocumentId.equals(analysis.clientDocumentId),
-            )
-            ..limit(1))
-          .getSingleOrNull();
-      await (_database.update(_database.documents)
-            ..where(
-              (row) => row.clientDocumentId.equals(analysis.clientDocumentId),
-            ))
+      final remaining =
+          await (_database.select(_database.analyses)
+                ..where(
+                  (row) =>
+                      row.clientDocumentId.equals(analysis.clientDocumentId),
+                )
+                ..limit(1))
+              .getSingleOrNull();
+      await (_database.update(_database.documents)..where(
+            (row) => row.clientDocumentId.equals(analysis.clientDocumentId),
+          ))
           .write(
             DocumentsCompanion(
               status: Value(
@@ -589,36 +590,36 @@ class LocalAnalysisRepository implements AnalysisRepository {
   }
 
   Future<void> _deleteAnalysisChildren(String analysisId) async {
-    await (_database.delete(_database.analysisQualityReasons)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.sourceReferences)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisNextActions)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisUncertainties)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisPracticalStates)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisDeadlines)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisAppointments)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisAmounts)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisRequiredDocuments)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
-    await (_database.delete(_database.analysisSuggestedTasks)
-          ..where((item) => item.analysisId.equals(analysisId)))
-        .go();
+    await (_database.delete(
+      _database.analysisQualityReasons,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.sourceReferences,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisNextActions,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisUncertainties,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisPracticalStates,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisDeadlines,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisAppointments,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisAmounts,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisRequiredDocuments,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
+    await (_database.delete(
+      _database.analysisSuggestedTasks,
+    )..where((item) => item.analysisId.equals(analysisId))).go();
   }
 
   @override
@@ -695,8 +696,8 @@ class LocalAnalysisRepository implements AnalysisRepository {
 
   AnalysisAttemptStatus _attemptStatus(AnalysisLifecycleState state) =>
       switch (state) {
-        AnalysisLifecycleState.failed || AnalysisLifecycleState.expired =>
-          AnalysisAttemptStatus.failed,
+        AnalysisLifecycleState.failed ||
+        AnalysisLifecycleState.expired => AnalysisAttemptStatus.failed,
         AnalysisLifecycleState.succeeded => AnalysisAttemptStatus.succeeded,
         _ => AnalysisAttemptStatus.pending,
       };

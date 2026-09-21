@@ -473,13 +473,12 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                       AppSectionCard(
                         child: ListTile(
                           key: const Key('selected-import-draft'),
-                          contentPadding:
-                              const EdgeInsetsDirectional.fromSTEB(
-                                AppSpacing.md,
-                                AppSpacing.sm,
-                                AppSpacing.sm,
-                                AppSpacing.sm,
-                              ),
+                          contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                            AppSpacing.md,
+                            AppSpacing.sm,
+                            AppSpacing.sm,
+                            AppSpacing.sm,
+                          ),
                           leading: Icon(
                             _selection!.isPdf
                                 ? Icons.picture_as_pdf_outlined
@@ -569,9 +568,8 @@ class _CameraDraftCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.cameraCapturedDocument,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
                 TextButton(
@@ -596,7 +594,8 @@ class _CameraDraftCard extends StatelessWidget {
                 key: const Key('camera-draft-thumbnails'),
                 scrollDirection: Axis.horizontal,
                 itemCount: selection.files.length,
-                separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.sm),
                 itemBuilder: (context, index) => Semantics(
                   image: true,
                   label: '${l10n.cameraPage} ${index + 1}',

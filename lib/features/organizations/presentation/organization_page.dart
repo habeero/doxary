@@ -24,21 +24,27 @@ class _OrganizationPageState extends ConsumerState<OrganizationPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final organizations = _data(ref.watch(organizationsProvider)) ?? const <Organization>[];
-    final organization = _firstWhere(organizations, (item) => item.id == widget.organizationId);
+    final organizations =
+        _data(ref.watch(organizationsProvider)) ?? const <Organization>[];
+    final organization = _firstWhere(
+      organizations,
+      (item) => item.id == widget.organizationId,
+    );
     final cases = (_data(ref.watch(casesProvider)) ?? const <Case>[])
         .where((item) => item.organizationId == widget.organizationId)
         .where((item) => _matches(item.title, _query))
         .toList();
-    final documents = (_data(ref.watch(allDocumentsProvider)) ?? const <LocalDocument>[])
-        .where(
-          (item) =>
-              item.classificationState == ClassificationState.confirmed &&
-              item.organizationId == widget.organizationId &&
-              item.caseId == null,
-        )
-        .toList();
-    final allDocuments = _data(ref.watch(allDocumentsProvider)) ?? const <LocalDocument>[];
+    final documents =
+        (_data(ref.watch(allDocumentsProvider)) ?? const <LocalDocument>[])
+            .where(
+              (item) =>
+                  item.classificationState == ClassificationState.confirmed &&
+                  item.organizationId == widget.organizationId &&
+                  item.caseId == null,
+            )
+            .toList();
+    final allDocuments =
+        _data(ref.watch(allDocumentsProvider)) ?? const <LocalDocument>[];
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -84,10 +90,21 @@ class _OrganizationPageState extends ConsumerState<OrganizationPage> {
             for (final item in cases)
               ListTile(
                 key: Key('case-folder-${item.id}'),
-                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                leading: Icon(Icons.folder_outlined, color: Theme.of(context).colorScheme.primary),
-                title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                subtitle: Text(_caseDocumentCountLabel(l10n, allDocuments, item.id)),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xs,
+                ),
+                leading: Icon(
+                  Icons.folder_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  _caseDocumentCountLabel(l10n, allDocuments, item.id),
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _openCase(context, widget.organizationId, item.id),
               ),
@@ -113,7 +130,9 @@ class _WithoutCaseFolder extends StatelessWidget {
         key: const Key('without-case-folder'),
         leading: const Icon(Icons.inventory_2_outlined),
         title: Text(l10n.withoutCase),
-        subtitle: Text('$count ${count == 1 ? l10n.documentFallback : l10n.documents}'),
+        subtitle: Text(
+          '$count ${count == 1 ? l10n.documentFallback : l10n.documents}',
+        ),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
@@ -126,17 +145,20 @@ class OrganizationWithoutCasePage extends ConsumerStatefulWidget {
   final String organizationId;
 
   @override
-  ConsumerState<OrganizationWithoutCasePage> createState() => _OrganizationWithoutCasePageState();
+  ConsumerState<OrganizationWithoutCasePage> createState() =>
+      _OrganizationWithoutCasePageState();
 }
 
-class _OrganizationWithoutCasePageState extends ConsumerState<OrganizationWithoutCasePage> {
+class _OrganizationWithoutCasePageState
+    extends ConsumerState<OrganizationWithoutCasePage> {
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final documents = ref.watch(allDocumentsProvider);
-    final organizations = _data(ref.watch(organizationsProvider)) ?? const <Organization>[];
+    final organizations =
+        _data(ref.watch(organizationsProvider)) ?? const <Organization>[];
     final organization = _firstWhere(
       organizations,
       (item) => item.id == widget.organizationId,
@@ -157,7 +179,10 @@ class _OrganizationWithoutCasePageState extends ConsumerState<OrganizationWithou
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            Text(l10n.withoutCase, style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              l10n.withoutCase,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
       ),
@@ -192,7 +217,8 @@ T? _firstWhere<T>(Iterable<T> values, bool Function(T) predicate) {
 }
 
 bool _matches(String value, String query) =>
-    query.trim().isEmpty || value.toLowerCase().contains(query.trim().toLowerCase());
+    query.trim().isEmpty ||
+    value.toLowerCase().contains(query.trim().toLowerCase());
 
 String _caseDocumentCountLabel(
   AppLocalizations l10n,
@@ -210,7 +236,8 @@ void _openWithoutCase(BuildContext context, String organizationId) {
   }
   Navigator.of(context).push(
     MaterialPageRoute(
-      builder: (_) => OrganizationWithoutCasePage(organizationId: organizationId),
+      builder: (_) =>
+          OrganizationWithoutCasePage(organizationId: organizationId),
     ),
   );
 }
@@ -220,7 +247,6 @@ void _openCase(BuildContext context, String organizationId, String caseId) {
     context.push('/documents/organization/$organizationId/case/$caseId');
     return;
   }
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => CasePage(caseId: caseId)),
-  );
+  Navigator.of(context)
+      .push(MaterialPageRoute(builder: (_) => CasePage(caseId: caseId)));
 }

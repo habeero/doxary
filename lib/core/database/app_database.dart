@@ -388,8 +388,12 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> _addTaskProvenanceColumns() async {
-    await customStatement('ALTER TABLE tasks ADD COLUMN source_analysis_id TEXT');
-    await customStatement('ALTER TABLE tasks ADD COLUMN source_action_key TEXT');
+    await customStatement(
+      'ALTER TABLE tasks ADD COLUMN source_analysis_id TEXT',
+    );
+    await customStatement(
+      'ALTER TABLE tasks ADD COLUMN source_action_key TEXT',
+    );
   }
 
   Future<void> _createTaskSourceActionIndex() => customStatement('''

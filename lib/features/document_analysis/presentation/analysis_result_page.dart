@@ -22,7 +22,10 @@ class AnalysisResultPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final document = ref.watch(documentProvider(clientDocumentId)).asData?.value;
+    final document = ref
+        .watch(documentProvider(clientDocumentId))
+        .asData
+        ?.value;
     final body = ref
         .watch(latestAnalysisProvider(clientDocumentId))
         .when(
@@ -43,17 +46,18 @@ class AnalysisResultPage extends ConsumerWidget {
             );
             final sourceAnalysisId = prefill?.sourceAnalysisId;
             final sourceActionKey = prefill?.sourceActionKey;
-            final existingTask = sourceAnalysisId == null || sourceActionKey == null
+            final existingTask =
+                sourceAnalysisId == null || sourceActionKey == null
                 ? null
                 : ref
-                    .watch(
-                      taskForSourceActionProvider((
-                        analysisId: sourceAnalysisId,
-                        actionKey: sourceActionKey,
-                      )),
-                    )
-                    .asData
-                    ?.value;
+                      .watch(
+                        taskForSourceActionProvider((
+                          analysisId: sourceAnalysisId,
+                          actionKey: sourceActionKey,
+                        )),
+                      )
+                      .asData
+                      ?.value;
             return DocumentResultView(
               title: context.l10n.analysisTitle,
               analysis: analysis,
@@ -74,8 +78,9 @@ class AnalysisResultPage extends ConsumerWidget {
                         extra: task == null ? prefill : null,
                       );
                     },
-              taskActionLabel:
-                  existingTask == null ? null : context.l10n.viewTask,
+              taskActionLabel: existingTask == null
+                  ? null
+                  : context.l10n.viewTask,
             );
           },
         );
@@ -350,7 +355,9 @@ class _ActionSection extends StatelessWidget {
         color: AppColors.errorFor(Theme.of(context).brightness),
         title: l.actionRequired,
         description: primaryAction!.text,
-        actionLabel: onAddTask == null ? null : (taskActionLabel ?? l.createTask),
+        actionLabel: onAddTask == null
+            ? null
+            : (taskActionLabel ?? l.createTask),
         onAction: onAddTask,
         actionInProgress: actionInProgress,
         supportingFacts: primaryAction!.facts,
@@ -1031,8 +1038,7 @@ bool _hasExpandableDetails(
 ) =>
     _meaningful(analysis.explanation) != null ||
     analysis.nextActions.any(
-      (value) =>
-          _meaningful(value) != null && value != primaryAction?.text,
+      (value) => _meaningful(value) != null && value != primaryAction?.text,
     ) ||
     analysis.requiredDocuments.any(
       (value) =>

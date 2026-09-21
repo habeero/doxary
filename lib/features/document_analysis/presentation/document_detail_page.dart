@@ -1030,12 +1030,9 @@ class _OrganizationSelectorResult {
 }
 
 class _CaseSelectorResult {
-  const _CaseSelectorResult.select(this.caseItem)
-    : noCase = false;
+  const _CaseSelectorResult.select(this.caseItem) : noCase = false;
 
-  const _CaseSelectorResult.noCase()
-    : caseItem = null,
-      noCase = true;
+  const _CaseSelectorResult.noCase() : caseItem = null, noCase = true;
 
   final Case? caseItem;
   final bool noCase;
@@ -1235,9 +1232,7 @@ class _OrganizationSelectorSheetState
                   );
                   if (!mounted) return;
                   if (created == null) return;
-                  navigator.pop(
-                    _OrganizationSelectorResult.select(created),
-                  );
+                  navigator.pop(_OrganizationSelectorResult.select(created));
                 },
                 icon: const Icon(Icons.add),
                 label: Text(l10n.createOrganization),
@@ -1654,11 +1649,8 @@ Future<Case?> _showCreateCase(
   isScrollControlled: true,
   useSafeArea: true,
   backgroundColor: Colors.transparent,
-  builder: (_) => _CreateCaseSheet(
-    ref: ref,
-    organization: organization,
-    cases: cases,
-  ),
+  builder: (_) =>
+      _CreateCaseSheet(ref: ref, organization: organization, cases: cases),
 );
 
 class _CreateCaseSheet extends StatefulWidget {
@@ -1778,9 +1770,8 @@ class _CreateCaseSheetState extends State<_CreateCaseSheet> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   l10n.createCase,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
@@ -1793,9 +1784,8 @@ class _CreateCaseSheetState extends State<_CreateCaseSheet> {
                   key: const Key('create-case-organization-context'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 TextField(

@@ -22,23 +22,17 @@ TaskBuckets bucketTasks({
 }) {
   final today = DateTime(now.year, now.month, now.day);
   final active = open.where((task) => task.status == TaskStatus.open).toList();
-  final completedItems = [...completed, ...open]
-      .where((task) => task.status == TaskStatus.completed)
-      .toList();
+  final completedItems = [
+    ...completed,
+    ...open,
+  ].where((task) => task.status == TaskStatus.completed).toList();
   return TaskBuckets(
     overdue: active
         .where((task) => _dueDate(task)?.isBefore(today) ?? false)
         .toList(),
-    today: active
-        .where(
-          (task) => _dueDate(task) == today,
-        )
-        .toList(),
+    today: active.where((task) => _dueDate(task) == today).toList(),
     upcoming: active
-        .where(
-          (task) =>
-              task.dueAt == null || _dueDate(task)!.isAfter(today),
-        )
+        .where((task) => task.dueAt == null || _dueDate(task)!.isAfter(today))
         .toList(),
     completed: completedItems,
   );

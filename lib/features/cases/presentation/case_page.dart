@@ -23,9 +23,10 @@ class _CasePageState extends ConsumerState<CasePage> {
     final l10n = context.l10n;
     final cases = _data(ref.watch(casesProvider)) ?? const <Case>[];
     final item = _firstWhere(cases, (value) => value.id == widget.caseId);
-    final documents = (_data(ref.watch(allDocumentsProvider)) ?? const <LocalDocument>[])
-        .where((value) => value.caseId == widget.caseId)
-        .toList();
+    final documents =
+        (_data(ref.watch(allDocumentsProvider)) ?? const <LocalDocument>[])
+            .where((value) => value.caseId == widget.caseId)
+            .toList();
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
