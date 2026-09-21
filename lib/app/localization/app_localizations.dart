@@ -113,6 +113,23 @@ class AppLocalizations {
   String get cameraUsePhoto => _value('cameraUsePhoto');
   String get cameraRotate => _value('cameraRotate');
   String get cameraRotateFailed => _value('cameraRotateFailed');
+  String get cameraCrop => _value('cameraCrop');
+  String get cameraCropFailed => _value('cameraCropFailed');
+  String get cameraAddAnotherPage => _value('cameraAddAnotherPage');
+  String get cameraContinue => _value('cameraContinue');
+  String get cameraPagesForAnalysis => _value('cameraPagesForAnalysis');
+  String get cameraMaximumPages => _value('cameraMaximumPages');
+  String get cameraDiscardPagesTitle => _value('cameraDiscardPagesTitle');
+  String get cameraDiscardPagesMessage => _value('cameraDiscardPagesMessage');
+  String get cameraKeepEditing => _value('cameraKeepEditing');
+  String get cameraDiscardPages => _value('cameraDiscardPages');
+  String get cameraCapturedDocument => _value('cameraCapturedDocument');
+  String get cameraPage => _value('cameraPage');
+  String get cameraPages => _value('cameraPages');
+  String cameraPageCount(int count) =>
+      '$count ${count == 1 ? cameraPage : cameraPages}';
+  String get cameraManagePages => _value('cameraManagePages');
+  String get cameraReadyForAnalysis => _value('cameraReadyForAnalysis');
   String get operationRetryableError => _value('operationRetryableError');
   String get operationFailedError => _value('operationFailedError');
   String get importError => _value('importError');
@@ -544,6 +561,22 @@ const _strings = <String, Map<String, String>>{
     'cameraUsePhoto': 'Foto verwenden',
     'cameraRotate': 'Drehen',
     'cameraRotateFailed': 'Das Foto konnte nicht gedreht werden.',
+    'cameraCrop': 'Zuschneiden',
+    'cameraCropFailed': 'Das Foto konnte nicht zugeschnitten werden.',
+    'cameraAddAnotherPage': 'Weitere Seite',
+    'cameraContinue': 'Weiter',
+    'cameraPagesForAnalysis': 'Bilder zur Analyse',
+    'cameraMaximumPages': 'Maximal 10 Seiten',
+    'cameraDiscardPagesTitle': 'Aufnahmen verwerfen?',
+    'cameraDiscardPagesMessage':
+        'Die aufgenommenen Seiten werden verworfen und nicht analysiert.',
+    'cameraKeepEditing': 'Weiter bearbeiten',
+    'cameraDiscardPages': 'Verwerfen',
+    'cameraCapturedDocument': 'Aufgenommenes Dokument',
+    'cameraPage': 'Seite',
+    'cameraPages': 'Seiten',
+    'cameraManagePages': 'Seiten bearbeiten',
+    'cameraReadyForAnalysis': 'Bereit zur Analyse',
     'operationRetryableError': 'Der Dienst ist vorübergehend nicht verfügbar.',
     'operationFailedError': 'Die Analyse konnte nicht abgeschlossen werden.',
     'importError': 'Der Dokumentimport ist fehlgeschlagen.',
@@ -614,6 +647,22 @@ const _strings = <String, Map<String, String>>{
     'cameraUsePhoto': 'استخدام الصورة',
     'cameraRotate': 'تدوير',
     'cameraRotateFailed': 'تعذّر تدوير الصورة.',
+    'cameraCrop': 'اقتصاص',
+    'cameraCropFailed': 'تعذّر اقتصاص الصورة.',
+    'cameraAddAnotherPage': 'إضافة صفحة أخرى',
+    'cameraContinue': 'متابعة',
+    'cameraPagesForAnalysis': 'الصور التي سيتم تحليلها',
+    'cameraMaximumPages': 'الحد الأقصى 10 صفحات',
+    'cameraDiscardPagesTitle': 'حذف الصور الملتقطة؟',
+    'cameraDiscardPagesMessage':
+        'سيتم حذف الصفحات الملتقطة ولن تُرسل للتحليل.',
+    'cameraKeepEditing': 'متابعة التعديل',
+    'cameraDiscardPages': 'حذف',
+    'cameraCapturedDocument': 'مستند ملتقط',
+    'cameraPage': 'صفحة',
+    'cameraPages': 'صفحات',
+    'cameraManagePages': 'تعديل الصفحات',
+    'cameraReadyForAnalysis': 'جاهز للتحليل',
     'operationRetryableError': 'الخدمة غير متاحة مؤقتًا.',
     'operationFailedError': 'تعذر إكمال التحليل.',
     'importError': 'تعذر استيراد المستند.',

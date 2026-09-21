@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:camera/camera.dart';
 import 'package:drift/native.dart';
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
@@ -18,6 +19,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('document camera policy prefers rear maximum-resolution capture', () {
+    const front = CameraDescription(
+      name: 'front',
+      lensDirection: CameraLensDirection.front,
+      sensorOrientation: 0,
+    );
+    const rear = CameraDescription(
+      name: 'rear',
+      lensDirection: CameraLensDirection.back,
+      sensorOrientation: 0,
+    );
+
+    expect(selectDocumentCamera([front, rear]), rear);
+    expect(documentCameraResolutionPreset, ResolutionPreset.max);
+    expect(documentCameraEnableAudio, isFalse);
+  });
+
+  test('camera draft detection uses import source rather than filename', () {
+    final cameraSelection = DocumentImportSelection([
+      DocumentImportCandidate(
+        localUri: Uri.parse('file:///Nebenkostenabrechnung.pdf'),
+        mediaType: ImportedMediaType.image,
+        source: ImportSource.camera,
+        originalFilename: 'Nebenkostenabrechnung.pdf',
+        importedAt: DateTime(2026),
+      ),
+    ]);
+    final imageSelection = DocumentImportSelection([
+      DocumentImportCandidate(
+        localUri: Uri.parse('file:///camera-1.jpg'),
+        mediaType: ImportedMediaType.image,
+        source: ImportSource.imageLibrary,
+        importedAt: DateTime(2026),
+      ),
+    ]);
+
+    expect(cameraSelection.isCameraCapture, isTrue);
+    expect(imageSelection.isCameraCapture, isFalse);
+  });
+
   testWidgets('Arabic device locale defaults the next submission to Arabic', (
     tester,
   ) async {
@@ -154,6 +195,31 @@ void main() {
     expect(find.byKey(const Key('analyze-draft-action')), findsOneWidget);
     expect(find.byKey(const Key('replace-import-draft')), findsOneWidget);
     expect(find.byKey(const Key('import-choose-image')), findsNothing);
+  });
+
+  testWidgets('image-library selection retains the generic selected-file UI', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          importGatewayProvider.overrideWithValue(_SelectionGateway()),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('choose-file-image-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('import-choose-image')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('selected-import-draft')), findsOneWidget);
+    expect(find.byKey(const Key('replace-import-draft')), findsOneWidget);
+    expect(find.byKey(const Key('camera-draft-thumbnails')), findsNothing);
   });
 
   testWidgets('Remove clears the selected PDF and returns to empty Analyze', (
@@ -631,23 +697,33 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('camera-capture-page')), findsOneWidget);
       expect(find.byKey(const Key('camera-capture-shutter')), findsOneWidget);
+      expect(
+        find.byKey(const Key('camera-capture-zoom-gesture')),
+        findsNothing,
+      );
       expect(gateway.sources, isEmpty);
 
       await tester.tap(find.byKey(const Key('camera-capture-shutter')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
-      expect(find.byKey(const Key('camera-review-preview')), findsOneWidget);
+      expect(find.byKey(const Key('camera-review-preview-0')), findsOneWidget);
       expect(camera.session.pauseCalls, 1);
+      expect(camera.session.pauseAfterPreviewDetached, isTrue);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(camera.session.resumeCalls, 0);
 
       await tester.tap(find.byKey(const Key('camera-review-back')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('camera-capture-page')), findsOneWidget);
-      expect(camera.session.discardCalls, 1);
-      expect(camera.session.resumeCalls, 1);
-
-      await tester.tap(find.byKey(const Key('camera-capture-back')));
+      expect(
+        find.byKey(const Key('camera-review-discard-pages')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('camera-review-discard-pages')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('camera-capture-page')), findsNothing);
+      expect(camera.session.discardCalls, 1);
       expect(find.byKey(const Key('capture-document-action')), findsOneWidget);
       expect(await database.select(database.documents).get(), isEmpty);
       expect(await database.select(database.analysisOperations).get(), isEmpty);
@@ -660,6 +736,148 @@ void main() {
       expect(gateway.sources, [ImportSource.imageLibrary]);
     },
   );
+
+  testWidgets(
+    'first camera entry keeps one initialization while lifecycle resumes',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final initialization = Completer<CameraCaptureState>();
+      final camera = _FakeCameraCaptureGateway(
+        pendingInitialization: initialization,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pump();
+
+      expect(camera.session.initializeCalls, 1);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(camera.session.initializeCalls, 1);
+      expect(camera.session.resumeCalls, 0);
+
+      initialization.complete(CameraCaptureState.ready);
+      await tester.pump();
+      expect(find.byKey(const Key('camera-capture-shutter')), findsOneWidget);
+      expect(camera.session.initializeCalls, 1);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(camera.session.initializeCalls, 1);
+      expect(camera.session.resumeCalls, 0);
+    },
+  );
+
+  testWidgets(
+    'late initial completion cannot restore Capture after an inactive transition',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final initialization = Completer<CameraCaptureState>();
+      final camera = _FakeCameraCaptureGateway(
+        pendingInitialization: initialization,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pump();
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      initialization.complete(CameraCaptureState.ready);
+      await tester.pump();
+      expect(find.byKey(const Key('camera-capture-shutter')), findsNothing);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(camera.session.resumeCalls, 1);
+      expect(find.byKey(const Key('camera-capture-shutter')), findsOneWidget);
+    },
+  );
+
+  testWidgets('pending permission result does not trigger a competing resume', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final initialization = Completer<CameraCaptureState>();
+    final camera = _FakeCameraCaptureGateway(
+      pendingInitialization: initialization,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+
+    initialization.complete(CameraCaptureState.permissionDenied);
+    await tester.pump();
+
+    expect(camera.session.initializeCalls, 1);
+    expect(camera.session.resumeCalls, 0);
+    expect(
+      find.byKey(const Key('camera-capture-state-message')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('late initialization is ignored after leaving Capture', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final initialization = Completer<CameraCaptureState>();
+    final camera = _FakeCameraCaptureGateway(
+      pendingInitialization: initialization,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pump();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    initialization.complete(CameraCaptureState.ready);
+    await tester.pump();
+
+    expect(find.byKey(const Key('camera-capture-page')), findsNothing);
+    expect(find.byKey(const Key('capture-document-action')), findsOneWidget);
+    expect(camera.session.disposeCalls, 1);
+  });
 
   testWidgets('Retake discards the reviewed capture and resumes the camera', (
     tester,
@@ -712,16 +930,32 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('camera-capture-shutter')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-add-page')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    final firstThumbnail = tester.widget<OutlinedButton>(
+      find.byKey(const Key('camera-review-thumbnail-0')),
+    );
+    expect(firstThumbnail.onPressed, isNotNull);
+    firstThumbnail.onPressed!();
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('camera-review-rotate')));
     await tester.pumpAndSettle();
 
     expect(camera.session.rotateCalls, 1);
-    expect(find.byKey(const Key('camera-review-preview')), findsOneWidget);
+    final preview = tester.widget<Image>(
+      find.byKey(const Key('camera-review-preview-0')),
+    );
+    expect(
+      (preview.image as FileImage).file.uri.path,
+      '/camera-capture-rotated.jpg',
+    );
   });
 
   testWidgets(
-    'Use photo returns a camera image as an unsubmitted Analyze draft',
+    'Continue returns one camera page as an unsubmitted Analyze draft',
     (tester) async {
       final database = AppDatabase(NativeDatabase.memory());
       addTearDown(database.close);
@@ -741,7 +975,7 @@ void main() {
       await tester.tap(find.byKey(const Key('camera-capture-shutter')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('camera-review-use')));
+      await tester.tap(find.byKey(const Key('camera-review-continue')));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('camera-review-page')), findsNothing);
@@ -751,6 +985,579 @@ void main() {
       expect(await database.select(database.analysisOperations).get(), isEmpty);
       expect(camera.session.discardCalls, 0);
       expect(camera.session.disposeCalls, greaterThanOrEqualTo(1));
+    },
+  );
+
+  testWidgets('Add another page appends it to the same Camera Review flow', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('camera-review-add-page')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('camera-capture-page')), findsOneWidget);
+    expect(camera.session.resumeCalls, 1);
+
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
+    expect(find.byKey(const Key('camera-review-thumbnails')), findsOneWidget);
+    expect(find.byKey(const Key('camera-review-thumbnail-0')), findsOneWidget);
+    expect(find.byKey(const Key('camera-review-thumbnail-1')), findsOneWidget);
+
+    final firstThumbnail = tester.widget<OutlinedButton>(
+      find.byKey(const Key('camera-review-thumbnail-0')),
+    );
+    expect(firstThumbnail.onPressed, isNotNull);
+    firstThumbnail.onPressed!();
+    await tester.pumpAndSettle();
+    final preview = tester.widget<Image>(
+      find.byKey(const Key('camera-review-preview-0')),
+    );
+    expect((preview.image as FileImage).file.uri.path, '/camera-capture-1.jpg');
+
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('selected-import-draft')), findsOneWidget);
+    expect(camera.session.discardCalls, 0);
+    expect(await database.select(database.documents).get(), isEmpty);
+    expect(await database.select(database.analysisOperations).get(), isEmpty);
+  });
+
+  testWidgets('one camera page uses the camera-specific Analyze draft card', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('selected-import-draft')), findsOneWidget);
+    expect(find.text('Aufgenommenes Dokument'), findsOneWidget);
+    expect(find.text('1 Seite'), findsOneWidget);
+    expect(find.byKey(const Key('camera-draft-thumbnail-0')), findsOneWidget);
+    expect(find.byKey(const Key('camera-draft-thumbnail-1')), findsNothing);
+    expect(find.textContaining('camera-'), findsNothing);
+    expect(find.byKey(const Key('edit-camera-draft')), findsOneWidget);
+    expect(find.byKey(const Key('replace-import-draft')), findsNothing);
+    expect(find.byKey(const Key('analysis-language-selector')), findsOneWidget);
+    expect(find.byKey(const Key('analyze-draft-action')), findsOneWidget);
+  });
+
+  testWidgets('camera Analyze draft shows every selected page in order', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-add-page')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 Seiten'), findsOneWidget);
+    expect(find.byKey(const Key('camera-draft-thumbnails')), findsOneWidget);
+    final first = tester.widget<Image>(
+      find.byKey(const Key('camera-draft-thumbnail-0')),
+    );
+    final second = tester.widget<Image>(
+      find.byKey(const Key('camera-draft-thumbnail-1')),
+    );
+    expect((first.image as FileImage).file.uri.path, '/camera-capture-1.jpg');
+    expect((second.image as FileImage).file.uri.path, '/camera-capture-2.jpg');
+
+    await tester.tap(find.byKey(const Key('edit-camera-draft')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+    final editedFirst = tester.widget<Image>(
+      find.byKey(const Key('camera-draft-thumbnail-0')),
+    );
+    final editedSecond = tester.widget<Image>(
+      find.byKey(const Key('camera-draft-thumbnail-1')),
+    );
+    expect((editedFirst.image as FileImage).file.uri.path, '/camera-edit-1.jpg');
+    expect((editedSecond.image as FileImage).file.uri.path, '/camera-edit-2.jpg');
+  });
+
+  testWidgets('camera draft Remove clears every captured page from Analyze', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('remove-import-draft')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('selected-import-draft')), findsNothing);
+    expect(find.byKey(const Key('capture-document-action')), findsOneWidget);
+    expect(camera.session.discardCalls, 1);
+  });
+
+  testWidgets('editing a camera draft preserves it on cancel and replaces it on Continue', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('edit-camera-draft')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
+    expect(camera.session.duplicateCalls, 1);
+    await tester.tap(find.byKey(const Key('camera-review-back')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-discard-pages')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('selected-import-draft')), findsOneWidget);
+    final original = tester.widget<Image>(
+      find.byKey(const Key('camera-draft-thumbnail-0')),
+    );
+    expect((original.image as FileImage).file.uri.path, '/camera-capture-1.jpg');
+
+    await tester.tap(find.byKey(const Key('edit-camera-draft')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+    final edited = tester.widget<Image>(
+      find.byKey(const Key('camera-draft-thumbnail-0')),
+    );
+    expect((edited.image as FileImage).file.uri.path, '/camera-edit-2.jpg');
+  });
+
+  testWidgets(
+    'removing camera-review pages updates selection and returns to Capture',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final camera = _FakeCameraCaptureGateway();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-add-page')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('camera-review-remove-page-1')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('camera-review-thumbnails')), findsNothing);
+      expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('camera-review-retake')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('camera-capture-page')), findsOneWidget);
+      expect(camera.session.discardCalls, 1);
+    },
+  );
+
+  testWidgets(
+    'Crop cancels without replacement and applies only the selected page',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final camera = _FakeCameraCaptureGateway();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-add-page')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      final firstThumbnail = tester.widget<OutlinedButton>(
+        find.byKey(const Key('camera-review-thumbnail-0')),
+      );
+      expect(firstThumbnail.onPressed, isNotNull);
+      firstThumbnail.onPressed!();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('camera-review-crop')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-crop-cancel')));
+      await tester.pumpAndSettle();
+      expect(camera.session.cropCalls, 0);
+
+      await tester.tap(find.byKey(const Key('camera-review-crop')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-crop-apply')));
+      await tester.pumpAndSettle();
+      expect(camera.session.cropCalls, 1);
+      final preview = tester.widget<Image>(
+        find.byKey(const Key('camera-review-preview-0')),
+      );
+      expect(
+        (preview.image as FileImage).file.uri.path,
+        '/camera-capture-cropped-1.jpg',
+      );
+    },
+  );
+
+  testWidgets('Camera Review caps the unified flow at ten pages', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    for (var page = 0; page < 10; page++) {
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      if (page < 9) {
+        await tester.tap(find.byKey(const Key('camera-review-add-page')));
+        await tester.pumpAndSettle();
+      }
+    }
+
+    final addPage = tester.widget<OutlinedButton>(
+      find.byKey(const Key('camera-review-add-page')),
+    );
+    expect(addPage.onPressed, isNull);
+    expect(find.text('Maximal 10 Seiten'), findsOneWidget);
+    expect(camera.session.captureCalls, 10);
+  });
+
+  testWidgets(
+    'Continue hands camera pages to Analyze exactly once in capture order',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final camera = _FakeCameraCaptureGateway();
+      final remote = _FailedOperationRemote();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+            analysisRemoteDataSourceProvider.overrideWithValue(remote),
+            idGeneratorProvider.overrideWithValue(_SequenceIdGenerator()),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-add-page')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-continue')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('analyze-draft-action')));
+      await tester.pumpAndSettle();
+      expect(remote.submissions, hasLength(1));
+      expect(
+        remote.submissions.single.files.map((file) => file.localUri.path),
+        ['/camera-capture-1.jpg', '/camera-capture-2.jpg'],
+      );
+    },
+  );
+
+  testWidgets('Retake of a current candidate preserves accepted pages', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    final remote = _FailedOperationRemote();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+          analysisRemoteDataSourceProvider.overrideWithValue(remote),
+          idGeneratorProvider.overrideWithValue(_SequenceIdGenerator()),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-add-page')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('camera-review-retake')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('camera-capture-page')), findsOneWidget);
+    expect(camera.session.discardCalls, 1);
+
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('analyze-draft-action')));
+    await tester.pumpAndSettle();
+    expect(remote.submissions.single.files.map((file) => file.localUri.path), [
+      '/camera-capture-1.jpg',
+      '/camera-capture-3.jpg',
+    ]);
+  });
+
+  testWidgets('Retake of an accepted page replaces it in place', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final camera = _FakeCameraCaptureGateway();
+    final remote = _FailedOperationRemote();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cameraCaptureGatewayProvider.overrideWithValue(camera),
+          analysisRemoteDataSourceProvider.overrideWithValue(remote),
+          idGeneratorProvider.overrideWithValue(_SequenceIdGenerator()),
+        ],
+        child: _app(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('capture-document-action')));
+    await tester.pumpAndSettle();
+    for (var page = 0; page < 3; page++) {
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      if (page < 2) {
+        await tester.tap(find.byKey(const Key('camera-review-add-page')));
+        await tester.pumpAndSettle();
+      }
+    }
+    final middleThumbnail = tester.widget<OutlinedButton>(
+      find.byKey(const Key('camera-review-thumbnail-1')),
+    );
+    middleThumbnail.onPressed!();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-retake')));
+    await tester.pumpAndSettle();
+    expect(camera.session.discardCalls, 0);
+
+    await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('camera-review-continue')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('analyze-draft-action')));
+    await tester.pumpAndSettle();
+    expect(remote.submissions.single.files.map((file) => file.localUri.path), [
+      '/camera-capture-1.jpg',
+      '/camera-capture-4.jpg',
+      '/camera-capture-3.jpg',
+    ]);
+    expect(camera.session.discardCalls, 1);
+  });
+
+  testWidgets(
+    'leaving replacement Capture restores the original accepted page',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final camera = _FakeCameraCaptureGateway();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-add-page')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      final firstThumbnail = tester.widget<OutlinedButton>(
+        find.byKey(const Key('camera-review-thumbnail-0')),
+      );
+      firstThumbnail.onPressed!();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('camera-review-retake')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('camera-capture-back')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('camera-review-page')), findsOneWidget);
+      expect(find.byKey(const Key('camera-review-preview-0')), findsOneWidget);
+      expect(camera.session.discardCalls, 0);
+    },
+  );
+
+  testWidgets(
+    'Camera controls follow the interface direction without mirroring preview',
+    (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final camera = _FakeCameraCaptureGateway();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            cameraCaptureGatewayProvider.overrideWithValue(camera),
+          ],
+          child: _app(const Locale('ar')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('capture-document-action')));
+      await tester.pumpAndSettle();
+      expect(
+        Directionality.of(
+          tester.element(find.byKey(const Key('camera-capture-back'))),
+        ),
+        TextDirection.rtl,
+      );
+      await tester.tap(find.byKey(const Key('camera-capture-shutter')));
+      await tester.pumpAndSettle();
+      expect(
+        Directionality.of(
+          tester.element(find.byKey(const Key('camera-review-back'))),
+        ),
+        TextDirection.rtl,
+      );
+      expect(
+        tester
+            .widget<Image>(find.byKey(const Key('camera-review-preview-0')))
+            .matchTextDirection,
+        isFalse,
+      );
+      await tester.tap(find.byKey(const Key('camera-review-continue')));
+      await tester.pumpAndSettle();
+      expect(
+        Directionality.of(
+          tester.element(find.byKey(const Key('selected-import-draft'))),
+        ),
+        TextDirection.rtl,
+      );
+      expect(
+        tester
+            .widget<Image>(find.byKey(const Key('camera-draft-thumbnail-0')))
+            .matchTextDirection,
+        isFalse,
+      );
     },
   );
 
@@ -888,7 +1695,11 @@ Widget _appWithHome(Widget home, [Locale locale = const Locale('de')]) =>
 class _FakeCameraCaptureGateway implements CameraCaptureGateway {
   _FakeCameraCaptureGateway({
     CameraCaptureState initialState = CameraCaptureState.ready,
-  }) : session = _FakeCameraCaptureSession(initialState);
+    Completer<CameraCaptureState>? pendingInitialization,
+  }) : session = _FakeCameraCaptureSession(
+         initialState,
+         pendingInitialization: pendingInitialization,
+       );
 
   final _FakeCameraCaptureSession session;
 
@@ -897,14 +1708,21 @@ class _FakeCameraCaptureGateway implements CameraCaptureGateway {
 }
 
 class _FakeCameraCaptureSession implements CameraCaptureSession {
-  _FakeCameraCaptureSession(this._state);
+  _FakeCameraCaptureSession(this._state, {this._pendingInitialization});
 
   CameraCaptureState _state;
+  final Completer<CameraCaptureState>? _pendingInitialization;
+  var initializeCalls = 0;
   var disposeCalls = 0;
   var pauseCalls = 0;
   var resumeCalls = 0;
   var discardCalls = 0;
   var rotateCalls = 0;
+  var cropCalls = 0;
+  var captureCalls = 0;
+  var duplicateCalls = 0;
+  var previewDetached = false;
+  var pauseAfterPreviewDetached = false;
   var _flashOn = false;
 
   @override
@@ -917,19 +1735,41 @@ class _FakeCameraCaptureSession implements CameraCaptureSession {
   bool get isFlashOn => _flashOn;
 
   @override
-  Future<CameraCaptureState> initialize() async => _state;
+  Future<CameraCaptureState> initialize() async {
+    initializeCalls++;
+    final pendingInitialization = _pendingInitialization;
+    if (pendingInitialization != null) {
+      _state = await pendingInitialization.future;
+    }
+    return _state;
+  }
 
   @override
-  Widget buildPreview() => const ColoredBox(color: Colors.black);
+  Widget buildPreview() =>
+      _FakeCameraPreview(onDispose: () => previewDetached = true);
 
   @override
   Future<void> toggleFlash() async => _flashOn = !_flashOn;
 
   @override
-  Future<CameraCaptureCandidate> capture() async => CameraCaptureCandidate(
-    localUri: Uri.parse('file:///camera-capture.jpg'),
-    capturedAt: DateTime(2026),
-  );
+  Future<CameraCaptureCandidate> capture() async {
+    captureCalls++;
+    return CameraCaptureCandidate(
+      localUri: Uri.parse('file:///camera-capture-$captureCalls.jpg'),
+      capturedAt: DateTime(2026, 1, 1, 0, 0, captureCalls),
+    );
+  }
+
+  @override
+  Future<CameraCaptureCandidate> duplicate(
+    CameraCaptureCandidate candidate,
+  ) async {
+    duplicateCalls++;
+    return CameraCaptureCandidate(
+      localUri: Uri.parse('file:///camera-edit-$duplicateCalls.jpg'),
+      capturedAt: candidate.capturedAt,
+    );
+  }
 
   @override
   Future<CameraCaptureCandidate> rotateRight(
@@ -943,6 +1783,18 @@ class _FakeCameraCaptureSession implements CameraCaptureSession {
   }
 
   @override
+  Future<CameraCaptureCandidate> crop(
+    CameraCaptureCandidate candidate,
+    CameraCropRegion region,
+  ) async {
+    cropCalls++;
+    return CameraCaptureCandidate(
+      localUri: Uri.parse('file:///camera-capture-cropped-$cropCalls.jpg'),
+      capturedAt: candidate.capturedAt,
+    );
+  }
+
+  @override
   Future<void> discard(CameraCaptureCandidate candidate) async {
     discardCalls++;
   }
@@ -950,6 +1802,7 @@ class _FakeCameraCaptureSession implements CameraCaptureSession {
   @override
   Future<void> pause() async {
     pauseCalls++;
+    pauseAfterPreviewDetached = previewDetached;
   }
 
   @override
@@ -963,6 +1816,26 @@ class _FakeCameraCaptureSession implements CameraCaptureSession {
   Future<void> dispose() async {
     disposeCalls++;
   }
+}
+
+class _FakeCameraPreview extends StatefulWidget {
+  const _FakeCameraPreview({required this.onDispose});
+
+  final VoidCallback onDispose;
+
+  @override
+  State<_FakeCameraPreview> createState() => _FakeCameraPreviewState();
+}
+
+class _FakeCameraPreviewState extends State<_FakeCameraPreview> {
+  @override
+  void dispose() {
+    widget.onDispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const ColoredBox(color: Colors.black);
 }
 
 class _SelectionGateway implements DocumentImportGateway {

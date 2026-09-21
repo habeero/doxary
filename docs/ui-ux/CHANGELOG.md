@@ -1,5 +1,10 @@
 # UI/UX changelog
 
+## 2026-09-21
+
+- Added the distinct Analyze camera-draft card with ordered thumbnails, localized page count, Remove-all, and Edit Pages reuse of unified Camera Review.
+- Extended Camera Review into one unified one-to-ten-page flow: ordered thumbnails, selected-page preview/removal, Add another page through the existing Capture stage, real crop/rotate, Continue handoff, Review discard confirmation, and RTL controls without mirroring image content.
+
 ## 2026-09-20
 
 - Implemented single-photo Camera Review: shutter pauses preview into the captured-file surface, Retake safely resumes capture, Use photo promotes to the normal Analyze draft, and real 90-degree rotation is available; crop, multi-page Review, and final camera-selected polish remain deferred.

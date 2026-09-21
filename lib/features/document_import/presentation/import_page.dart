@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ import '../../document_analysis/domain/analysis_submission.dart';
 import '../../document_analysis/domain/analysis_output_language.dart';
 import '../../document_analysis/presentation/document_detail_page.dart';
 import '../../documents/domain/entities/domain_entities.dart';
+import '../data/camera_capture_gateway.dart';
 import '../domain/document_import.dart';
 import 'camera_capture_page.dart';
 
@@ -92,14 +94,48 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     });
   }
 
-  void _removeSelection() {
+  Future<void> _editCameraDraft() async {
+    final selection = _selection;
+    if (_busy || selection == null || !selection.isCameraCapture) return;
+    final edited = await Navigator.of(context).push<DocumentImportSelection>(
+      MaterialPageRoute(
+        builder: (_) => CameraCapturePage(initialSelection: selection),
+      ),
+    );
+    if (!mounted || edited == null) return;
+    setState(() {
+      _selection = edited;
+      _idempotencyKey = null;
+      _submission = null;
+      _message = null;
+    });
+  }
+
+  Future<void> _removeSelection() async {
     if (_busy) return;
+    final selection = _selection;
     setState(() {
       _selection = null;
       _idempotencyKey = null;
       _submission = null;
       _message = null;
     });
+    if (selection == null || !selection.isCameraCapture) return;
+    final session = ref.read(cameraCaptureGatewayProvider).createSession();
+    try {
+      await Future.wait(
+        selection.files.map(
+          (file) => session.discard(
+            CameraCaptureCandidate(
+              localUri: file.localUri,
+              capturedAt: file.importedAt,
+            ),
+          ),
+        ),
+      );
+    } finally {
+      await session.dispose();
+    }
   }
 
   Future<void> _analyze() async {
@@ -426,48 +462,58 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    AppSectionCard(
-                      child: ListTile(
-                        key: const Key('selected-import-draft'),
-                        contentPadding: const EdgeInsetsDirectional.fromSTEB(
-                          AppSpacing.md,
-                          AppSpacing.sm,
-                          AppSpacing.sm,
-                          AppSpacing.sm,
-                        ),
-                        leading: Icon(
-                          _selection!.isPdf
-                              ? Icons.picture_as_pdf_outlined
-                              : Icons.description_outlined,
-                        ),
-                        title: Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: Text(
-                            _selectedFilename(_selection!),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                    if (_selection!.isCameraCapture)
+                      _CameraDraftCard(
+                        selection: _selection!,
+                        busy: _busy,
+                        onRemove: _removeSelection,
+                        onEdit: _editCameraDraft,
+                      )
+                    else ...[
+                      AppSectionCard(
+                        child: ListTile(
+                          key: const Key('selected-import-draft'),
+                          contentPadding:
+                              const EdgeInsetsDirectional.fromSTEB(
+                                AppSpacing.md,
+                                AppSpacing.sm,
+                                AppSpacing.sm,
+                                AppSpacing.sm,
+                              ),
+                          leading: Icon(
+                            _selection!.isPdf
+                                ? Icons.picture_as_pdf_outlined
+                                : Icons.description_outlined,
+                          ),
+                          title: Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              _selectedFilename(_selection!),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          subtitle: Text(
+                            _selection!.isPdf ? l10n.pdf : l10n.images,
+                          ),
+                          trailing: TextButton(
+                            key: const Key('remove-import-draft'),
+                            onPressed: _busy ? null : _removeSelection,
+                            child: Text(l10n.remove),
                           ),
                         ),
-                        subtitle: Text(
-                          _selection!.isPdf ? l10n.pdf : l10n.images,
-                        ),
-                        trailing: TextButton(
-                          key: const Key('remove-import-draft'),
-                          onPressed: _busy ? null : _removeSelection,
-                          child: Text(l10n.remove),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: TextButton.icon(
+                          key: const Key('replace-import-draft'),
+                          onPressed: _busy ? null : _showFileChoices,
+                          icon: const Icon(Icons.swap_horiz_outlined),
+                          label: Text(l10n.chooseFileOrImage),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: TextButton.icon(
-                        key: const Key('replace-import-draft'),
-                        onPressed: _busy ? null : _showFileChoices,
-                        icon: const Icon(Icons.swap_horiz_outlined),
-                        label: Text(l10n.chooseFileOrImage),
-                      ),
-                    ),
+                    ],
                     const SizedBox(height: AppSpacing.md),
                     _languageSelector(context, analysisLanguage),
                     const SizedBox(height: AppSpacing.md),
@@ -487,6 +533,121 @@ class _ImportPageState extends ConsumerState<ImportPage> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CameraDraftCard extends StatelessWidget {
+  const _CameraDraftCard({
+    required this.selection,
+    required this.busy,
+    required this.onRemove,
+    required this.onEdit,
+  });
+
+  final DocumentImportSelection selection;
+  final bool busy;
+  final Future<void> Function() onRemove;
+  final Future<void> Function() onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AppSectionCard(
+      key: const Key('selected-import-draft'),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.document_scanner_outlined),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    l10n.cameraCapturedDocument,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  key: const Key('remove-import-draft'),
+                  onPressed: busy ? null : onRemove,
+                  child: Text(l10n.remove),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.cameraPageCount(selection.files.length),
+              key: const Key('camera-draft-page-count'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              height: 82,
+              child: ListView.separated(
+                key: const Key('camera-draft-thumbnails'),
+                scrollDirection: Axis.horizontal,
+                itemCount: selection.files.length,
+                separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+                itemBuilder: (context, index) => Semantics(
+                  image: true,
+                  label: '${l10n.cameraPage} ${index + 1}',
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: index == 0
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).dividerColor,
+                        width: index == 0 ? 2 : 1,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(7),
+                      child: SizedBox(
+                        width: 64,
+                        child: Image.file(
+                          File.fromUri(selection.files[index].localUri),
+                          key: Key('camera-draft-thumbnail-$index'),
+                          fit: BoxFit.cover,
+                          matchTextDirection: false,
+                          errorBuilder: (_, _, _) => const ColoredBox(
+                            color: AppColors.surfaceAlt,
+                            child: Icon(Icons.image_outlined),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.cameraReadyForAnalysis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: const Key('edit-camera-draft'),
+                onPressed: busy ? null : onEdit,
+                icon: const Icon(Icons.edit_outlined),
+                label: Text(l10n.cameraManagePages),
+              ),
+            ),
+          ],
         ),
       ),
     );

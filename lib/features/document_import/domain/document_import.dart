@@ -27,6 +27,9 @@ class DocumentImportSelection {
   final List<DocumentImportCandidate> files;
   bool get isPdf =>
       files.length == 1 && files.single.mediaType == ImportedMediaType.pdf;
+  bool get isCameraCapture =>
+      files.isNotEmpty &&
+      files.every((file) => file.source == ImportSource.camera);
 }
 
 abstract interface class DocumentImportGateway {

@@ -1,5 +1,14 @@
 # Application-logic changelog
 
+## 2026-09-21
+
+- Defined Analyze camera-draft editing ownership: Review uses working copies, cancel preserves the original draft, Continue replaces it, and only submission creates a Document or operation.
+- Deferred native pinch zoom and Samsung S22 camera-quality investigation after real-device CameraX/session instability; stable camera lifecycle remains the release prerequisite.
+- Refined unified Camera Review Retake into candidate discard versus in-place accepted-page replacement, and set document capture to rear-camera maximum resolution with audio disabled.
+- Defined unified Camera Review temporary-page ownership: one-to-ten ordered pages remain camera-owned through real crop/rotate, removal, retake, and discard, and transfer only on Continue into one Analyze session draft.
+- Serialized first-open camera lifecycle transitions and made initial startup single-flight, preventing a resumed callback from racing controller initialization.
+- Corrected the Capture-to-Review controller lifecycle: Review detaches CameraPreview before the capture session releases its controller.
+
 ## 2026-09-20
 
 - Defined Camera Review ownership: capture candidates stay temporary through Retake/Back, and only Use photo promotes them to the existing Analyze session draft without creating a Document or operation.
