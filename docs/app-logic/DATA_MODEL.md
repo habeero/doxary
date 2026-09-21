@@ -46,3 +46,17 @@ If future synchronization is introduced, it may map a remote resource to the exi
 ## Deferred Organization display naming
 
 Organizations currently expose their actual confirmed name. A future deliberate domain/data and AI-boundary design may add a user- or canonically-managed short display name for compact browsing. It must not be implemented as Flutter word truncation, guessed aliases, or institution-specific hardcoding. That future design must define ownership, validation, provenance, and how any AI-proposed value remains distinct from confirmed user data.
+
+## Deferred canonical Document title
+
+The current displayed Document title may be analysis-derived and can change after a reanalysis. Stable Document-title behavior is not implemented yet. A future Document/domain design must define one canonical user-visible title for each stable Document identity and keep it stable across repeated analysis runs. Reanalysis may provide classification or extracted-title suggestions, but it must not implicitly replace that canonical title or make the same logical Document appear to be a newly titled Document.
+
+That design must deliberately distinguish the canonical Document title, analysis-specific extracted or classification text, and an optional user-edited title. A compact short display title, if introduced later, is a separate presentation concern and must build on this canonical-title model rather than heuristics or analysis-run-specific replacement.
+
+## Deferred Document identity and duplicate detection
+
+The current import flow may treat another import of the same real-world document as a new Document. A deliberate identity and duplicate-detection layer is required before imports can be linked or merged. It must distinguish an exact same file, the same logical document imported or scanned again, a related but different document, and a genuinely different document. Canonical Document identity and its user-visible title must remain independent from any single analysis run; imported source-file copies/versions and analysis-specific title or classification suggestions must remain distinct from both.
+
+The preferred future detection pipeline is: first, a deterministic content fingerprint such as SHA-256 to recognize an exact byte-for-byte duplicate; second, a normalized-content fingerprint for rescans or re-exports with different bytes, using stable OCR/text, sender/Organization, document date, reference/account/case numbers, important amounts, document type, and party names where available; and third, conservative AI-assisted comparison only when deterministic signals are insufficient. AI comparison may classify candidates as same document, likely same document, related document, or different document, but must not automatically merge Documents solely because they appear similar.
+
+Where identity is not certain, the user must confirm whether to attach/import the source as another copy or version of an existing Document, or treat it as a separate Document. A related document must never be collapsed merely because it shares an Organization, Case, account, or topic.

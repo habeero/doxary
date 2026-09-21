@@ -2,6 +2,8 @@
 
 ## 2026-09-21
 
+- Recorded deferred Document identity and duplicate-detection requirements: deterministic fingerprints first, conservative AI comparison only when needed, and user confirmation before uncertain linking or merging.
+- Clarified deferred Document lifecycle decisions: canonical titles must remain stable across reanalysis, source-file management is not yet implemented, and future deletion distinguishes analyses, Documents, and locally owned source files.
 - Established independent Document/Analysis lifecycles: successful versions and safe failed-attempt history are retained per Document, while active operation correlation remains transient; analysis deletion preserves Documents, files, classification, and Tasks.
 - Added non-cascading Result-action Task provenance and source-action idempotency; an existing source Task is reopened rather than duplicated.
 - Defined the future separate Document/source-file deletion decision and its required distinctions.
