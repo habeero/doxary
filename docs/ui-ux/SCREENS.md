@@ -13,7 +13,9 @@ Home is an actionable overview for re-entering the app, not a second Documents l
 3. Action-required item(s).
 4. Currently processing item(s).
 5. Bounded recent-document preview.
-6. View All Documents action.
+  6. View All Documents action.
+
+Action-required cards are a durable Home-attention surface, not permanent Document state. A card disappears after explicit dismiss or after a Task is saved for its exact analysis/action provenance; the Document, analysis, and task remain intact and dismissed/handled Documents may remain in Recent Documents. A later actionable analysis has its own attention identity and may surface again.
 
 The recent preview remains concise and bounded; Home must not show the full Documents library. Empty Home explains a useful next action, such as importing a document, and empty is not an error. Local work remains available in the user-visible offline/pending states.
 
@@ -95,9 +97,9 @@ Tasks has separate Today, Upcoming, and Completed tabs. Each tab contains only i
 
 ## Settings
 
-**Current implementation status:** App-language selection and persistence are implemented. Default explanation-language persistence exists elsewhere in the app, but Settings has no control for it. Profile/account, plan/account, notifications, appearance, privacy/data, legal, and about remain unimplemented. Functionally partial; approved Settings redesign still pending.
+**Current implementation status:** Settings is implemented as a primary bottom-navigation destination with the approved Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About hierarchy. App language is shown as a human-readable current value and changes through a focused selection sheet using the existing persisted preference. All other approved rows are visible but clearly unavailable and non-navigating until their real features exist; Default explanation-language persistence remains separate in Analyze and has no Settings control.
 
-The following hierarchy is approved intended behavior for the pending Settings implementation.
+The hierarchy above is visible now; rows other than app language remain approved intended behavior until their underlying capability is implemented.
 
 Settings is a primary destination. Its root hierarchy is Account (Profile, plan/account), Language (app language and default explanation language), Notifications, Appearance, Privacy and data, Legal, and About. Notification behavior follows a three-layer intended model—OS permission, Doxary master preference, then category preferences—but remains unimplemented until behavior is implemented and tested.
 

@@ -2,6 +2,8 @@
 
 ## 2026-09-21
 
+- Completed the approved Settings hierarchy with real app-language selection and visibly unavailable non-navigating future rows; added dismissible, provenance-aware Home action attention.
+- Refined Settings as a compact bottom-navigation root: the real persisted app-language preference is shown as a human-readable value and changed through a focused sheet; unimplemented wireframe groups remain absent rather than being faked.
 - Implemented Create Case as a nested validated modal with immutable Organization context: normalized duplicates reuse only within that Organization, new creation returns to the 10A draft without classifying the Document, and cancellation creates nothing.
 - Implemented Create Organization as a nested validated modal: trimmed normalized duplicates reuse the existing Organization, new creation returns to the 10A draft without classifying the Document, and cancellation creates nothing.
 - Implemented 10C Select Case as a focused searchable modal scoped to the draft Organization, with distinct No Case and Create Case handoffs; selection remains draft-only until 10A Save.

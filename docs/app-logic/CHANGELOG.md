@@ -2,6 +2,8 @@
 
 ## 2026-09-21
 
+- Defined durable provenance-keyed Home action-attention handling: explicit dismiss and successfully persisted source Tasks suppress only the matching alert without changing analysis truth.
+
 - Recorded deferred Document identity and duplicate-detection requirements: deterministic fingerprints first, conservative AI comparison only when needed, and user confirmation before uncertain linking or merging.
 - Clarified deferred Document lifecycle decisions: canonical titles must remain stable across reanalysis, source-file management is not yet implemented, and future deletion distinguishes analyses, Documents, and locally owned source files.
 - Established independent Document/Analysis lifecycles: successful versions and safe failed-attempt history are retained per Document, while active operation correlation remains transient; analysis deletion preserves Documents, files, classification, and Tasks.

@@ -58,6 +58,7 @@ class AppLocalizations {
   String get editClassification => _value('editClassification');
   String get save => _value('save');
   String get cancel => _value('cancel');
+  String get dismiss => _value('dismiss');
   String get chooseOrganization => _value('chooseOrganization');
   String get selectOrganization => _value('selectOrganization');
   String get searchOrganization => _value('searchOrganization');
@@ -118,6 +119,25 @@ class AppLocalizations {
   String get pdf => _value('pdf');
   String get importUnavailable => _value('importUnavailable');
   String get language => _value('language');
+  String get applicationLanguage => _value('applicationLanguage');
+  String get account => _value('account');
+  String get planAccount => _value('planAccount');
+  String get notifications => _value('notifications');
+  String get analysisNotifications => _value('analysisNotifications');
+  String get taskNotifications => _value('taskNotifications');
+  String get appearance => _value('appearance');
+  String get darkAppearance => _value('darkAppearance');
+  String get privacyAndData => _value('privacyAndData');
+  String get localDocuments => _value('localDocuments');
+  String get dataManagement => _value('dataManagement');
+  String get legal => _value('legal');
+  String get privacyPolicy => _value('privacyPolicy');
+  String get terms => _value('terms');
+  String get about => _value('about');
+  String get rateApp => _value('rateApp');
+  String get shareApp => _value('shareApp');
+  String get appVersion => _value('appVersion');
+  String get notAvailableYet => _value('notAvailableYet');
   String get german => _value('german');
   String get arabic => _value('arabic');
   String get foundationMessage => _value('foundationMessage');
@@ -459,6 +479,7 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'editClassification': 'Zuordnung bearbeiten',
     'save': 'Speichern',
     'cancel': 'Abbrechen',
+    'dismiss': 'Ausblenden',
     'chooseOrganization': 'Organisation wählen',
     'selectOrganization': 'Organisation auswählen',
     'searchOrganization': 'Organisation suchen',
@@ -505,6 +526,7 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'editClassification': 'تعديل التصنيف',
     'save': '\u062d\u0641\u0638',
     'cancel': '\u0625\u0644\u063a\u0627\u0621',
+    'dismiss': '\u0625\u062e\u0641\u0627\u0621',
     'chooseOrganization': 'اختر الجهة',
     'selectOrganization': 'اختر الجهة',
     'searchOrganization': 'ابحث عن جهة',
@@ -718,6 +740,14 @@ const _strings = <String, Map<String, String>>{
     'importUnavailable':
         'Der Dokumentimport ist auf diesem Gerät noch nicht eingerichtet.',
     'language': 'Sprache',
+    'applicationLanguage': 'App-Sprache',
+    'account': 'Konto', 'planAccount': 'Plan und Konto',
+    'notifications': 'Benachrichtigungen', 'analysisNotifications': 'Analyse abgeschlossen', 'taskNotifications': 'Aufgaben und Termine',
+    'appearance': 'Darstellung', 'darkAppearance': 'Dunkles Erscheinungsbild',
+    'privacyAndData': 'Datenschutz und Daten', 'localDocuments': 'Lokale Dokumente', 'dataManagement': 'Daten verwalten',
+    'legal': 'Rechtliches', 'privacyPolicy': 'Datenschutzerklärung', 'terms': 'Nutzungsbedingungen',
+    'about': 'Über die App', 'rateApp': 'App bewerten', 'shareApp': 'App teilen', 'appVersion': 'Version',
+    'notAvailableYet': 'Noch nicht verfügbar',
     'german': 'Deutsch',
     'arabic': 'Arabisch',
     'foundationMessage':
@@ -808,6 +838,14 @@ const _strings = <String, Map<String, String>>{
     'pdf': 'PDF',
     'importUnavailable': 'لم يتم إعداد استيراد المستندات على هذا الجهاز بعد.',
     'language': 'اللغة',
+    'applicationLanguage': 'لغة التطبيق',
+    'account': 'الحساب', 'planAccount': 'الخطة والحساب',
+    'notifications': 'الإشعارات', 'analysisNotifications': 'اكتمال التحليل', 'taskNotifications': 'المهام والمواعيد',
+    'appearance': 'المظهر', 'darkAppearance': 'المظهر الداكن',
+    'privacyAndData': 'الخصوصية والبيانات', 'localDocuments': 'المستندات المحلية', 'dataManagement': 'إدارة البيانات',
+    'legal': 'قانوني', 'privacyPolicy': 'سياسة الخصوصية', 'terms': 'شروط الاستخدام',
+    'about': 'حول التطبيق', 'rateApp': 'تقييم التطبيق', 'shareApp': 'مشاركة التطبيق', 'appVersion': 'الإصدار',
+    'notAvailableYet': 'غير متاح بعد',
     'german': 'الألمانية',
     'arabic': 'العربية',
     'foundationMessage': 'أساس الاستيراد المحلي للمستندات جاهز.',

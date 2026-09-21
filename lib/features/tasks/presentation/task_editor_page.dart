@@ -142,6 +142,14 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
           existing?.sourceActionKey ?? widget.prefill?.sourceActionKey,
     );
     await ref.read(taskRepositoryProvider).save(task);
+    if (task.sourceAnalysisId != null && task.sourceActionKey != null) {
+      await ref
+          .read(settingsRepositoryProvider)
+          .write(
+            'home_attention_handled::${task.sourceAnalysisId}::${task.sourceActionKey}',
+            'handled',
+          );
+    }
     if (mounted) Navigator.of(context).pop();
   }
 

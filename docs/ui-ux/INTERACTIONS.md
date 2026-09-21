@@ -2,6 +2,10 @@
 
 ## Import and Analyze
 
+## Home attention
+
+Action-required Home cards are dismissible attention items. A locally persisted dismissal, or successful persistence of a Task with the exact analysis/source-action provenance, removes only that card from Home; it does not rewrite the analysis, delete the Document, or remove it from Recent Documents. Existing open and completed source Tasks suppress the corresponding unresolved alert, while a later actionable analysis may surface a new one.
+
 Submission acceptance may acknowledge “Analysis started” through short-lived feedback local to the current Analyze surface. It is never durable page state, does not survive leaving Analyze, and is cleared when the draft progresses into the Document/Processing lifecycle. Loading and pre-acceptance failure feedback remain distinct; a pre-acceptance failure preserves the selected draft and shows no success acknowledgement.
 
 When Analyze begins, the selected input becomes safely locked or cleared so repeated taps cannot create duplicate visible or logical submissions. Existing local work is not lost when transient selection is cleared. Picker cancellation is neutral; picker failures are recoverable errors that preserve the user’s work.
@@ -52,7 +56,7 @@ Create/Edit Task may include title, date, optional time or all-day, reminder, li
 
 ## Settings and notifications
 
-**Current implementation status:** Settings currently exposes app-language selection only. Default explanation-language persistence exists elsewhere but has no Settings control; profile/account, plan/account, notifications, appearance, privacy/data, legal, and about remain pending.
+**Current implementation status:** Settings is a bottom-navigation root with Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About sections. Its app-language value row opens a focused sheet, applies the existing persisted locale preference immediately, and closes without changing state when dismissed. Default explanation-language persistence exists elsewhere but has no Settings control; profile/account, plan/account, notifications, appearance, privacy/data, legal, and about are visible but unavailable and non-navigating until their real capabilities exist.
 
 The remaining Settings and notification behavior below is approved intended behavior, not current implementation.
 

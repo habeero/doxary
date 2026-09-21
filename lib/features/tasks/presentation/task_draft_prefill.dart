@@ -64,15 +64,19 @@ class TaskDraftPrefill {
       clientDocumentId: clientDocumentId,
       caseId: caseId,
       sourceAnalysisId: analysis.id,
-      sourceActionKey: _sourceActionKey(
-        analysis: analysis,
-        suggestedTask: suggestedTask,
-        nextAction: nextAction,
-        requiredDocument: requiredDocument,
-      ),
+      sourceActionKey: sourceActionKeyForAnalysis(analysis),
     );
   }
 }
+
+/// Stable provenance for the one actionable surface derived from an analysis.
+/// It is shared by Result-to-Task and Home attention handling.
+String sourceActionKeyForAnalysis(DocumentAnalysis analysis) => _sourceActionKey(
+  analysis: analysis,
+  suggestedTask: _firstSuggestedTask(analysis.suggestedTasks),
+  nextAction: _firstMeaningful(analysis.nextActions),
+  requiredDocument: _firstRequiredDocument(analysis.requiredDocuments),
+);
 
 String _sourceActionKey({
   required DocumentAnalysis analysis,

@@ -11,6 +11,7 @@ import '../../document_analysis/presentation/document_detail_page.dart';
 import '../../documents/presentation/documents_page.dart';
 import '../../documents/presentation/document_display.dart';
 import '../../documents/domain/entities/domain_entities.dart';
+import '../../tasks/presentation/task_draft_prefill.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -19,12 +20,18 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final documents = ref.watch(homeDocumentsProvider);
     final activeOperations = ref.watch(activeAnalysisOperationsProvider);
+    final openTasks = ref.watch(openTasksProvider);
+    final completedTasks = ref.watch(completedTasksProvider);
     final activeDocumentIds = activeOperations.when(
       data: (operations) =>
           operations.map((operation) => operation.clientDocumentId).toSet(),
       loading: () => const <String>{},
       error: (_, _) => const <String>{},
     );
+    final handledTaskAttentionIds = {
+      ..._taskAttentionIds(openTasks),
+      ..._taskAttentionIds(completedTasks),
+    };
 
     return Material(
       color: AppColors.background,
@@ -51,7 +58,11 @@ class HomePage extends ConsumerWidget {
                       child: AppErrorState(message: error.toString()),
                     ),
                     data: (items) => _HomeOverview(
-                      query: _HomeOverviewQuery(items, activeDocumentIds),
+                      query: _HomeOverviewQuery(
+                        items,
+                        activeDocumentIds,
+                        handledTaskAttentionIds,
+                      ),
                       onOpenDocument: (id) => _openDocument(context, id),
                       onViewAll: () => _openDocuments(context),
                       onImport: () => context.go(AppRoutes.importDocument),
@@ -170,6 +181,14 @@ class _HomeOverview extends ConsumerWidget {
                 _ActionRequiredItem(
                   entry: entry,
                   onTap: () => onOpenDocument(entry.document.clientDocumentId),
+                  onDismiss: () async {
+                    final attentionId = entry.attentionId;
+                    if (attentionId == null) return;
+                    await ref
+                        .read(settingsRepositoryProvider)
+                        .write(_homeAttentionSettingKey(attentionId), 'handled');
+                    ref.invalidate(_homeOverviewProvider(query));
+                  },
                 ),
                 const SizedBox(height: AppSpacing.sm),
               ],
@@ -234,9 +253,14 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _ActionRequiredItem extends StatelessWidget {
-  const _ActionRequiredItem({required this.entry, required this.onTap});
+  const _ActionRequiredItem({
+    required this.entry,
+    required this.onTap,
+    required this.onDismiss,
+  });
   final _HomeDocumentEntry entry;
   final VoidCallback onTap;
+  final Future<void> Function() onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -276,6 +300,14 @@ class _ActionRequiredItem extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                       ),
+                    ),
+                    IconButton(
+                      key: Key(
+                        'home-action-dismiss-${entry.document.clientDocumentId}',
+                      ),
+                      tooltip: l10n.dismiss,
+                      onPressed: () => onDismiss(),
+                      icon: const Icon(Icons.close, size: 20),
                     ),
                   ],
                 ),
@@ -468,9 +500,14 @@ class _RecentDocumentItem extends StatelessWidget {
 }
 
 class _HomeOverviewQuery {
-  const _HomeOverviewQuery(this.documents, this.activeDocumentIds);
+  const _HomeOverviewQuery(
+    this.documents,
+    this.activeDocumentIds,
+    this.handledTaskAttentionIds,
+  );
   final List<LocalDocument> documents;
   final Set<String> activeDocumentIds;
+  final Set<String> handledTaskAttentionIds;
 
   @override
   bool operator ==(Object other) =>
@@ -478,12 +515,15 @@ class _HomeOverviewQuery {
       other.documents.length == documents.length &&
       _queryIdentity(other.documents) == _queryIdentity(documents) &&
       _activeIdentity(other.activeDocumentIds) ==
-          _activeIdentity(activeDocumentIds);
+          _activeIdentity(activeDocumentIds) &&
+      _activeIdentity(other.handledTaskAttentionIds) ==
+          _activeIdentity(handledTaskAttentionIds);
 
   @override
   int get hashCode => Object.hash(
     _queryIdentity(documents),
     _activeIdentity(activeDocumentIds),
+    _activeIdentity(handledTaskAttentionIds),
   );
 }
 
@@ -497,16 +537,55 @@ String _queryIdentity(List<LocalDocument> documents) => documents
 String _activeIdentity(Set<String> activeDocumentIds) =>
     (activeDocumentIds.toList()..sort()).join('|');
 
+Set<String> _taskAttentionIds(AsyncValue<List<LocalTask>> tasks) => tasks.when(
+  data: (items) => items
+      .where(
+        (task) =>
+            task.sourceAnalysisId != null && task.sourceActionKey != null,
+      )
+      .map(
+        (task) => _homeAttentionIdFromParts(
+          task.sourceAnalysisId!,
+          task.sourceActionKey!,
+        ),
+      )
+      .toSet(),
+  loading: () => const <String>{},
+  error: (_, _) => const <String>{},
+);
+
+String _homeAttentionId(DocumentAnalysis analysis) => _homeAttentionIdFromParts(
+  analysis.id,
+  sourceActionKeyForAnalysis(analysis),
+);
+
+String _homeAttentionIdFromParts(String analysisId, String sourceActionKey) =>
+    '$analysisId::$sourceActionKey';
+
+String _homeAttentionSettingKey(String attentionId) =>
+    'home_attention_handled::$attentionId';
+
 class _HomeOverviewData {
-  const _HomeOverviewData(this.entries, this.activeDocumentIds);
+  const _HomeOverviewData(
+    this.entries,
+    this.activeDocumentIds,
+    this.handledTaskAttentionIds,
+  );
   final List<_HomeDocumentEntry> entries;
   final Set<String> activeDocumentIds;
+  final Set<String> handledTaskAttentionIds;
+
+  bool _hasUnresolvedAttention(_HomeDocumentEntry entry) =>
+      entry.analysis?.actionRequired == ActionRequirement.yes &&
+      !entry.attentionHandled &&
+      entry.attentionId != null &&
+      !handledTaskAttentionIds.contains(entry.attentionId);
 
   List<_HomeDocumentEntry> get actionRequired => entries
       .where(
         (entry) =>
             !activeDocumentIds.contains(entry.document.clientDocumentId) &&
-            entry.analysis?.actionRequired == ActionRequirement.yes,
+            _hasUnresolvedAttention(entry),
       )
       .toList();
 
@@ -520,7 +599,7 @@ class _HomeOverviewData {
       .where(
         (entry) =>
             !activeDocumentIds.contains(entry.document.clientDocumentId) &&
-            entry.analysis?.actionRequired != ActionRequirement.yes,
+            !_hasUnresolvedAttention(entry),
       )
       .take(5)
       .toList();
@@ -531,10 +610,14 @@ class _HomeDocumentEntry {
     required this.document,
     required this.analysis,
     required this.file,
+    this.attentionId,
+    this.attentionHandled = false,
   });
   final LocalDocument document;
   final DocumentAnalysis? analysis;
   final DocumentFile? file;
+  final String? attentionId;
+  final bool attentionHandled;
 
   String title(AppLocalizations l10n) =>
       documentDisplayTitle(document, l10n, analysis: analysis, file: file);
@@ -559,14 +642,34 @@ final _homeOverviewProvider = FutureProvider.autoDispose
             );
             file = files.isEmpty ? null : files.first;
           } catch (_) {}
+          final attentionId = analysis?.actionRequired == ActionRequirement.yes
+              ? _homeAttentionId(analysis!)
+              : null;
+          if (attentionId != null &&
+              query.handledTaskAttentionIds.contains(attentionId)) {
+            await ref
+                .read(settingsRepositoryProvider)
+                .write(_homeAttentionSettingKey(attentionId), 'handled');
+          }
+          final attentionHandled = attentionId != null &&
+              await ref
+                      .read(settingsRepositoryProvider)
+                      .read(_homeAttentionSettingKey(attentionId)) ==
+                  'handled';
           return _HomeDocumentEntry(
             document: document,
             analysis: analysis,
             file: file,
+            attentionId: attentionId,
+            attentionHandled: attentionHandled,
           );
         }),
       );
-      return _HomeOverviewData(entries, query.activeDocumentIds);
+      return _HomeOverviewData(
+        entries,
+        query.activeDocumentIds,
+        query.handledTaskAttentionIds,
+      );
     });
 
 String? _firstMeaningful(List<String> values) {
