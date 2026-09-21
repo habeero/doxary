@@ -2,6 +2,7 @@
 
 ## 2026-09-21
 
+- Refined Change Classification into a focused draft modal with explicit Save, Close/X discard, separate Remove Case and Clear Classification actions, bounded human-readable labels, and RTL-safe fields; 10B/10C selector refinement remains pending.
 - Clarified the deferred Document-level placement of Analysis History and the incomplete original-source-file experience; individual Results remain focused on one analysis.
 - Reordered Task tabs to Today, Upcoming, Overdue, Completed; classification rules are unchanged.
 - Added restrained Document Analysis History with historical-result access and confirmed single-analysis deletion that preserves the original Document and linked Tasks.

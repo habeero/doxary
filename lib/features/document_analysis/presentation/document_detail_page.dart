@@ -151,18 +151,19 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
             caseId: confirmedCaseId,
             l10n: l10n,
           );
-    final existingSourceTask = taskPrefill?.sourceAnalysisId == null ||
+    final existingSourceTask =
+        taskPrefill?.sourceAnalysisId == null ||
             taskPrefill?.sourceActionKey == null
         ? null
         : ref
-            .watch(
-              taskForSourceActionProvider((
-                analysisId: taskPrefill!.sourceAnalysisId!,
-                actionKey: taskPrefill.sourceActionKey!,
-              )),
-            )
-            .asData
-            ?.value;
+              .watch(
+                taskForSourceActionProvider((
+                  analysisId: taskPrefill!.sourceAnalysisId!,
+                  actionKey: taskPrefill.sourceActionKey!,
+                )),
+              )
+              .asData
+              ?.value;
     Future<void> createTask() async {
       final task = await ref
           .read(taskRepositoryProvider)
@@ -178,6 +179,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
         extra: task == null ? taskPrefill : null,
       );
     }
+
     final classificationSection = localDocument == null
         ? null
         : _ClassificationSection(
@@ -345,9 +347,8 @@ class _AnalysisHistorySection extends StatelessWidget {
       children: [
         Text(
           l.analysisHistory,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w700),
         ),
         if (document != null) ...[
           const SizedBox(height: AppSpacing.sm),
@@ -376,14 +377,21 @@ class _AnalysisHistorySection extends StatelessWidget {
                     children: [
                       Icon(
                         switch (attempt.status) {
-                          AnalysisAttemptStatus.succeeded => Icons.check_circle_outline,
+                          AnalysisAttemptStatus.succeeded =>
+                            Icons.check_circle_outline,
                           AnalysisAttemptStatus.failed => Icons.error_outline,
-                          AnalysisAttemptStatus.pending => Icons.hourglass_top_outlined,
+                          AnalysisAttemptStatus.pending =>
+                            Icons.hourglass_top_outlined,
                         },
                         color: switch (attempt.status) {
-                          AnalysisAttemptStatus.succeeded => AppColors.successFor(Theme.of(context).brightness),
-                          AnalysisAttemptStatus.failed => Theme.of(context).colorScheme.error,
-                          AnalysisAttemptStatus.pending => Theme.of(context).colorScheme.primary,
+                          AnalysisAttemptStatus.succeeded =>
+                            AppColors.successFor(Theme.of(context).brightness),
+                          AnalysisAttemptStatus.failed => Theme.of(
+                            context,
+                          ).colorScheme.error,
+                          AnalysisAttemptStatus.pending => Theme.of(
+                            context,
+                          ).colorScheme.primary,
                         },
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -391,14 +399,14 @@ class _AnalysisHistorySection extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              switch (attempt.status) {
-                                AnalysisAttemptStatus.succeeded => l.analysisSuccessful,
-                                AnalysisAttemptStatus.failed => l.analysisFailedHistory,
-                                AnalysisAttemptStatus.pending => l.analysisPendingHistory,
-                              },
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
+                            Text(switch (attempt.status) {
+                              AnalysisAttemptStatus.succeeded =>
+                                l.analysisSuccessful,
+                              AnalysisAttemptStatus.failed =>
+                                l.analysisFailedHistory,
+                              AnalysisAttemptStatus.pending =>
+                                l.analysisPendingHistory,
+                            }, style: Theme.of(context).textTheme.titleSmall),
                             Text(
                               '${l.analysisDate}: ${dateTime(attempt.terminalAt ?? attempt.startedAt)}',
                               style: Theme.of(context).textTheme.bodySmall,
@@ -409,17 +417,25 @@ class _AnalysisHistorySection extends StatelessWidget {
                                 spacing: AppSpacing.sm,
                                 children: [
                                   TextButton(
-                                    key: Key('open-analysis-${attempt.analysisId}'),
-                                    onPressed: () => onOpen(attempt.analysisId!),
+                                    key: Key(
+                                      'open-analysis-${attempt.analysisId}',
+                                    ),
+                                    onPressed: () =>
+                                        onOpen(attempt.analysisId!),
                                     child: Text(l.openResult),
                                   ),
                                   TextButton(
-                                    key: Key('delete-analysis-${attempt.analysisId}'),
-                                    onPressed: () => onDelete(attempt.analysisId!),
+                                    key: Key(
+                                      'delete-analysis-${attempt.analysisId}',
+                                    ),
+                                    onPressed: () =>
+                                        onDelete(attempt.analysisId!),
                                     child: Text(
                                       l.deleteAnalysis,
                                       style: TextStyle(
-                                        color: Theme.of(context).colorScheme.error,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error,
                                       ),
                                     ),
                                   ),
@@ -702,123 +718,338 @@ Future<void> _showClassificationEditor(
   required List<Organization> organizations,
   required List<Case> cases,
 }) async {
-  final l10n = context.l10n;
-  final organizationController = TextEditingController();
-  final caseController = TextEditingController();
-  var selectedOrganizationId = organizationId;
-  var selectedCaseId = caseId;
-  var clearCase = false;
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) {
-        final visibleCases = cases
-            .where((item) => item.organizationId == selectedOrganizationId)
-            .toList();
-        return AlertDialog(
-          title: Text(l10n.editClassification),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  key: ValueKey(selectedOrganizationId),
-                  initialValue: selectedOrganizationId ?? '__new__',
-                  decoration: InputDecoration(
-                    labelText: l10n.chooseOrganization,
-                  ),
-                  items: [
-                    const DropdownMenuItem(value: '__new__', child: Text('+')),
-                    ...organizations.map(
-                      (item) => DropdownMenuItem(
-                        value: item.id,
-                        child: Text(item.name),
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) => setState(() {
-                    selectedOrganizationId = value == '__new__' ? null : value;
-                    selectedCaseId = null;
-                  }),
-                ),
-                if (selectedOrganizationId == null)
-                  TextField(
-                    controller: organizationController,
-                    decoration: InputDecoration(
-                      labelText: l10n.organizationName,
-                    ),
-                  ),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('$selectedOrganizationId:$selectedCaseId'),
-                  initialValue: selectedCaseId ?? '__none__',
-                  decoration: InputDecoration(labelText: l10n.caseLabel),
-                  items: [
-                    DropdownMenuItem(
-                      value: '__none__',
-                      child: Text(l10n.clearCase),
-                    ),
-                    const DropdownMenuItem(value: '__new__', child: Text('+')),
-                    ...visibleCases.map(
-                      (item) => DropdownMenuItem(
-                        value: item.id,
-                        child: Text(item.title),
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) => setState(() {
-                    selectedCaseId = value == '__none__' || value == '__new__'
-                        ? null
-                        : value;
-                    clearCase = value == '__none__';
-                  }),
-                ),
-                if (!clearCase && selectedCaseId == null)
-                  TextField(
-                    controller: caseController,
-                    decoration: InputDecoration(labelText: l10n.caseName),
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final selectedOrganization = organizations
-                    .where((item) => item.id == selectedOrganizationId)
-                    .cast<Organization?>()
-                    .firstOrNull;
-                final selectedCase = cases
-                    .where((item) => item.id == selectedCaseId)
-                    .cast<Case?>()
-                    .firstOrNull;
-                await _saveClassification(
-                  ref,
-                  clientDocumentId,
-                  organizationName:
-                      selectedOrganization?.name ?? organizationController.text,
-                  caseName: clearCase
-                      ? null
-                      : selectedCase?.title ?? caseController.text,
-                  organizations: organizations,
-                  cases: cases,
-                );
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: Text(l10n.save),
-            ),
-          ],
-        );
-      },
+    backgroundColor: Colors.transparent,
+    builder: (_) => _ClassificationEditorSheet(
+      ref: ref,
+      clientDocumentId: clientDocumentId,
+      organizationId: organizationId,
+      caseId: caseId,
+      organizations: organizations,
+      cases: cases,
     ),
   );
-  organizationController.dispose();
-  caseController.dispose();
+}
+
+class _ClassificationEditorSheet extends StatefulWidget {
+  const _ClassificationEditorSheet({
+    required this.ref,
+    required this.clientDocumentId,
+    required this.organizationId,
+    required this.caseId,
+    required this.organizations,
+    required this.cases,
+  });
+
+  final WidgetRef ref;
+  final String clientDocumentId;
+  final String? organizationId;
+  final String? caseId;
+  final List<Organization> organizations;
+  final List<Case> cases;
+
+  @override
+  State<_ClassificationEditorSheet> createState() =>
+      _ClassificationEditorSheetState();
+}
+
+class _ClassificationEditorSheetState
+    extends State<_ClassificationEditorSheet> {
+  late final TextEditingController _organizationController;
+  late final TextEditingController _caseController;
+  late String? _selectedOrganizationId;
+  late String? _selectedCaseId;
+  late bool _clearCase;
+  var _clearClassification = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _organizationController = TextEditingController();
+    _caseController = TextEditingController();
+    _selectedOrganizationId = widget.organizationId;
+    _selectedCaseId = widget.caseId;
+    _clearCase = widget.caseId == null;
+    if (_selectedCaseId != null &&
+        !widget.cases.any(
+          (item) =>
+              item.id == _selectedCaseId &&
+              item.organizationId == _selectedOrganizationId,
+        )) {
+      _selectedCaseId = null;
+      _clearCase = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _organizationController.dispose();
+    _caseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final visibleCases = widget.cases
+        .where((item) => item.organizationId == _selectedOrganizationId)
+        .toList();
+    final selectedOrganization = widget.organizations
+        .where((item) => item.id == _selectedOrganizationId)
+        .cast<Organization?>()
+        .firstOrNull;
+    final selectedCase = widget.cases
+        .where((item) => item.id == _selectedCaseId)
+        .cast<Case?>()
+        .firstOrNull;
+    final canRemoveCase = _selectedCaseId != null || widget.caseId != null;
+    final canClearClassification =
+        _selectedOrganizationId != null || widget.organizationId != null;
+    final media = MediaQuery.sizeOf(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 560,
+            maxHeight: media.height * .88,
+          ),
+          child: Material(
+            key: const Key('classification-editor-modal'),
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.lg,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.productName,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                      IconButton(
+                        key: const Key('classification-editor-close'),
+                        tooltip: MaterialLocalizations.of(context)
+                            .closeButtonTooltip,
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    l10n.editClassification,
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  _ClassificationSelectField(
+                    fieldKey: const Key('classification-organization-field'),
+                    label: l10n.organization,
+                    value: _selectedOrganizationId ?? '__new__',
+                    selectedLabel:
+                        selectedOrganization?.name ?? l10n.chooseOrganization,
+                    items: [
+                      DropdownMenuItem(
+                        value: '__new__',
+                        child: Text(l10n.chooseOrganization),
+                      ),
+                      ...widget.organizations.map(
+                        (item) => DropdownMenuItem(
+                          value: item.id,
+                          child: Text(
+                            item.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setState(() {
+                      final nextOrganizationId = value == '__new__'
+                          ? null
+                          : value;
+                      final currentCase = widget.cases
+                          .where((item) => item.id == _selectedCaseId)
+                          .cast<Case?>()
+                          .firstOrNull;
+                      _selectedOrganizationId = nextOrganizationId;
+                      if (currentCase?.organizationId != nextOrganizationId) {
+                        _selectedCaseId = null;
+                        _clearCase = currentCase != null;
+                      }
+                      _clearClassification = false;
+                    }),
+                  ),
+                  if (_selectedOrganizationId == null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    TextField(
+                      key: const Key('classification-organization-name'),
+                      controller: _organizationController,
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: l10n.organizationName,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.md),
+                  _ClassificationSelectField(
+                    fieldKey: const Key('classification-case-field'),
+                    label: l10n.caseLabel,
+                    value: _selectedCaseId ?? '__none__',
+                    selectedLabel: selectedCase?.title ?? l10n.caseNotAssigned,
+                    items: [
+                      DropdownMenuItem(
+                        value: '__none__',
+                        child: Text(l10n.caseNotAssigned),
+                      ),
+                      DropdownMenuItem(
+                        value: '__new__',
+                        child: Text(l10n.caseName),
+                      ),
+                      ...visibleCases.map(
+                        (item) => DropdownMenuItem(
+                          value: item.id,
+                          child: Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setState(() {
+                      _selectedCaseId =
+                          value == '__none__' || value == '__new__'
+                          ? null
+                          : value;
+                      _clearCase = value == '__none__';
+                      _clearClassification = false;
+                    }),
+                  ),
+                  if (!_clearCase && _selectedCaseId == null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    TextField(
+                      key: const Key('classification-case-name'),
+                      controller: _caseController,
+                      decoration: InputDecoration(labelText: l10n.caseName),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.lg),
+                  FilledButton(
+                    key: const Key('classification-editor-save'),
+                    onPressed: () async {
+                      await _saveClassification(
+                        widget.ref,
+                        widget.clientDocumentId,
+                        organizationName: _clearClassification
+                            ? null
+                            : selectedOrganization?.name ??
+                                  _organizationController.text,
+                        caseName: _clearClassification || _clearCase
+                            ? null
+                            : selectedCase?.title ?? _caseController.text,
+                        organizations: widget.organizations,
+                        cases: widget.cases,
+                      );
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    child: Text(l10n.save),
+                  ),
+                  if (canRemoveCase) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    OutlinedButton(
+                      key: const Key('classification-remove-case'),
+                      onPressed: () => setState(() {
+                        _selectedCaseId = null;
+                        _clearCase = true;
+                        _clearClassification = false;
+                      }),
+                      child: Text(l10n.clearCase),
+                    ),
+                  ],
+                  if (canClearClassification) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    TextButton(
+                      key: const Key('classification-clear'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      onPressed: () => setState(() {
+                        _selectedOrganizationId = null;
+                        _selectedCaseId = null;
+                        _clearCase = true;
+                        _clearClassification = true;
+                      }),
+                      child: Text(l10n.clearClassification),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClassificationSelectField extends StatelessWidget {
+  const _ClassificationSelectField({
+    required this.fieldKey,
+    required this.label,
+    required this.value,
+    required this.selectedLabel,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final Key fieldKey;
+  final String label;
+  final String value;
+  final String selectedLabel;
+  final List<DropdownMenuItem<String>> items;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) => DropdownButtonFormField<String>(
+    key: fieldKey,
+    isExpanded: true,
+    initialValue: value,
+    decoration: InputDecoration(labelText: label),
+    selectedItemBuilder: (context) => items
+        .map(
+          (_) => Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              selectedLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        )
+        .toList(),
+    items: items,
+    onChanged: onChanged,
+  );
 }
 
 T? _asyncValue<T>(AsyncValue<T> value) =>

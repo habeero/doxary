@@ -26,9 +26,9 @@ Initial Analyze and Retry analysis are distinct actions. Retry re-analyzes the s
 
 ## Classification and search
 
-**Current implementation status:** Classification correction semantics and their local persistence are implemented through a contextual modal. The approved searchable Organization/Case selection and minimal creation presentation is not yet aligned with the wireframes; the current inline controls are functionally usable, but the approved redesign remains pending.
+**Current implementation status:** Classification correction semantics and local persistence are implemented through a contextual modal. Field changes are draft-only until Save, and Close/X discards them. The approved searchable Organization/Case selection and minimal creation presentation remains pending under 10B/10C; the modal retains the existing compact selector handoff rather than embedding a large list.
 
-Result → Change Classification uses lightweight modal or bottom-sheet selection for Organization and Case rather than needless full navigation destinations. Creating an Organization requires only a name. Creating a Case happens under an already selected Organization, cannot create an orphan Case, and makes the new Case the current selection. The user may confirm a suggestion, change it, clear a Case, or leave a Document Unclassified.
+Result → Change Classification uses a focused modal above the current Document/Result for Organization and Case selection rather than a permanent destination. Values are human-readable and bounded for long labels. Creating an Organization requires only a name. Creating a Case happens under an already selected Organization, cannot create an orphan Case, and makes the new Case the current selection. The user may confirm a suggestion, change it, remove only a Case association, or leave a Document Unclassified; selection changes commit only through explicit Save.
 
 Search is contextual: Documents root searches library-relevant content; Organization searches that Organization; Unclassified searches only Unclassified Documents; and Case searches Documents in that Case. A universal standalone Search Results screen is not required.
 

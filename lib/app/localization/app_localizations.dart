@@ -62,6 +62,7 @@ class AppLocalizations {
   String get organizationName => _value('organizationName');
   String get caseName => _value('caseName');
   String get clearCase => _value('clearCase');
+  String get clearClassification => _value('clearClassification');
   String get cases => _value('cases');
   String get organizationDocuments => _value('organizationDocuments');
   String get organizations => _value('organizations');
@@ -230,17 +231,39 @@ class AppLocalizations {
   String get amount => _value('amount');
   String get originalDocumentSavedLocally =>
       _value('originalDocumentSavedLocally');
-  String get analysisHistory => locale.languageCode == 'ar' ? '\u0633\u062c\u0644 \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisHistory');
-  String get documentAdded => locale.languageCode == 'ar' ? '\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0645\u0633\u062a\u0646\u062f' : _value('documentAdded');
-  String get analysisSuccessful => locale.languageCode == 'ar' ? '\u0646\u0627\u062c\u062d' : _value('analysisSuccessful');
-  String get analysisFailedHistory => locale.languageCode == 'ar' ? '\u0641\u0634\u0644 \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisFailedHistory');
-  String get analysisPendingHistory => locale.languageCode == 'ar' ? '\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisPendingHistory');
-  String get analysisDate => locale.languageCode == 'ar' ? '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('analysisDate');
-  String get openResult => locale.languageCode == 'ar' ? '\u0641\u062a\u062d \u0627\u0644\u0646\u062a\u064a\u062c\u0629' : _value('openResult');
-  String get deleteAnalysis => locale.languageCode == 'ar' ? '\u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644' : _value('deleteAnalysis');
-  String get deleteAnalysisTitle => locale.languageCode == 'ar' ? '\u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644\u061f' : _value('deleteAnalysisTitle');
-  String get deleteAnalysisMessage => locale.languageCode == 'ar' ? '\u0633\u064a\u064f\u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u062a\u062d\u0644\u064a\u0644 \u0641\u0642\u0637. \u064a\u0628\u0642\u0649 \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u0648\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a \u0627\u0644\u0623\u062e\u0631\u0649 \u0648\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629 \u0645\u062d\u0641\u0648\u0638\u0629.' : _value('deleteAnalysisMessage');
-  String get viewTask => locale.languageCode == 'ar' ? '\u0639\u0631\u0636 \u0627\u0644\u0645\u0647\u0645\u0629' : _value('viewTask');
+  String get analysisHistory => locale.languageCode == 'ar'
+      ? '\u0633\u062c\u0644 \u0627\u0644\u062a\u062d\u0644\u064a\u0644'
+      : _value('analysisHistory');
+  String get documentAdded => locale.languageCode == 'ar'
+      ? '\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0645\u0633\u062a\u0646\u062f'
+      : _value('documentAdded');
+  String get analysisSuccessful => locale.languageCode == 'ar'
+      ? '\u0646\u0627\u062c\u062d'
+      : _value('analysisSuccessful');
+  String get analysisFailedHistory => locale.languageCode == 'ar'
+      ? '\u0641\u0634\u0644 \u0627\u0644\u062a\u062d\u0644\u064a\u0644'
+      : _value('analysisFailedHistory');
+  String get analysisPendingHistory => locale.languageCode == 'ar'
+      ? '\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0644\u064a\u0644'
+      : _value('analysisPendingHistory');
+  String get analysisDate => locale.languageCode == 'ar'
+      ? '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u062d\u0644\u064a\u0644'
+      : _value('analysisDate');
+  String get openResult => locale.languageCode == 'ar'
+      ? '\u0641\u062a\u062d \u0627\u0644\u0646\u062a\u064a\u062c\u0629'
+      : _value('openResult');
+  String get deleteAnalysis => locale.languageCode == 'ar'
+      ? '\u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644'
+      : _value('deleteAnalysis');
+  String get deleteAnalysisTitle => locale.languageCode == 'ar'
+      ? '\u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644\u061f'
+      : _value('deleteAnalysisTitle');
+  String get deleteAnalysisMessage => locale.languageCode == 'ar'
+      ? '\u0633\u064a\u064f\u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u062a\u062d\u0644\u064a\u0644 \u0641\u0642\u0637. \u064a\u0628\u0642\u0649 \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u0648\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a \u0627\u0644\u0623\u062e\u0631\u0649 \u0648\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629 \u0645\u062d\u0641\u0648\u0638\u0629.'
+      : _value('deleteAnalysisMessage');
+  String get viewTask => locale.languageCode == 'ar'
+      ? '\u0639\u0631\u0636 \u0627\u0644\u0645\u0647\u0645\u0629'
+      : _value('viewTask');
   String _value(String key) =>
       (_strings[locale.languageCode] ?? _strings['de']!)[key] ??
       (_resultStrings[locale.languageCode] ?? _resultStrings['de']!)[key] ??
@@ -429,6 +452,7 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'organizationName': 'Name der Organisation',
     'caseName': 'Name des Vorgangs',
     'clearCase': 'Vorgang entfernen',
+    'clearClassification': 'Zuordnung aufheben',
     'cases': 'Vorgänge',
     'organizationDocuments': 'Dokumente ohne Vorgang',
   },
@@ -462,6 +486,7 @@ const _documentLibraryStrings = <String, Map<String, String>>{
     'organizationName': 'اسم الجهة',
     'caseName': 'اسم المعاملة',
     'clearCase': 'إزالة المعاملة',
+    'clearClassification': '\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u0635\u0646\u064a\u0641',
     'cases': 'المعاملات',
     'organizationDocuments': 'مستندات بلا معاملة',
   },

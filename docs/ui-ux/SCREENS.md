@@ -81,7 +81,7 @@ The route presents pre-analysis, processing, complete, partial, action-uncertain
 
 ## Classification
 
-**Current implementation status:** Change Classification, Organization and Case persistence, inline creation, Clear Case, organization-only classification, and leaving a Document Unclassified are functionally implemented. The current UI is usable but its Organization/Case selection and creation presentation is still simpler than the approved Bottom Sheet/modal wireframes: searchable dedicated selection hierarchy and approved creation-flow presentation remain pending. Functionally implemented; approved UI redesign still pending.
+**Current implementation status:** Change Classification, Organization and Case persistence, inline creation, Clear Case, organization-only classification, and leaving a Document Unclassified are functionally implemented. Change Classification now uses the approved focused modal pattern: Organization and Case changes remain draft state until explicit Save; Close/X discards changes; Remove Case preserves Organization until Save; and Clear Classification is a distinct destructive draft action. The dedicated Organization and Case selection/creation experiences remain pending under 10B and 10C; this modal hands off to the existing compact selectors rather than embedding a large list.
 
 Classification correction promotes or corrects suggestions without conflating them with facts. Organization and Case selection/creation are contextual lightweight flows. Creating an Organization requires only a name; creating a Case occurs under a selected Organization and cannot create an orphan Case. Organization-only classification and Unclassified Documents remain distinct.
 
