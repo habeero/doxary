@@ -803,13 +803,281 @@ void main() {
       expect(await repository.getById('analysis-two'), isNull);
       expect(await repository.getById('analysis-one'), isNotNull);
       final remainingHistory = await repository.getHistory(documentId);
-      expect(remainingHistory, hasLength(2));
+      expect(remainingHistory, hasLength(3));
       expect(
         remainingHistory.any(
           (item) => item.status == AnalysisAttemptStatus.failed,
         ),
         isTrue,
       );
+      final deleted = remainingHistory.singleWhere(
+        (item) => item.analysisId == 'analysis-two',
+      );
+      expect(deleted.deletedAt, isNotNull);
+      expect(deleted.resultAnalysisStatus, AnalysisStatus.complete);
+    },
+  );
+
+  test(
+    'schema v9-to-v11 migration repairs seconds-scale history timestamps',
+    () async {
+      final expectedInstant = DateTime(2026, 9, 24, 12);
+      final expectedMilliseconds = expectedInstant.millisecondsSinceEpoch;
+      final legacySeconds = expectedMilliseconds ~/ 1000;
+      final executor = NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute('PRAGMA user_version = 9');
+          raw.execute('''
+          CREATE TABLE analysis_attempt_history (
+            attempt_id TEXT PRIMARY KEY NOT NULL,
+            client_document_id TEXT NOT NULL,
+            started_at INTEGER NOT NULL,
+            terminal_at INTEGER,
+            status TEXT NOT NULL,
+            result_analysis_id TEXT,
+            failure_code TEXT,
+            retryable INTEGER
+          )
+        ''');
+          raw.execute('''
+          INSERT INTO analysis_attempt_history VALUES
+            ('legacy-seconds', 'history-document', $legacySeconds,
+             $legacySeconds, 'failed', NULL, 'processing_failed', 1),
+            ('existing-milliseconds', 'history-document',
+             $expectedMilliseconds, $expectedMilliseconds, 'pending',
+             NULL, NULL, NULL),
+            ('null-terminal', 'history-document', $expectedMilliseconds,
+             NULL, 'pending', NULL, NULL, NULL),
+            ('mixed-units', 'history-document', $expectedMilliseconds,
+             $legacySeconds, 'failed', NULL, 'processing_failed', 1)
+        ''');
+        },
+      );
+      final database = AppDatabase(executor);
+      addTearDown(database.close);
+
+      final raw = await database
+          .customSelect(
+            'SELECT attempt_id, started_at, terminal_at FROM analysis_attempt_history',
+          )
+          .get();
+      final rawById = {
+        for (final row in raw) row.read<String>('attempt_id'): row,
+      };
+      expect(
+        rawById['legacy-seconds']!.read<int>('started_at'),
+        expectedMilliseconds,
+      );
+      expect(
+        rawById['legacy-seconds']!.read<int>('terminal_at'),
+        expectedMilliseconds,
+      );
+      expect(
+        rawById['existing-milliseconds']!.read<int>('started_at'),
+        expectedMilliseconds,
+      );
+      expect(
+        rawById['existing-milliseconds']!.read<int>('terminal_at'),
+        expectedMilliseconds,
+      );
+      expect(
+        rawById['null-terminal']!.readNullable<int>('terminal_at'),
+        isNull,
+      );
+      expect(
+        rawById['mixed-units']!.read<int>('started_at'),
+        expectedMilliseconds,
+      );
+      expect(
+        rawById['mixed-units']!.read<int>('terminal_at'),
+        expectedMilliseconds,
+      );
+
+      final history = await LocalAnalysisRepository(database)
+          .getHistory('history-document');
+      final legacyAttempt = history.singleWhere(
+        (attempt) => attempt.id == 'legacy-seconds',
+      );
+      final expectedLocalInstant = DateTime.fromMillisecondsSinceEpoch(
+        expectedMilliseconds,
+      );
+      expect(legacyAttempt.startedAt, expectedLocalInstant);
+      expect(legacyAttempt.startedAt.year, 2026);
+      expect(legacyAttempt.terminalAt, expectedLocalInstant);
+      expect(
+        history
+            .singleWhere((attempt) => attempt.id == 'existing-milliseconds')
+            .terminalAt,
+        expectedLocalInstant,
+      );
+      expect(
+        history
+            .singleWhere((attempt) => attempt.id == 'null-terminal')
+            .terminalAt,
+        isNull,
+      );
+    },
+  );
+
+  test(
+    'schema v11 preserves existing history without inventing deletions',
+    () async {
+      final executor = NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute('PRAGMA user_version = 10');
+          raw.execute('''
+          CREATE TABLE analysis_attempt_history (
+            attempt_id TEXT PRIMARY KEY NOT NULL,
+            client_document_id TEXT NOT NULL,
+            started_at INTEGER NOT NULL,
+            terminal_at INTEGER,
+            status TEXT NOT NULL,
+            result_analysis_id TEXT,
+            failure_code TEXT,
+            retryable INTEGER
+          )
+        ''');
+          raw.execute('''
+          INSERT INTO analysis_attempt_history VALUES
+            ('prior-failure', 'legacy-document', 1790251200000,
+             1790251200000, 'failed', NULL, 'processing_failed', 1),
+            ('prior-success', 'legacy-document', 1790164800000,
+             1790168400000, 'succeeded', 'removed-before-v11', NULL, NULL)
+        ''');
+        },
+      );
+      final database = AppDatabase(executor);
+      addTearDown(database.close);
+
+      final history = await LocalAnalysisRepository(database)
+          .getHistory('legacy-document');
+
+      expect(history, hasLength(2));
+      final failed = history.singleWhere((item) => item.id == 'prior-failure');
+      expect(failed.status, AnalysisAttemptStatus.failed);
+      expect(failed.failureCode, 'processing_failed');
+      expect(failed.retryable, isTrue);
+      expect(failed.deletedAt, isNull);
+      expect(failed.resultAnalysisStatus, isNull);
+      final success = history.singleWhere((item) => item.id == 'prior-success');
+      expect(success.status, AnalysisAttemptStatus.succeeded);
+      expect(success.analysisId, 'removed-before-v11');
+      expect(success.deletedAt, isNull);
+      expect(success.resultAnalysisStatus, isNull);
+    },
+  );
+
+  test(
+    'failed attempt deletion removes only an eligible history row',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      const documentId = 'attempt-delete-document';
+      await _insertDocument(database, documentId);
+      await database
+          .into(database.documentFiles)
+          .insert(
+            DocumentFilesCompanion.insert(
+              id: 'attempt-delete-file',
+              clientDocumentId: documentId,
+              localUri: 'file:///attempt-delete.pdf',
+              mediaType: 'application/pdf',
+              importedAt: DateTime(2026),
+            ),
+          );
+      final repository = LocalAnalysisRepository(database);
+      final now = DateTime(2026);
+      await repository.saveOperation(
+        operationId: 'failed-to-remove',
+        clientDocumentId: documentId,
+        state: AnalysisLifecycleState.failed,
+        failureCode: 'processing_failed',
+        retryable: true,
+      );
+      await repository.saveOperation(
+        operationId: 'other-failed-attempt',
+        clientDocumentId: documentId,
+        state: AnalysisLifecycleState.failed,
+        failureCode: 'processing_failed',
+        retryable: false,
+      );
+      await repository.saveCompleted(
+        DocumentAnalysis(
+          id: 'kept-analysis',
+          clientDocumentId: documentId,
+          schemaVersion: 'analysis_result.v1',
+          targetLanguage: 'de',
+          createdAt: now,
+        ),
+      );
+      await repository.saveCompleted(
+        DocumentAnalysis(
+          id: 'deleted-analysis',
+          clientDocumentId: documentId,
+          schemaVersion: 'analysis_result.v1',
+          targetLanguage: 'de',
+          createdAt: now.add(const Duration(minutes: 1)),
+        ),
+      );
+      await repository.deleteAnalysis('deleted-analysis');
+      await repository.saveOperation(
+        operationId: 'pending-attempt',
+        clientDocumentId: documentId,
+        state: AnalysisLifecycleState.accepted,
+      );
+      final tasks = LocalTaskRepository(database);
+      await tasks.save(
+        LocalTask(
+          id: 'unaffected-task',
+          title: 'Keep task',
+          status: TaskStatus.open,
+          provenance: TaskProvenance.user,
+          createdAt: now,
+          updatedAt: now,
+          clientDocumentId: documentId,
+        ),
+      );
+
+      expect(
+        await repository.deleteAnalysisAttempt('failed-to-remove'),
+        isTrue,
+      );
+      expect(
+        await repository.deleteAnalysisAttempt('failed-to-remove'),
+        isFalse,
+      );
+      expect(
+        await repository.deleteAnalysisAttempt('analysis:kept-analysis'),
+        isFalse,
+      );
+      expect(
+        await repository.deleteAnalysisAttempt('analysis:deleted-analysis'),
+        isFalse,
+      );
+      expect(
+        await repository.deleteAnalysisAttempt('pending-attempt'),
+        isFalse,
+      );
+
+      final history = await repository.getHistory(documentId);
+      expect(
+        history.map((item) => item.id),
+        contains('analysis:kept-analysis'),
+      );
+      expect(
+        history.map((item) => item.id),
+        contains('analysis:deleted-analysis'),
+      );
+      expect(history.map((item) => item.id), contains('pending-attempt'));
+      expect(history.map((item) => item.id), contains('other-failed-attempt'));
+      expect(
+        history.map((item) => item.id),
+        isNot(contains('failed-to-remove')),
+      );
+      expect(await database.select(database.documents).get(), hasLength(1));
+      expect(await database.select(database.documentFiles).get(), hasLength(1));
+      expect(await database.select(database.analyses).get(), hasLength(1));
+      expect(await tasks.getById('unaffected-task'), isNotNull);
     },
   );
 
@@ -830,6 +1098,32 @@ void main() {
           ),
         );
     final repository = LocalAnalysisRepository(database);
+    final olderAttemptAt = DateTime(2026, 9, 10).millisecondsSinceEpoch;
+    await database.customStatement(
+      '''INSERT INTO analysis_attempt_history (
+        attempt_id, client_document_id, started_at, terminal_at, status,
+        result_analysis_id, failure_code, retryable, deleted_at,
+        result_analysis_status
+      ) VALUES (?, ?, ?, ?, ?, NULL, ?, ?, NULL, NULL)''',
+      [
+        'older-failed-attempt',
+        documentId,
+        olderAttemptAt,
+        olderAttemptAt,
+        'failed',
+        'processing_failed',
+        1,
+      ],
+    );
+    await repository.saveCompleted(
+      DocumentAnalysis(
+        id: 'other-analysis',
+        clientDocumentId: documentId,
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        createdAt: DateTime(2026, 9, 20),
+      ),
+    );
     await repository.saveCompleted(
       DocumentAnalysis(
         id: 'retained-analysis',
@@ -837,8 +1131,23 @@ void main() {
         schemaVersion: 'analysis_result.v1',
         targetLanguage: 'de',
         createdAt: DateTime(2026, 9, 21),
+        summary: 'PRIVATE analysis summary',
+        analysisStatus: AnalysisStatus.partial,
       ),
     );
+    await database
+        .into(database.analysisAmounts)
+        .insert(
+          AnalysisAmountsCompanion.insert(
+            id: 'private-payload',
+            analysisId: 'retained-analysis',
+            position: 0,
+            value: '1234',
+            currency: 'EUR',
+            direction: 'payable',
+            purpose: const Value('PRIVATE analysis purpose'),
+          ),
+        );
     final tasks = LocalTaskRepository(database);
     await tasks.save(
       LocalTask(
@@ -854,8 +1163,23 @@ void main() {
       ),
     );
 
+    await repository.deleteAnalysis('missing-historical-analysis');
+    expect(await repository.getHistory(documentId), hasLength(3));
+    await database.customStatement(
+      'DELETE FROM analysis_attempt_history WHERE result_analysis_id = ?',
+      ['retained-analysis'],
+    );
     await repository.deleteAnalysis('retained-analysis');
 
+    expect(await repository.getById('retained-analysis'), isNull);
+    expect(await repository.getById('other-analysis'), isNotNull);
+    expect(await database.select(database.analyses).get(), hasLength(1));
+    expect(
+      await (database.select(
+        database.analysisAmounts,
+      )..where((row) => row.analysisId.equals('retained-analysis'))).get(),
+      isEmpty,
+    );
     expect(
       await (database.select(database.documents)
             ..where((row) => row.clientDocumentId.equals(documentId)))
@@ -864,6 +1188,39 @@ void main() {
     );
     expect(await database.select(database.documentFiles).get(), hasLength(1));
     expect(await tasks.getById('retained-task'), isNotNull);
+    final history = await repository.getHistory(documentId);
+    expect(history, hasLength(3));
+    expect(history.first.id, 'analysis:retained-analysis');
+    expect(history.first.analysisId, 'retained-analysis');
+    expect(history.first.status, AnalysisAttemptStatus.succeeded);
+    expect(history.first.resultAnalysisStatus, AnalysisStatus.partial);
+    expect(history.first.deletedAt, isNotNull);
+    expect(history.any((item) => item.id == 'older-failed-attempt'), isTrue);
+    expect(history.any((item) => item.analysisId == 'other-analysis'), isTrue);
+    final storedDeletedAt = await database
+        .customSelect(
+          '''SELECT deleted_at FROM analysis_attempt_history
+         WHERE result_analysis_id = ?''',
+          variables: const [Variable<String>('retained-analysis')],
+        )
+        .getSingle();
+    expect(
+      history.first.deletedAt,
+      DateTime.fromMillisecondsSinceEpoch(
+        storedDeletedAt.read<int>('deleted_at'),
+      ),
+    );
+    final attemptColumns = await database
+        .customSelect('PRAGMA table_info(analysis_attempt_history)')
+        .get();
+    expect(
+      attemptColumns.map((row) => row.read<String>('name')),
+      isNot(contains('summary')),
+    );
+    expect(
+      attemptColumns.map((row) => row.read<String>('name')),
+      isNot(contains('explanation')),
+    );
   });
 }
 

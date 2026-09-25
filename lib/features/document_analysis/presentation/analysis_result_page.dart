@@ -71,12 +71,16 @@ class AnalysisResultPage extends ConsumerWidget {
                             prefill.sourceActionKey!,
                           );
                       if (!context.mounted) return;
-                      GoRouter.of(context).go(
-                        task == null
-                            ? '${AppRoutes.tasks}/create'
-                            : '${AppRoutes.tasks}/edit/${task.id}',
-                        extra: task == null ? prefill : null,
-                      );
+                      if (task == null) {
+                        GoRouter.of(context).go(
+                          '${AppRoutes.tasks}/create',
+                          extra: prefill,
+                        );
+                      } else {
+                        GoRouter.of(context).push(
+                          '${AppRoutes.tasks}/${task.id}',
+                        );
+                      }
                     },
               taskActionLabel: existingTask == null
                   ? null

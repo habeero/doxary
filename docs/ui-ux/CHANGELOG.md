@@ -1,5 +1,17 @@
 # UI/UX changelog
 
+## 2026-09-24
+
+- Added the Documents Needs Attention collection and Home count/link; attention-only Documents are excluded from Home Recent and Unclassified while remaining in the complete Organization/Case archive.
+- Distinguished deleted/no-current-analysis from technical failure in Document Detail and added confirmed deletion for failed history attempts.
+- Clarified Task Editor required-field feedback: the required title marker is visible from entry, and missing date/time errors appear inline only after a Save attempt.
+
+## 2026-09-23
+
+- Added the focused read-only Task Detail destination: Task rows and Result-derived View Task now open Detail; Edit, confirmed Delete, and completed-task Reopen remain explicit Task lifecycle actions. Future notification taps will target Detail but are not implemented.
+- Refined Create/Edit Task presentation with a title-first hierarchy, responsive Date/Time and All Day/Reminder grouping, bounded RTL-safe controls, and explicit new-task At-time reminder defaults while preserving persisted Edit values.
+- Corrected the Result-derived Create path so date-only analysis data keeps the timed default; All Day remains explicit.
+
 ## 2026-09-22
 
 - Recorded notification-tap destination/navigation as deliberately undecided and Create/Edit Task presentation polish as a future design pass; neither changes the implemented reminder or Task behavior.

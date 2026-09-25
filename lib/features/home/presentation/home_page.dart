@@ -7,6 +7,7 @@ import '../../../app/providers.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../shared/design_system/app_widgets.dart';
+import '../../document_analysis/application/document_attention.dart';
 import '../../document_analysis/presentation/document_detail_page.dart';
 import '../../documents/presentation/documents_page.dart';
 import '../../documents/presentation/document_display.dart';
@@ -19,6 +20,9 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final documents = ref.watch(homeDocumentsProvider);
+    final analysisBrowseStates = ref.watch(
+      documentAnalysisBrowseStatesProvider,
+    );
     final activeOperations = ref.watch(activeAnalysisOperationsProvider);
     final openTasks = ref.watch(openTasksProvider);
     final completedTasks = ref.watch(completedTasksProvider);
@@ -59,15 +63,30 @@ class HomePage extends ConsumerWidget {
                         message: context.l10n.localDataUnavailable,
                       ),
                     ),
-                    data: (items) => _HomeOverview(
-                      query: _HomeOverviewQuery(
-                        items,
-                        activeDocumentIds,
-                        handledTaskAttentionIds,
+                    data: (items) => analysisBrowseStates.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.only(top: AppSpacing.xl),
+                        child: LinearProgressIndicator(),
                       ),
-                      onOpenDocument: (id) => _openDocument(context, id),
-                      onViewAll: () => _openDocuments(context),
-                      onImport: () => context.go(AppRoutes.importDocument),
+                      error: (_, _) => Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xl),
+                        child: AppErrorState(
+                          message: context.l10n.localDataUnavailable,
+                        ),
+                      ),
+                      data: (states) => _HomeOverview(
+                        query: _HomeOverviewQuery(
+                          items,
+                          activeDocumentIds,
+                          handledTaskAttentionIds,
+                          states,
+                        ),
+                        onOpenDocument: (id) => _openDocument(context, id),
+                        onViewAll: () => _openDocuments(context),
+                        onViewNeedsAttention: () =>
+                            _openNeedsAttention(context),
+                        onImport: () => context.go(AppRoutes.importDocument),
+                      ),
                     ),
                   ),
                 ],
@@ -133,12 +152,14 @@ class _HomeOverview extends ConsumerWidget {
     required this.query,
     required this.onOpenDocument,
     required this.onViewAll,
+    required this.onViewNeedsAttention,
     required this.onImport,
   });
 
   final _HomeOverviewQuery query;
   final ValueChanged<String> onOpenDocument;
   final VoidCallback onViewAll;
+  final VoidCallback onViewNeedsAttention;
   final VoidCallback onImport;
 
   @override
@@ -155,7 +176,7 @@ class _HomeOverview extends ConsumerWidget {
         child: AppErrorState(message: context.l10n.localDataUnavailable),
       ),
       data: (data) {
-        if (data.entries.isEmpty) {
+        if (data.entries.isEmpty && data.needsAttentionDocumentCount == 0) {
           return Column(
             children: [
               AppEmptyState(
@@ -175,6 +196,13 @@ class _HomeOverview extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (data.needsAttentionDocumentCount > 0) ...[
+              const SizedBox(height: AppSpacing.md),
+              _HomeNeedsAttentionItem(
+                count: data.needsAttentionDocumentCount,
+                onTap: onViewNeedsAttention,
+              ),
+            ],
             if (data.actionRequired.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               _SectionTitle(title: l10n.actionRequired),
@@ -374,6 +402,29 @@ class _ActionFact extends StatelessWidget {
   );
 }
 
+class _HomeNeedsAttentionItem extends StatelessWidget {
+  const _HomeNeedsAttentionItem({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).colorScheme.errorContainer,
+    borderRadius: BorderRadius.circular(10),
+    child: ListTile(
+      key: const Key('home-needs-attention'),
+      leading: Icon(
+        Icons.error_outline,
+        color: Theme.of(context).colorScheme.onErrorContainer,
+      ),
+      title: Text(context.l10n.documentsNeedAttention(count)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    ),
+  );
+}
+
 class _ProcessingItem extends StatelessWidget {
   const _ProcessingItem({required this.entry, required this.onTap});
   final _HomeDocumentEntry entry;
@@ -509,10 +560,12 @@ class _HomeOverviewQuery {
     this.documents,
     this.activeDocumentIds,
     this.handledTaskAttentionIds,
+    this.analysisBrowseStates,
   );
   final List<LocalDocument> documents;
   final Set<String> activeDocumentIds;
   final Set<String> handledTaskAttentionIds;
+  final Map<String, DocumentAnalysisBrowseState> analysisBrowseStates;
 
   @override
   bool operator ==(Object other) =>
@@ -522,13 +575,16 @@ class _HomeOverviewQuery {
       _activeIdentity(other.activeDocumentIds) ==
           _activeIdentity(activeDocumentIds) &&
       _activeIdentity(other.handledTaskAttentionIds) ==
-          _activeIdentity(handledTaskAttentionIds);
+          _activeIdentity(handledTaskAttentionIds) &&
+      _browseStateIdentity(other.analysisBrowseStates) ==
+          _browseStateIdentity(analysisBrowseStates);
 
   @override
   int get hashCode => Object.hash(
     _queryIdentity(documents),
     _activeIdentity(activeDocumentIds),
     _activeIdentity(handledTaskAttentionIds),
+    _browseStateIdentity(analysisBrowseStates),
   );
 }
 
@@ -558,6 +614,18 @@ Set<String> _taskAttentionIds(AsyncValue<List<LocalTask>> tasks) => tasks.when(
   error: (_, _) => const <String>{},
 );
 
+String _browseStateIdentity(
+  Map<String, DocumentAnalysisBrowseState> states,
+) => (states.entries.toList()..sort((a, b) => a.key.compareTo(b.key)))
+    .map((entry) {
+      final state = entry.value;
+      final attention = state.attention;
+      return '${entry.key}:${state.hasUsableAnalysis}:${state.isProcessing}:'
+          '${attention?.reason.name ?? ''}:'
+          '${attention?.occurredAt.microsecondsSinceEpoch ?? ''}';
+    })
+    .join('|');
+
 String _homeAttentionId(DocumentAnalysis analysis) => _homeAttentionIdFromParts(
   analysis.id,
   sourceActionKeyForAnalysis(analysis),
@@ -574,10 +642,14 @@ class _HomeOverviewData {
     this.entries,
     this.activeDocumentIds,
     this.handledTaskAttentionIds,
+    this.analysisBrowseStates,
+    this.needsAttentionDocumentCount,
   );
   final List<_HomeDocumentEntry> entries;
   final Set<String> activeDocumentIds;
   final Set<String> handledTaskAttentionIds;
+  final Map<String, DocumentAnalysisBrowseState> analysisBrowseStates;
+  final int needsAttentionDocumentCount;
 
   bool _hasUnresolvedAttention(_HomeDocumentEntry entry) =>
       entry.analysis?.actionRequired == ActionRequirement.yes &&
@@ -589,6 +661,8 @@ class _HomeOverviewData {
       .where(
         (entry) =>
             !activeDocumentIds.contains(entry.document.clientDocumentId) &&
+            analysisBrowseStates[entry.document.clientDocumentId]?.attention ==
+                null &&
             _hasUnresolvedAttention(entry),
       )
       .toList();
@@ -603,6 +677,8 @@ class _HomeOverviewData {
       .where(
         (entry) =>
             !activeDocumentIds.contains(entry.document.clientDocumentId) &&
+            analysisBrowseStates[entry.document.clientDocumentId]?.attention ==
+                null &&
             !_hasUnresolvedAttention(entry),
       )
       .take(5)
@@ -674,6 +750,16 @@ final _homeOverviewProvider = FutureProvider.autoDispose
         entries,
         query.activeDocumentIds,
         query.handledTaskAttentionIds,
+        query.analysisBrowseStates,
+        query.documents
+            .where(
+              (document) =>
+                  query
+                      .analysisBrowseStates[document.clientDocumentId]
+                      ?.attention !=
+                  null,
+            )
+            .length,
       );
     });
 
@@ -711,4 +797,14 @@ void _openDocuments(BuildContext context) {
   }
   Navigator.of(context)
       .push(MaterialPageRoute(builder: (_) => const DocumentsPage()));
+}
+
+void _openNeedsAttention(BuildContext context) {
+  if (GoRouter.maybeOf(context) != null) {
+    context.go(AppRoutes.documentsNeedsAttention);
+    return;
+  }
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) => const NeedsAttentionDocumentsPage()),
+  );
 }

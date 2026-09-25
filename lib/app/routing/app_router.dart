@@ -12,11 +12,13 @@ import '../../features/settings/presentation/profile_page.dart';
 import '../../features/tasks/presentation/tasks_page.dart';
 import '../../features/tasks/presentation/task_draft_prefill.dart';
 import '../../features/tasks/presentation/task_editor_page.dart';
+import '../../features/tasks/presentation/task_detail_page.dart';
 import 'app_shell.dart';
 
 abstract final class AppRoutes {
   static const home = '/home';
   static const documents = '/documents';
+  static const documentsNeedsAttention = '/documents/needs-attention';
   static const importDocument = '/import';
   static const tasks = '/tasks';
   static const profile = '/profile';
@@ -69,6 +71,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.documents,
                 builder: (context, state) => const DocumentsPage(),
                 routes: [
+                  GoRoute(
+                    path: 'needs-attention',
+                    builder: (context, state) =>
+                        const NeedsAttentionDocumentsPage(),
+                  ),
                   GoRoute(
                     path: 'unclassified',
                     builder: (context, state) =>
@@ -143,6 +150,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => TaskEditorPage.edit(
                       taskId: state.pathParameters['taskId']!,
                     ),
+                  ),
+                  GoRoute(
+                    path: ':taskId',
+                    builder: (context, state) =>
+                        TaskDetailPage(taskId: state.pathParameters['taskId']!),
                   ),
                 ],
               ),

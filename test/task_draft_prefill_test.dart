@@ -27,7 +27,6 @@ void main() {
 
     expect(prefill?.title, 'Pay the invoice');
     expect(prefill?.dueDate, DateTime(2026, 10, 14));
-    expect(prefill?.allDay, isTrue);
     expect(prefill?.dueTimeMinutes, isNull);
     expect(prefill?.clientDocumentId, 'document-id');
     expect(prefill?.caseId, 'case-id');
@@ -65,10 +64,8 @@ void main() {
     );
 
     expect(deadlinePrefill?.dueDate, DateTime(2026, 11, 1));
-    expect(deadlinePrefill?.allDay, isTrue);
     expect(deadlinePrefill?.dueTimeMinutes, isNull);
     expect(appointmentPrefill?.dueDate, DateTime(2026, 12, 2));
-    expect(appointmentPrefill?.allDay, isFalse);
     expect(appointmentPrefill?.dueTimeMinutes, 13 * 60 + 45);
   });
 

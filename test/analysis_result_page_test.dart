@@ -11,6 +11,8 @@ import 'package:doxary/core/database/app_database.dart'
         AnalysisRequiredDocument,
         AnalysisSuggestedTask;
 import 'package:doxary/core/utils/id_generator.dart';
+import 'package:doxary/features/document_analysis/data/local_analysis_repository.dart';
+import 'package:doxary/features/document_analysis/application/document_attention.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_repository.dart';
 import 'package:doxary/features/document_analysis/presentation/analysis_result_page.dart';
@@ -23,6 +25,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('analysis lifecycle messages are localized in German and Arabic', () {
+    final german = AppLocalizations(const Locale('de'));
+    expect(german.analysisDeletedTitle, 'Analyse gelöscht');
+    expect(
+      german.analysisDeletedBody,
+      'Das Originaldokument ist weiterhin gespeichert und kann erneut analysiert werden.',
+    );
+    expect(german.deleteAnalysisAttemptTitle, 'Analyseversuch löschen?');
+    expect(
+      german.deleteAnalysisAttemptMessage,
+      'Nur der fehlgeschlagene Analyseversuch wird gelöscht. Das Originaldokument bleibt gespeichert.',
+    );
+
+    final arabic = AppLocalizations(const Locale('ar'));
+    expect(arabic.analysisDeletedTitle, 'تم حذف التحليل');
+    expect(
+      arabic.analysisDeletedBody,
+      'المستند الأصلي ما زال محفوظًا ويمكن إعادة تحليله.',
+    );
+    expect(arabic.deleteAnalysisAttemptTitle, 'حذف محاولة التحليل؟');
+    expect(
+      arabic.deleteAnalysisAttemptMessage,
+      'سيتم حذف سجل محاولة التحليل الفاشلة فقط. سيبقى المستند الأصلي محفوظًا.',
+    );
+  });
+
   testWidgets('complete no-action result follows the approved hierarchy', (
     tester,
   ) async {
@@ -394,6 +422,13 @@ void main() {
               importedAt: now,
             ),
           );
+      await LocalAnalysisRepository(database).saveOperation(
+        operationId: 'prior-failed-attempt',
+        clientDocumentId: 'doc',
+        state: AnalysisLifecycleState.failed,
+        failureCode: 'processing_failed',
+        retryable: true,
+      );
       final remote = _SuccessfulRetryRemote();
       await tester.pumpWidget(
         ProviderScope(
@@ -424,6 +459,70 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  testWidgets('failed retry refreshes persisted Document attempt history', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final now = DateTime(2026);
+    await database
+        .into(database.documents)
+        .insert(
+          DocumentsCompanion.insert(
+            clientDocumentId: 'doc',
+            classificationState: 'unclassified',
+            status: 'needsReview',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await database
+        .into(database.documentFiles)
+        .insert(
+          DocumentFilesCompanion.insert(
+            id: 'file',
+            clientDocumentId: 'doc',
+            localUri: 'file:///document.pdf',
+            mediaType: 'application/pdf',
+            importedAt: now,
+          ),
+        );
+    final repository = LocalAnalysisRepository(database);
+    await repository.saveOperation(
+      operationId: 'prior-failed-attempt',
+      clientDocumentId: 'doc',
+      state: AnalysisLifecycleState.failed,
+      failureCode: 'processing_failed',
+      retryable: true,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          analysisRemoteDataSourceProvider.overrideWithValue(
+            _FailedRetryRemote(),
+          ),
+          idGeneratorProvider.overrideWithValue(_FixedIdGenerator()),
+        ],
+        child: _app(
+          const DocumentDetailPage(clientDocumentId: 'doc'),
+          const Locale('de'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Fehlgeschlagen'), findsOneWidget);
+
+    await tester.tap(find.text('Analyse erneut starten'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fehlgeschlagen'), findsNWidgets(2));
+    expect(await repository.getHistory('doc'), hasLength(2));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('unreadable result prioritizes a corrective source action', (
     tester,
@@ -574,6 +673,215 @@ void main() {
     },
   );
 
+  testWidgets('deleted Analysis is a distinct recoverable state, not failure', (
+    tester,
+  ) async {
+    final database = await _databaseWithDocumentAndSource();
+    addTearDown(database.close);
+    final repository = LocalAnalysisRepository(database);
+    await repository.saveCompleted(_storedAnalysis('deleted-analysis'));
+    await repository.deleteAnalysis('deleted-analysis');
+
+    await _pumpDocumentDetail(tester, database);
+
+    expect(find.byKey(const Key('deleted-analysis-state')), findsOneWidget);
+    expect(find.text('Analyse gelöscht'), findsWidgets);
+    expect(
+      find.text(
+        'Das Originaldokument ist weiterhin gespeichert und kann erneut analysiert werden.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('technical-failure-state')), findsNothing);
+    expect(find.text('Analyse nicht abgeschlossen'), findsNothing);
+    expect(find.byKey(const Key('document-reanalyze')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('open-original-document')),
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.byKey(const Key('open-original-document')), findsOneWidget);
+
+    final history = await repository.getHistory('doc');
+    expect(history, hasLength(1));
+    expect(history.single.deletedAt, isA<DateTime>());
+    expect(history.single.resultAnalysisStatus, AnalysisStatus.complete);
+    expect(
+      find.byKey(
+        const Key('analysis-history-deleted-analysis:deleted-analysis'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a newer failed retry takes precedence over Analysis deletion', (
+    tester,
+  ) async {
+    final database = await _databaseWithDocumentAndSource();
+    addTearDown(database.close);
+    final repository = LocalAnalysisRepository(database);
+    await repository.saveCompleted(_storedAnalysis('deleted-analysis'));
+    await repository.deleteAnalysis('deleted-analysis');
+    final tombstone = await database
+        .customSelect(
+          '''SELECT deleted_at FROM analysis_attempt_history
+                         WHERE result_analysis_id = ?''',
+          variables: const [Variable<String>('deleted-analysis')],
+        )
+        .getSingle();
+    final later = tombstone.read<int>('deleted_at') + 1000;
+    await repository.saveOperation(
+      operationId: 'newer-failed-retry',
+      clientDocumentId: 'doc',
+      state: AnalysisLifecycleState.failed,
+      failureCode: 'processing_failed',
+      retryable: true,
+    );
+    await database.customStatement(
+      '''UPDATE analysis_attempt_history
+         SET started_at = ?, terminal_at = ? WHERE attempt_id = ?''',
+      [later, later, 'newer-failed-retry'],
+    );
+
+    await _pumpDocumentDetail(tester, database);
+
+    expect(find.byKey(const Key('technical-failure-state')), findsOneWidget);
+    expect(find.byKey(const Key('deleted-analysis-state')), findsNothing);
+    expect(find.text('Analyse nicht abgeschlossen'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('newer Analysis deletion supersedes an older failed attempt', (
+    tester,
+  ) async {
+    final database = await _databaseWithDocumentAndSource();
+    addTearDown(database.close);
+    final repository = LocalAnalysisRepository(database);
+    await repository.saveOperation(
+      operationId: 'older-failed-attempt',
+      clientDocumentId: 'doc',
+      state: AnalysisLifecycleState.failed,
+      failureCode: 'processing_failed',
+      retryable: true,
+    );
+    await repository.saveCompleted(_storedAnalysis('deleted-analysis'));
+    await repository.deleteAnalysis('deleted-analysis');
+    final tombstone = await database
+        .customSelect(
+          '''SELECT deleted_at FROM analysis_attempt_history
+                         WHERE result_analysis_id = ?''',
+          variables: const [Variable<String>('deleted-analysis')],
+        )
+        .getSingle();
+    final earlier = tombstone.read<int>('deleted_at') - 1000;
+    await database.customStatement(
+      '''UPDATE analysis_attempt_history
+         SET started_at = ?, terminal_at = ? WHERE attempt_id = ?''',
+      [earlier, earlier, 'older-failed-attempt'],
+    );
+
+    await _pumpDocumentDetail(tester, database);
+
+    expect(find.byKey(const Key('deleted-analysis-state')), findsOneWidget);
+    expect(find.byKey(const Key('technical-failure-state')), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets(
+    'surviving Analysis remains authoritative over lifecycle history',
+    (tester) async {
+      final database = await _databaseWithDocumentAndSource();
+      addTearDown(database.close);
+      final repository = LocalAnalysisRepository(database);
+      await repository.saveCompleted(_storedAnalysis('deleted-analysis'));
+      await repository.deleteAnalysis('deleted-analysis');
+      await repository.saveCompleted(
+        _storedAnalysis(
+          'surviving-analysis',
+          createdAt: DateTime(2026, 9, 25),
+          summary: 'Surviving result summary',
+        ),
+      );
+
+      await _pumpDocumentDetail(tester, database);
+
+      expect(find.text('Surviving result summary'), findsOneWidget);
+      expect(find.byKey(const Key('deleted-analysis-state')), findsNothing);
+      expect(find.byKey(const Key('technical-failure-state')), findsNothing);
+      expect(find.byKey(const Key('document-result-scroll')), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'failed attempt deletion confirms and refreshes to neutral state',
+    (tester) async {
+      final database = await _databaseWithDocumentAndSource(
+        status: DocumentStatus.needsReview,
+      );
+      addTearDown(database.close);
+      final repository = LocalAnalysisRepository(database);
+      await repository.saveOperation(
+        operationId: 'failed-attempt',
+        clientDocumentId: 'doc',
+        state: AnalysisLifecycleState.failed,
+        failureCode: 'processing_failed',
+        retryable: true,
+      );
+      await _pumpDocumentDetail(tester, database);
+
+      expect(
+        find.byKey(const Key('delete-analysis-attempt-failed-attempt')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const Key('delete-analysis-attempt-failed-attempt')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Analyseversuch löschen?'), findsOneWidget);
+      expect(
+        find.text(
+          'Nur der fehlgeschlagene Analyseversuch wird gelöscht. Das Originaldokument bleibt gespeichert.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('cancel-delete-analysis-attempt')));
+      await tester.pumpAndSettle();
+      expect(await repository.getHistory('doc'), hasLength(1));
+      expect(find.byKey(const Key('technical-failure-state')), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const Key('delete-analysis-attempt-failed-attempt')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('confirm-delete-analysis-attempt')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(await repository.getHistory('doc'), isEmpty);
+      expect(find.byKey(const Key('technical-failure-state')), findsNothing);
+      expect(find.byKey(const Key('deleted-analysis-state')), findsNothing);
+      expect(find.text('Noch keine Analyse gespeichert.'), findsOneWidget);
+      expect(find.byKey(const Key('document-reanalyze')), findsOneWidget);
+      expect(find.byKey(const Key('open-original-document')), findsOneWidget);
+      expect(await database.select(database.documents).get(), hasLength(1));
+      expect(await database.select(database.documentFiles).get(), hasLength(1));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
+
   testWidgets('reopening reads the latest persisted analysis locally', (
     tester,
   ) async {
@@ -635,6 +943,14 @@ void main() {
       ProviderScope(
         overrides: [
           allDocumentsProvider.overrideWithValue(AsyncValue.data([document])),
+          documentAnalysisBrowseStatesProvider.overrideWithValue(
+            AsyncValue.data({
+              'doc': const DocumentAnalysisBrowseState(
+                hasUsableAnalysis: true,
+                isProcessing: false,
+              ),
+            }),
+          ),
           documentProvider('doc').overrideWithValue(AsyncValue.data(document)),
           documentFilesProvider('doc')
               .overrideWithValue(const AsyncValue.data([])),
@@ -658,6 +974,65 @@ void main() {
     expect(find.byKey(const Key('document-result-scroll')), findsOneWidget);
     expect(find.text('A clear summary'), findsOneWidget);
   });
+}
+
+Future<AppDatabase> _databaseWithDocumentAndSource({
+  DocumentStatus status = DocumentStatus.imported,
+}) async {
+  final database = AppDatabase(NativeDatabase.memory());
+  final now = DateTime(2026, 9, 20);
+  await database
+      .into(database.documents)
+      .insert(
+        DocumentsCompanion.insert(
+          clientDocumentId: 'doc',
+          classificationState: 'unclassified',
+          status: status.name,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+  await database
+      .into(database.documentFiles)
+      .insert(
+        DocumentFilesCompanion.insert(
+          id: 'file',
+          clientDocumentId: 'doc',
+          localUri: 'file:///document.pdf',
+          mediaType: 'application/pdf',
+          importedAt: now,
+        ),
+      );
+  return database;
+}
+
+DocumentAnalysis _storedAnalysis(
+  String id, {
+  DateTime? createdAt,
+  String summary = 'Stored analysis',
+}) => DocumentAnalysis(
+  id: id,
+  clientDocumentId: 'doc',
+  schemaVersion: 'analysis_result.v1',
+  targetLanguage: 'de',
+  createdAt: createdAt ?? DateTime(2026, 9, 21),
+  summary: summary,
+  analysisStatus: AnalysisStatus.complete,
+  actionRequired: ActionRequirement.no,
+);
+
+Future<void> _pumpDocumentDetail(
+  WidgetTester tester,
+  AppDatabase database, {
+  Locale locale = const Locale('de'),
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(database)],
+      child: _app(const DocumentDetailPage(clientDocumentId: 'doc'), locale),
+    ),
+  );
+  await tester.pumpAndSettle();
 }
 
 Future<void> _pumpAnalysis(
@@ -781,4 +1156,24 @@ class _SuccessfulRetryRemote implements DocumentAnalysisRemoteDataSource {
       ),
     );
   }
+}
+
+class _FailedRetryRemote implements DocumentAnalysisRemoteDataSource {
+  @override
+  Future<AcceptedAnalysisOperation> submit(
+    AnalysisSubmission submission,
+  ) async => const AcceptedAnalysisOperation(
+    operationId: 'failed-retry',
+    requestId: 'request',
+  );
+
+  @override
+  Future<BackendOperation> getOperation(String operationId) async =>
+      BackendOperation(
+        operationId: operationId,
+        status: BackendOperationStatus.failed,
+        requestId: 'request',
+        failureCode: 'processing_failed',
+        failureRetryable: true,
+      );
 }

@@ -6,6 +6,7 @@ import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../shared/design_system/app_widgets.dart';
+import '../../document_analysis/application/document_attention.dart';
 import '../../document_analysis/presentation/document_detail_page.dart';
 import '../domain/entities/domain_entities.dart';
 import 'document_display.dart';
@@ -34,6 +35,9 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final documents = ref.watch(allDocumentsProvider);
+    final analysisBrowseStates = ref.watch(
+      documentAnalysisBrowseStatesProvider,
+    );
     final organizations = ref.watch(organizationsProvider);
     final cases = ref.watch(casesProvider);
     return SafeArea(
@@ -43,88 +47,118 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, _) =>
               AppErrorState(message: context.l10n.localDataUnavailable),
-          data: (items) {
-            if (items.isEmpty) {
-              return AppEmptyState(
-                icon: Icons.folder_open_outlined,
-                title: l10n.noDocuments,
-                description: l10n.emptyDocumentsDescription,
-              );
-            }
-            final allOrganizations = _asyncValue(organizations) ?? [];
-            final allCases = _asyncValue(cases) ?? [];
-            final visibleOrganizations = allOrganizations
-                .where((organization) => _matches(organization.name, _query))
-                .toList();
-            final unclassified = items
-                .where(_hasNoConfirmedOrganization)
-                .toList();
-            final matchingDocuments = _query.trim().isEmpty
-                ? const <LocalDocument>[]
-                : items
-                      .where(
-                        (document) =>
-                            _documentMatchesQuery(ref, document, l10n, _query),
-                      )
-                      .toList();
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                AppSpacing.lg,
-              ),
-              children: [
-                _LibraryToolbar(
-                  controller: _searchController,
-                  viewMode: _viewMode,
-                  onQueryChanged: (value) => setState(() => _query = value),
-                  onViewModeChanged: (value) =>
-                      setState(() => _viewMode = value),
+          data: (items) => analysisBrowseStates.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, _) =>
+                AppErrorState(message: context.l10n.localDataUnavailable),
+            data: (states) {
+              if (items.isEmpty) {
+                return AppEmptyState(
+                  icon: Icons.folder_open_outlined,
+                  title: l10n.noDocuments,
+                  description: l10n.emptyDocumentsDescription,
+                );
+              }
+              final allOrganizations = _asyncValue(organizations) ?? [];
+              final allCases = _asyncValue(cases) ?? [];
+              final visibleOrganizations = allOrganizations
+                  .where((organization) => _matches(organization.name, _query))
+                  .toList();
+              final unclassified = items
+                  .where(
+                    (document) =>
+                        _hasNoConfirmedOrganization(document) &&
+                        states[document.clientDocumentId]?.hasUsableAnalysis ==
+                            true,
+                  )
+                  .toList();
+              final attentionCount = items
+                  .where(
+                    (document) =>
+                        states[document.clientDocumentId]?.attention != null,
+                  )
+                  .length;
+              final matchingDocuments = _query.trim().isEmpty
+                  ? const <LocalDocument>[]
+                  : items
+                        .where(
+                          (document) => _documentMatchesQuery(
+                            ref,
+                            document,
+                            l10n,
+                            _query,
+                          ),
+                        )
+                        .toList();
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.md,
+                  AppSpacing.lg,
                 ),
-                if (unclassified.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  _SpecialFolderRow(
-                    key: const Key('unclassified-folder'),
-                    icon: Icons.inventory_2_outlined,
-                    title: l10n.unclassified,
-                    subtitle: _countLabel(l10n, unclassified.length),
-                    onTap: () => _openUnclassified(context),
-                  ),
-                ],
-                if (visibleOrganizations.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    l10n.organizations,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _OrganizationBrowser(
-                    organizations: visibleOrganizations,
-                    cases: allCases,
-                    documents: items,
+                children: [
+                  _LibraryToolbar(
+                    controller: _searchController,
                     viewMode: _viewMode,
+                    onQueryChanged: (value) => setState(() => _query = value),
+                    onViewModeChanged: (value) =>
+                        setState(() => _viewMode = value),
                   ),
-                ],
-                if (matchingDocuments.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    l10n.documents,
-                    key: const Key('document-search-results-heading'),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  for (final document in matchingDocuments)
-                    _SearchableDocumentListTile(
-                      document: document,
-                      query: _query,
-                      onTap: () =>
-                          _openDocument(context, document.clientDocumentId),
+                  if (attentionCount > 0) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    _SpecialFolderRow(
+                      key: const Key('needs-attention-folder'),
+                      icon: Icons.error_outline,
+                      title: l10n.needsAttention,
+                      subtitle: l10n.documentsNeedAttention(attentionCount),
+                      onTap: () => _openNeedsAttention(context),
                     ),
+                  ],
+                  if (unclassified.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    _SpecialFolderRow(
+                      key: const Key('unclassified-folder'),
+                      icon: Icons.inventory_2_outlined,
+                      title: l10n.unclassified,
+                      subtitle: _countLabel(l10n, unclassified.length),
+                      onTap: () => _openUnclassified(context),
+                    ),
+                  ],
+                  if (visibleOrganizations.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      l10n.organizations,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _OrganizationBrowser(
+                      organizations: visibleOrganizations,
+                      cases: allCases,
+                      documents: items,
+                      viewMode: _viewMode,
+                    ),
+                  ],
+                  if (matchingDocuments.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      l10n.documents,
+                      key: const Key('document-search-results-heading'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    for (final document in matchingDocuments)
+                      _SearchableDocumentListTile(
+                        document: document,
+                        query: _query,
+                        onTap: () =>
+                            _openDocument(context, document.clientDocumentId),
+                      ),
+                  ],
                 ],
-              ],
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -372,16 +406,114 @@ class _UnclassifiedDocumentsPageState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final documents = ref.watch(allDocumentsProvider);
+    final analysisBrowseStates = ref.watch(
+      documentAnalysisBrowseStatesProvider,
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l10n.unclassified)),
       body: documents.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) =>
             AppErrorState(message: context.l10n.localDataUnavailable),
-        data: (items) => DocumentCollection(
-          documents: items.where(_hasNoConfirmedOrganization).toList(),
-          query: _query,
-          onQueryChanged: (value) => setState(() => _query = value),
+        data: (items) => analysisBrowseStates.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) =>
+              AppErrorState(message: context.l10n.localDataUnavailable),
+          data: (states) => DocumentCollection(
+            documents: items
+                .where(
+                  (document) =>
+                      _hasNoConfirmedOrganization(document) &&
+                      states[document.clientDocumentId]?.hasUsableAnalysis ==
+                          true,
+                )
+                .toList(),
+            query: _query,
+            onQueryChanged: (value) => setState(() => _query = value),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NeedsAttentionDocumentsPage extends ConsumerStatefulWidget {
+  const NeedsAttentionDocumentsPage({super.key});
+
+  @override
+  ConsumerState<NeedsAttentionDocumentsPage> createState() =>
+      _NeedsAttentionDocumentsPageState();
+}
+
+class _NeedsAttentionDocumentsPageState
+    extends ConsumerState<NeedsAttentionDocumentsPage> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final documents = ref.watch(allDocumentsProvider);
+    final analysisBrowseStates = ref.watch(
+      documentAnalysisBrowseStatesProvider,
+    );
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.needsAttention)),
+      body: documents.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) =>
+            AppErrorState(message: context.l10n.localDataUnavailable),
+        data: (items) => analysisBrowseStates.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) =>
+              AppErrorState(message: context.l10n.localDataUnavailable),
+          data: (states) {
+            final attentionDocuments =
+                items
+                    .where(
+                      (document) =>
+                          states[document.clientDocumentId]?.attention != null,
+                    )
+                    .toList()
+                  ..sort((a, b) {
+                    final aTime =
+                        states[a.clientDocumentId]!.attention!.occurredAt;
+                    final bTime =
+                        states[b.clientDocumentId]!.attention!.occurredAt;
+                    return bTime.compareTo(aTime);
+                  });
+            if (attentionDocuments.isEmpty) {
+              return AppEmptyState(
+                icon: Icons.check_circle_outline,
+                title: l10n.noDocumentsNeedAttention,
+                description: l10n.attentionResolvedDescription,
+              );
+            }
+            return ListView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              children: [
+                TextField(
+                  key: const Key('needs-attention-search'),
+                  onChanged: (value) => setState(() => _query = value),
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: l10n.searchDocuments,
+                    prefixIcon: const Icon(Icons.search),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                for (final document in attentionDocuments)
+                  _SearchableDocumentListTile(
+                    key: Key(
+                      'needs-attention-document-${document.clientDocumentId}',
+                    ),
+                    document: document,
+                    query: _query,
+                    onTap: () =>
+                        _openDocument(context, document.clientDocumentId),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -446,6 +578,7 @@ class DocumentListTile extends ConsumerWidget {
 
 class _SearchableDocumentListTile extends ConsumerWidget {
   const _SearchableDocumentListTile({
+    super.key,
     required this.document,
     required this.query,
     required this.onTap,
@@ -487,14 +620,24 @@ class _DocumentListTile extends ConsumerWidget {
     );
     if (!_matches(title, query)) return const SizedBox.shrink();
     final date = document.documentDate ?? document.createdAt;
+    final attention = ref
+        .watch(documentAnalysisBrowseStatesProvider)
+        .asData
+        ?.value[document.clientDocumentId]
+        ?.attention;
+    final subtitle = attention == null
+        ? '${_compactDate(date)} · ${documentClassificationLabel(l10n, document.classificationState)}'
+        : '${switch (attention.reason) {
+            DocumentAttentionReason.failed => l10n.attentionAnalysisFailed,
+            DocumentAttentionReason.deleted => l10n.attentionAnalysisDeleted,
+          }} · ${_localizedDateTime(context, attention.occurredAt)}';
     return ListTile(
+      key: ValueKey('document-row-${document.clientDocumentId}'),
       contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       onTap: onTap,
       leading: const Icon(Icons.description_outlined),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        '${_compactDate(date)} · ${documentClassificationLabel(l10n, document.classificationState)}',
-      ),
+      subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: const Icon(Icons.chevron_right),
     );
   }
@@ -554,6 +697,22 @@ void _openUnclassified(BuildContext context) {
   Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const UnclassifiedDocumentsPage()));
+}
+
+void _openNeedsAttention(BuildContext context) {
+  if (GoRouter.maybeOf(context) != null) {
+    context.push('/documents/needs-attention');
+    return;
+  }
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) => const NeedsAttentionDocumentsPage()),
+  );
+}
+
+String _localizedDateTime(BuildContext context, DateTime value) {
+  final localizations = MaterialLocalizations.of(context);
+  return '${localizations.formatMediumDate(value)} '
+      '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(value))}';
 }
 
 T? _asyncValue<T>(AsyncValue<T> value) =>

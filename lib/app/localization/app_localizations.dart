@@ -97,6 +97,19 @@ class AppLocalizations {
   String get listView => _value('listView');
   String get noMatchingOrganizations => _value('noMatchingOrganizations');
   String get noMatchingCases => _value('noMatchingCases');
+  String get needsAttention => _value('needsAttention');
+  String documentsNeedAttention(int count) => locale.languageCode == 'ar'
+      ? count == 1
+            ? '1 مستند يحتاج إلى انتباه'
+            : '$count مستندات تحتاج إلى انتباه'
+      : count == 1
+      ? '1 Dokument benötigt Aufmerksamkeit'
+      : '$count Dokumente benötigen Aufmerksamkeit';
+  String get noDocumentsNeedAttention => _value('noDocumentsNeedAttention');
+  String get attentionResolvedDescription =>
+      _value('attentionResolvedDescription');
+  String get attentionAnalysisFailed => _value('attentionAnalysisFailed');
+  String get attentionAnalysisDeleted => _value('attentionAnalysisDeleted');
   String get today => _value('today');
   String get overdue => _value('overdue');
   String get taskOverdue => _value('taskOverdue');
@@ -104,12 +117,19 @@ class AppLocalizations {
   String get noTasks => _value('noTasks');
   String get createTask => _value('createTask');
   String get editTask => _value('editTask');
+  String get taskDetail => _value('taskDetail');
+  String get taskStatus => _value('taskStatus');
+  String get taskOpen => _value('taskOpen');
+  String get taskUnavailable => _value('taskUnavailable');
+  String get notSpecified => _value('notSpecified');
   String get taskTitle => _value('taskTitle');
   String get taskTitleRequired => _value('taskTitleRequired');
   String get date => _value('date');
   String get chooseDate => _value('chooseDate');
+  String get dateRequired => _value('dateRequired');
   String get time => _value('time');
   String get chooseTime => _value('chooseTime');
+  String get timeRequired => _value('timeRequired');
   String get allDay => _value('allDay');
   String get reminder => _value('reminder');
   String get noReminder => _value('noReminder');
@@ -317,6 +337,24 @@ class AppLocalizations {
   String get deleteAnalysisMessage => locale.languageCode == 'ar'
       ? '\u0633\u064a\u064f\u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u062a\u062d\u0644\u064a\u0644 \u0641\u0642\u0637. \u064a\u0628\u0642\u0649 \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u0648\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a \u0627\u0644\u0623\u062e\u0631\u0649 \u0648\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0631\u062a\u0628\u0637\u0629 \u0645\u062d\u0641\u0648\u0638\u0629.'
       : _value('deleteAnalysisMessage');
+  String get analysisDeletedTitle => locale.languageCode == 'ar'
+      ? '\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644'
+      : _value('analysisDeletedTitle');
+  String get analysisDeletedBody => locale.languageCode == 'ar'
+      ? '\u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u0645\u0627 \u0632\u0627\u0644 \u0645\u062d\u0641\u0648\u0638\u064b\u0627 \u0648\u064a\u0645\u0643\u0646 \u0625\u0639\u0627\u062f\u0629 \u062a\u062d\u0644\u064a\u0644\u0647.'
+      : _value('analysisDeletedBody');
+  String get analysisDeletedDate => locale.languageCode == 'ar'
+      ? '\u062d\u064f\u0630\u0641 \u0641\u064a'
+      : _value('analysisDeletedDate');
+  String get deleteAnalysisAttempt => locale.languageCode == 'ar'
+      ? '\u062d\u0630\u0641 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629'
+      : _value('deleteAnalysisAttempt');
+  String get deleteAnalysisAttemptTitle => locale.languageCode == 'ar'
+      ? '\u062d\u0630\u0641 \u0645\u062d\u0627\u0648\u0644\u0629 \u0627\u0644\u062a\u062d\u0644\u064a\u0644\u061f'
+      : _value('deleteAnalysisAttemptTitle');
+  String get deleteAnalysisAttemptMessage => locale.languageCode == 'ar'
+      ? '\u0633\u064a\u062a\u0645 \u062d\u0630\u0641 \u0633\u062c\u0644 \u0645\u062d\u0627\u0648\u0644\u0629 \u0627\u0644\u062a\u062d\u0644\u064a\u0644 \u0627\u0644\u0641\u0627\u0634\u0644\u0629 \u0641\u0642\u0637. \u0633\u064a\u0628\u0642\u0649 \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0623\u0635\u0644\u064a \u0645\u062d\u0641\u0648\u0638\u064b\u0627.'
+      : _value('deleteAnalysisAttemptMessage');
   String get viewTask => locale.languageCode == 'ar'
       ? '\u0639\u0631\u0636 \u0627\u0644\u0645\u0647\u0645\u0629'
       : _value('viewTask');
@@ -431,6 +469,12 @@ const _resultStrings = <String, Map<String, String>>{
     'deleteAnalysis': 'Analyse löschen',
     'deleteAnalysisTitle': 'Analyse löschen?',
     'deleteAnalysisMessage': 'Nur dieses Analyseergebnis wird gelöscht. Das Originaldokument, andere Analysen und verknüpfte Aufgaben bleiben in Doxary erhalten.',
+    'analysisDeletedTitle': 'Analyse gelöscht',
+    'analysisDeletedBody': 'Das Originaldokument ist weiterhin gespeichert und kann erneut analysiert werden.',
+    'analysisDeletedDate': 'Gelöscht',
+    'deleteAnalysisAttempt': 'Versuch löschen',
+    'deleteAnalysisAttemptTitle': 'Analyseversuch löschen?',
+    'deleteAnalysisAttemptMessage': 'Nur der fehlgeschlagene Analyseversuch wird gelöscht. Das Originaldokument bleibt gespeichert.',
     'viewTask': 'Aufgabe ansehen',
     'originalDocumentSavedLocally':
         'Das Original ist lokal gespeichert. Öffnen ist noch nicht verfügbar.',
@@ -605,6 +649,12 @@ const _documentBrowserStrings = <String, Map<String, String>>{
     'listView': 'Listenansicht',
     'noMatchingOrganizations': 'Keine passenden Organisationen',
     'noMatchingCases': 'Keine passenden Vorgänge',
+    'needsAttention': 'Aufmerksamkeit erforderlich',
+    'noDocumentsNeedAttention': 'Keine Dokumente benötigen Aufmerksamkeit',
+    'attentionResolvedDescription':
+        'Alle Dokumente sind bereit oder werden bereits analysiert.',
+    'attentionAnalysisFailed': 'Analyse fehlgeschlagen',
+    'attentionAnalysisDeleted': 'Analyse gelöscht',
   },
   'ar': {
     'organizations': '\u0627\u0644\u062c\u0647\u0627\u062a',
@@ -615,6 +665,12 @@ const _documentBrowserStrings = <String, Map<String, String>>{
     'listView': '\u0639\u0631\u0636 \u0642\u0627\u0626\u0645\u0629',
     'noMatchingOrganizations': '\u0644\u0627 \u062a\u0648\u062c\u062f \u062c\u0647\u0627\u062a \u0645\u0637\u0627\u0628\u0642\u0629',
     'noMatchingCases': '\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0639\u0627\u0645\u0644\u0627\u062a \u0645\u0637\u0627\u0628\u0642\u0629',
+    'needsAttention': '\u062a\u062d\u062a\u0627\u062c \u0625\u0644\u0649 \u0627\u0646\u062a\u0628\u0627\u0647',
+    'noDocumentsNeedAttention': '\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0633\u062a\u0646\u062f\u0627\u062a \u062a\u062d\u062a\u0627\u062c \u0625\u0644\u0649 \u0627\u0646\u062a\u0628\u0627\u0647',
+    'attentionResolvedDescription': '\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0633\u062a\u0646\u062f\u0627\u062a \u062c\u0627\u0647\u0632\u0629 \u0623\u0648 \u0642\u064a\u062f \u0627\u0644\u062a\u062d\u0644\u064a\u0644.',
+    'attentionAnalysisFailed':
+        '\u0641\u0634\u0644 \u0627\u0644\u062a\u062d\u0644\u064a\u0644',
+    'attentionAnalysisDeleted': '\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u062d\u0644\u064a\u0644',
   },
 };
 
@@ -624,12 +680,9 @@ const _extraStrings = <String, Map<String, String>>{
         'Erlaube Benachrichtigungen, um Aufgaben-Erinnerungen zu erhalten.',
     'reminderPermissionDenied':
         'Die Aufgabe wurde gespeichert. Benachrichtigungen sind nicht erlaubt.',
-    'reminderUnavailable':
-        'Die Aufgabe wurde gespeichert. Erinnerungen sind auf diesem Gerät nicht verfügbar.',
-    'reminderNotScheduled':
-        'Die Aufgabe wurde gespeichert, aber die Erinnerung konnte nicht geplant werden.',
-    'reminderTimePassed':
-        'Die Aufgabe wurde gespeichert. Der Erinnerungszeitpunkt liegt bereits in der Vergangenheit.',
+    'reminderUnavailable': 'Die Aufgabe wurde gespeichert. Erinnerungen sind auf diesem Gerät nicht verfügbar.',
+    'reminderNotScheduled': 'Die Aufgabe wurde gespeichert, aber die Erinnerung konnte nicht geplant werden.',
+    'reminderTimePassed': 'Die Aufgabe wurde gespeichert. Der Erinnerungszeitpunkt liegt bereits in der Vergangenheit.',
     'analysisTitle': 'Analyse',
     'analysisReadError': 'Gespeicherte Analyse konnte nicht gelesen werden.',
     'noSavedAnalysis': 'Noch keine Analyse gespeichert.',
@@ -670,19 +723,20 @@ const _extraStrings = <String, Map<String, String>>{
         'Möglicherweise sind nicht genügend Inhalte vorhanden.',
   },
   'ar': {
-    'reminderPermissionNeeded':
-        'اسمح بالإشعارات لتلقي تذكيرات المهام.',
-    'reminderPermissionDenied':
-        'تم حفظ المهمة، لكن الإشعارات غير مسموح بها.',
+    'reminderPermissionNeeded': 'اسمح بالإشعارات لتلقي تذكيرات المهام.',
+    'reminderPermissionDenied': 'تم حفظ المهمة، لكن الإشعارات غير مسموح بها.',
     'reminderUnavailable':
         'تم حفظ المهمة، لكن التذكيرات غير متاحة على هذا الجهاز.',
-    'reminderNotScheduled':
-        'تم حفظ المهمة، لكن تعذر جدولة التذكير.',
-    'reminderTimePassed':
-        'تم حفظ المهمة. وقت التذكير أصبح في الماضي.',
+    'reminderNotScheduled': 'تم حفظ المهمة، لكن تعذر جدولة التذكير.',
+    'reminderTimePassed': 'تم حفظ المهمة. وقت التذكير أصبح في الماضي.',
     'createTask': '\u0625\u0646\u0634\u0627\u0621 \u0645\u0647\u0645\u0629',
     'editTask':
         '\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'taskDetail': '\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'taskStatus': '\u0627\u0644\u062d\u0627\u0644\u0629',
+    'taskOpen': '\u0645\u0641\u062a\u0648\u062d\u0629',
+    'taskUnavailable': '\u0627\u0644\u0645\u0647\u0645\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629',
+    'notSpecified': '\u063a\u064a\u0631 \u0645\u062d\u062f\u062f',
     'taskTitle':
         '\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629',
     'taskTitleRequired': '\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629.',
@@ -786,12 +840,19 @@ const _strings = <String, Map<String, String>>{
     'noTasks': 'Noch keine Aufgaben',
     'createTask': 'Aufgabe erstellen',
     'editTask': 'Aufgabe bearbeiten',
+    'taskDetail': 'Aufgabe',
+    'taskStatus': 'Status',
+    'taskOpen': 'Offen',
+    'taskUnavailable': 'Aufgabe nicht verf\u00fcgbar',
+    'notSpecified': 'Nicht angegeben',
     'taskTitle': 'Aufgabentitel',
     'taskTitleRequired': 'Bitte gib einen Aufgabentitel ein.',
     'date': 'Datum',
     'chooseDate': 'Datum auswählen',
+    'dateRequired': 'Bitte wähle ein Fälligkeitsdatum aus.',
     'time': 'Uhrzeit',
     'chooseTime': 'Uhrzeit auswählen',
+    'timeRequired': 'Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.',
     'allDay': 'Ganztägig',
     'reminder': 'Erinnerung',
     'noReminder': 'Keine Erinnerung',
@@ -921,6 +982,16 @@ const _strings = <String, Map<String, String>>{
     'taskOverdue': '\u0645\u062a\u0623\u062e\u0631\u0629',
     'completed': 'مكتملة',
     'noTasks': 'لا توجد مهام بعد',
+    'taskTitle':
+        '\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629',
+    'taskTitleRequired': '\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629.',
+    'date': '\u0627\u0644\u062a\u0627\u0631\u064a\u062e',
+    'chooseDate':
+        '\u0627\u062e\u062a\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e',
+    'dateRequired': '\u064a\u0631\u062c\u0649 \u062a\u062d\u062f\u064a\u062f \u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0633\u062a\u062d\u0642\u0627\u0642.',
+    'time': '\u0627\u0644\u0648\u0642\u062a',
+    'chooseTime': '\u0627\u062e\u062a\u0631 \u0627\u0644\u0648\u0642\u062a',
+    'timeRequired': '\u062d\u062f\u062f \u0648\u0642\u062a \u0627\u0644\u0645\u0647\u0645\u0629 \u0623\u0648 \u0627\u062e\u062a\u0631 \u0637\u0648\u0627\u0644 \u0627\u0644\u064a\u0648\u0645.',
     'reopenTask': '\u0625\u0639\u0627\u062f\u0629 \u0641\u062a\u062d \u0627\u0644\u0645\u0647\u0645\u0629',
     'camera': 'الكاميرا',
     'image': 'صورة',

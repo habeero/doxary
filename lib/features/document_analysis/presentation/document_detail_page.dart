@@ -52,9 +52,14 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
       ref
         ..invalidate(documentProvider(widget.clientDocumentId))
         ..invalidate(latestAnalysisProvider(widget.clientDocumentId))
-        ..invalidate(analysisHistoryProvider(widget.clientDocumentId));
+        ..invalidate(analysisHistoryProvider(widget.clientDocumentId))
+        ..invalidate(documentAnalysisBrowseStatesProvider);
     } catch (error) {
       if (!context.mounted) return;
+      ref
+        ..invalidate(documentProvider(widget.clientDocumentId))
+        ..invalidate(analysisHistoryProvider(widget.clientDocumentId))
+        ..invalidate(documentAnalysisBrowseStatesProvider);
       setState(() {
         _actionMessage = error is RemoteApiError && error.retryable
             ? context.l10n.operationRetryableError
@@ -87,12 +92,49 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     if (confirmed != true) return;
     await ref.read(analysisRepositoryProvider).deleteAnalysis(analysisId);
     if (!mounted) return;
-    setState(() => _selectedAnalysisId = null);
+    setState(() {
+      _selectedAnalysisId = null;
+      _actionMessage = null;
+    });
     ref
       ..invalidate(latestAnalysisProvider(widget.clientDocumentId))
       ..invalidate(analysisByIdProvider(analysisId))
       ..invalidate(analysisHistoryProvider(widget.clientDocumentId))
-      ..invalidate(documentProvider(widget.clientDocumentId));
+      ..invalidate(documentProvider(widget.clientDocumentId))
+      ..invalidate(documentAnalysisBrowseStatesProvider);
+  }
+
+  Future<void> _deleteFailedAttempt(String attemptId) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l.deleteAnalysisAttemptTitle),
+        content: Text(l.deleteAnalysisAttemptMessage),
+        actions: [
+          TextButton(
+            key: const Key('cancel-delete-analysis-attempt'),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l.cancel),
+          ),
+          FilledButton(
+            key: const Key('confirm-delete-analysis-attempt'),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.deleteAnalysisAttempt),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await ref.read(analysisRepositoryProvider).deleteAnalysisAttempt(attemptId);
+    if (!mounted) return;
+    setState(() => _actionMessage = null);
+    ref
+      ..invalidate(latestAnalysisProvider(widget.clientDocumentId))
+      ..invalidate(analysisHistoryProvider(widget.clientDocumentId))
+      ..invalidate(documentProvider(widget.clientDocumentId))
+      ..invalidate(documentAnalysisBrowseStatesProvider);
   }
 
   Future<void> _openOriginalDocument(List<DocumentFile> files) async {
@@ -143,6 +185,9 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     final localDocument = _asyncValue(document);
     final latest = _asyncValue(latestAnalysis);
     final selected = _asyncValue(analysis);
+    final noAnalysisDisposition = _noAnalysisDisposition(
+      history.asData?.value ?? const <AnalysisAttempt>[],
+    );
     final organizationId = localDocument?.organizationId;
     final caseId = localDocument?.caseId;
     final confirmedCaseId =
@@ -205,12 +250,12 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
             taskPrefill.sourceActionKey!,
           );
       if (!context.mounted) return;
-      GoRouter.of(context).go(
-        task == null
-            ? '${AppRoutes.tasks}/create'
-            : '${AppRoutes.tasks}/edit/${task.id}',
-        extra: task == null ? taskPrefill : null,
-      );
+      if (task == null) {
+        GoRouter.of(context)
+            .go('${AppRoutes.tasks}/create', extra: taskPrefill);
+      } else {
+        GoRouter.of(context).push('${AppRoutes.tasks}/${task.id}');
+      }
     }
 
     final classificationSection = localDocument == null
@@ -248,41 +293,54 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
       history: history,
       onOpen: (analysisId) => setState(() => _selectedAnalysisId = analysisId),
       onDelete: _deleteAnalysis,
+      onDeleteFailedAttempt: _deleteFailedAttempt,
     );
     final fileItems = _asyncValue(files) ?? const <DocumentFile>[];
+    Widget noAnalysisState({bool readError = false}) {
+      final retry = fileItems.isEmpty ? null : () => _retryAnalysis(fileItems);
+      return switch (noAnalysisDisposition) {
+        _NoAnalysisDisposition.failed => DocumentResultView(
+          title: title,
+          technicalFailure: true,
+          classificationSection: classificationSection,
+          analysisHistorySection: historySection,
+          originalDocumentSection: originalSection,
+          onRetry: retry,
+          actionInProgress: _retrying,
+          actionMessage: _actionMessage,
+        ),
+        _NoAnalysisDisposition.deleted => _NoAnalysisView(
+          title: title,
+          classificationSection: classificationSection,
+          analysisHistorySection: historySection,
+          originalDocumentSection: originalSection,
+          deletedAnalysis: true,
+          onRetry: retry,
+          actionInProgress: _retrying,
+          actionMessage: _actionMessage,
+        ),
+        _NoAnalysisDisposition.neutral => _NoAnalysisView(
+          title: title,
+          classificationSection: classificationSection,
+          analysisHistorySection: historySection,
+          originalDocumentSection: originalSection,
+          noAnalysisMessage: readError ? l10n.analysisReadError : null,
+          onRetry:
+              !readError && localDocument?.status == DocumentStatus.needsReview
+              ? retry
+              : null,
+          actionInProgress: _retrying,
+          actionMessage: _actionMessage,
+        ),
+      };
+    }
+
     final body = switch (analysis) {
       AsyncLoading() => const Center(child: CircularProgressIndicator()),
-      AsyncError() => DocumentResultView(
-        title: title,
-        technicalFailure: true,
-        classificationSection: classificationSection,
-        analysisHistorySection: historySection,
-        originalDocumentSection: originalSection,
-        onRetry: fileItems.isEmpty ? null : () => _retryAnalysis(fileItems),
-        actionInProgress: _retrying,
-        actionMessage: _actionMessage,
-      ),
+      AsyncError() => noAnalysisState(readError: true),
       AsyncData(value: final value) =>
         value == null
-            ? localDocument?.status == DocumentStatus.needsReview
-                  ? DocumentResultView(
-                      title: title,
-                      technicalFailure: true,
-                      classificationSection: classificationSection,
-                      analysisHistorySection: historySection,
-                      originalDocumentSection: originalSection,
-                      onRetry: fileItems.isEmpty
-                          ? null
-                          : () => _retryAnalysis(fileItems),
-                      actionInProgress: _retrying,
-                      actionMessage: _actionMessage,
-                    )
-                  : _NoAnalysisView(
-                      title: title,
-                      classificationSection: classificationSection,
-                      analysisHistorySection: historySection,
-                      originalDocumentSection: originalSection,
-                    )
+            ? noAnalysisState()
             : DocumentResultView(
                 title: title,
                 analysis: value,
@@ -312,17 +370,53 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
   }
 }
 
+enum _NoAnalysisDisposition { neutral, deleted, failed }
+
+_NoAnalysisDisposition _noAnalysisDisposition(List<AnalysisAttempt> history) {
+  DateTime? latestDeletion;
+  DateTime? latestFailure;
+  for (final attempt in history) {
+    final deletion = attempt.deletedAt;
+    if (deletion != null &&
+        (latestDeletion == null || deletion.isAfter(latestDeletion))) {
+      latestDeletion = deletion;
+    }
+    if (attempt.status == AnalysisAttemptStatus.failed && deletion == null) {
+      final failure = attempt.terminalAt ?? attempt.startedAt;
+      if (latestFailure == null || failure.isAfter(latestFailure)) {
+        latestFailure = failure;
+      }
+    }
+  }
+  if (latestDeletion != null &&
+      (latestFailure == null || !latestFailure.isAfter(latestDeletion))) {
+    return _NoAnalysisDisposition.deleted;
+  }
+  if (latestFailure != null) return _NoAnalysisDisposition.failed;
+  return _NoAnalysisDisposition.neutral;
+}
+
 class _NoAnalysisView extends StatelessWidget {
   const _NoAnalysisView({
     required this.title,
     required this.classificationSection,
     required this.analysisHistorySection,
     required this.originalDocumentSection,
+    this.deletedAnalysis = false,
+    this.noAnalysisMessage,
+    this.onRetry,
+    this.actionInProgress = false,
+    this.actionMessage,
   });
   final String title;
   final Widget? classificationSection;
   final Widget analysisHistorySection;
   final Widget originalDocumentSection;
+  final bool deletedAnalysis;
+  final String? noAnalysisMessage;
+  final VoidCallback? onRetry;
+  final bool actionInProgress;
+  final String? actionMessage;
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -344,7 +438,31 @@ class _NoAnalysisView extends StatelessWidget {
             ?.copyWith(fontSize: 22, height: 1.25, fontWeight: FontWeight.w600),
       ),
       const SizedBox(height: AppSpacing.lg),
-      Text(context.l10n.noSavedAnalysis),
+      if (deletedAnalysis)
+        _DeletedAnalysisNotice(
+          title: context.l10n.analysisDeletedTitle,
+          message: context.l10n.analysisDeletedBody,
+        )
+      else
+        Text(noAnalysisMessage ?? context.l10n.noSavedAnalysis),
+      if (onRetry != null) ...[
+        const SizedBox(height: AppSpacing.md),
+        FilledButton.icon(
+          key: const Key('document-reanalyze'),
+          onPressed: actionInProgress ? null : onRetry,
+          icon: actionInProgress
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.refresh),
+          label: Text(context.l10n.retryAnalysis),
+        ),
+      ],
+      if (actionMessage != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        Text(actionMessage!, key: const Key('result-action-message')),
+      ],
       const SizedBox(height: AppSpacing.lg),
       analysisHistorySection,
       if (classificationSection != null) ...[
@@ -357,18 +475,59 @@ class _NoAnalysisView extends StatelessWidget {
   );
 }
 
+class _DeletedAnalysisNotice extends StatelessWidget {
+  const _DeletedAnalysisNotice({required this.title, required this.message});
+
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    key: const Key('deleted-analysis-state'),
+    padding: const EdgeInsets.all(AppSpacing.md),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest
+          .withValues(alpha: 0.45),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Theme.of(context).dividerColor),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.delete_outline,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: AppSpacing.xs),
+              Text(message, style: Theme.of(context).textTheme.bodyMedium),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _AnalysisHistorySection extends StatelessWidget {
   const _AnalysisHistorySection({
     required this.document,
     required this.history,
     required this.onOpen,
     required this.onDelete,
+    required this.onDeleteFailedAttempt,
   });
 
   final LocalDocument? document;
   final AsyncValue<List<AnalysisAttempt>> history;
   final ValueChanged<String> onOpen;
   final ValueChanged<String> onDelete;
+  final ValueChanged<String> onDeleteFailedAttempt;
 
   @override
   Widget build(BuildContext context) {
@@ -394,99 +553,153 @@ class _AnalysisHistorySection extends StatelessWidget {
         if (history.isLoading)
           const SizedBox(height: AppSpacing.xs)
         else if (items.isEmpty)
-          Text(l.noSavedAnalysis)
+          const SizedBox.shrink()
         else
           for (final attempt in items)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor.withValues(alpha: .7),
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        switch (attempt.status) {
-                          AnalysisAttemptStatus.succeeded =>
-                            Icons.check_circle_outline,
-                          AnalysisAttemptStatus.failed => Icons.error_outline,
-                          AnalysisAttemptStatus.pending =>
-                            Icons.hourglass_top_outlined,
-                        },
-                        color: switch (attempt.status) {
-                          AnalysisAttemptStatus.succeeded =>
-                            AppColors.successFor(Theme.of(context).brightness),
-                          AnalysisAttemptStatus.failed => Theme.of(
-                            context,
-                          ).colorScheme.error,
-                          AnalysisAttemptStatus.pending => Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                        },
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(switch (attempt.status) {
+            _AnalysisAttemptRow(
+              attempt: attempt,
+              onOpen: onOpen,
+              onDelete: onDelete,
+              onDeleteFailedAttempt: onDeleteFailedAttempt,
+            ),
+      ],
+    );
+  }
+}
+
+class _AnalysisAttemptRow extends StatelessWidget {
+  const _AnalysisAttemptRow({
+    required this.attempt,
+    required this.onOpen,
+    required this.onDelete,
+    required this.onDeleteFailedAttempt,
+  });
+
+  final AnalysisAttempt attempt;
+  final ValueChanged<String> onOpen;
+  final ValueChanged<String> onDelete;
+  final ValueChanged<String> onDeleteFailedAttempt;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final wasDeleted = attempt.deletedAt != null;
+    final dateFormat = MaterialLocalizations.of(context);
+    final eventTime =
+        attempt.deletedAt ?? attempt.terminalAt ?? attempt.startedAt;
+    final formattedTime =
+        '${dateFormat.formatMediumDate(eventTime)} ${dateFormat.formatTimeOfDay(TimeOfDay.fromDateTime(eventTime))}';
+    final canOpenAnalysis = attempt.analysisId != null && !wasDeleted;
+    final canDeleteFailedAttempt =
+        attempt.status == AnalysisAttemptStatus.failed && !wasDeleted;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: .7),
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                wasDeleted
+                    ? Icons.delete_outline
+                    : switch (attempt.status) {
+                        AnalysisAttemptStatus.succeeded =>
+                          Icons.check_circle_outline,
+                        AnalysisAttemptStatus.failed => Icons.error_outline,
+                        AnalysisAttemptStatus.pending =>
+                          Icons.hourglass_top_outlined,
+                      },
+                color: wasDeleted
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : switch (attempt.status) {
+                        AnalysisAttemptStatus.succeeded => AppColors.successFor(
+                          Theme.of(context).brightness,
+                        ),
+                        AnalysisAttemptStatus.failed => Theme.of(
+                          context,
+                        ).colorScheme.error,
+                        AnalysisAttemptStatus.pending => Theme.of(
+                          context,
+                        ).colorScheme.primary,
+                      },
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      wasDeleted
+                          ? l.analysisDeletedTitle
+                          : switch (attempt.status) {
                               AnalysisAttemptStatus.succeeded =>
                                 l.analysisSuccessful,
                               AnalysisAttemptStatus.failed =>
                                 l.analysisFailedHistory,
                               AnalysisAttemptStatus.pending =>
                                 l.analysisPendingHistory,
-                            }, style: Theme.of(context).textTheme.titleSmall),
-                            Text(
-                              '${l.analysisDate}: ${dateTime(attempt.terminalAt ?? attempt.startedAt)}',
-                              style: Theme.of(context).textTheme.bodySmall,
+                            },
+                      key: wasDeleted
+                          ? Key('analysis-history-deleted-${attempt.id}')
+                          : null,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    Text(
+                      '${wasDeleted ? l.analysisDeletedDate : l.analysisDate}: $formattedTime',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    if (canOpenAnalysis || canDeleteFailedAttempt) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        children: [
+                          if (canOpenAnalysis)
+                            TextButton(
+                              key: Key('open-analysis-${attempt.analysisId}'),
+                              onPressed: () => onOpen(attempt.analysisId!),
+                              child: Text(l.openResult),
                             ),
-                            if (attempt.analysisId != null) ...[
-                              const SizedBox(height: AppSpacing.xs),
-                              Wrap(
-                                spacing: AppSpacing.sm,
-                                children: [
-                                  TextButton(
-                                    key: Key(
-                                      'open-analysis-${attempt.analysisId}',
-                                    ),
-                                    onPressed: () =>
-                                        onOpen(attempt.analysisId!),
-                                    child: Text(l.openResult),
-                                  ),
-                                  TextButton(
-                                    key: Key(
-                                      'delete-analysis-${attempt.analysisId}',
-                                    ),
-                                    onPressed: () =>
-                                        onDelete(attempt.analysisId!),
-                                    child: Text(
-                                      l.deleteAnalysis,
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .error,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                          if (canOpenAnalysis)
+                            TextButton(
+                              key: Key('delete-analysis-${attempt.analysisId}'),
+                              onPressed: () => onDelete(attempt.analysisId!),
+                              child: Text(
+                                l.deleteAnalysis,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
                               ),
-                            ],
-                          ],
-                        ),
+                            ),
+                          if (canDeleteFailedAttempt)
+                            TextButton(
+                              key: Key('delete-analysis-attempt-${attempt.id}'),
+                              onPressed: () =>
+                                  onDeleteFailedAttempt(attempt.id),
+                              child: Text(
+                                l.deleteAnalysisAttempt,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ),
-      ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

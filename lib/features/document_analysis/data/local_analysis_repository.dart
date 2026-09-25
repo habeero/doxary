@@ -59,10 +59,12 @@ class LocalAnalysisRepository implements AnalysisRepository {
   Selectable<QueryRow> _historyQuery(String clientDocumentId) =>
       _database.customSelect(
         '''SELECT attempt_id, client_document_id, started_at, terminal_at,
-            status, result_analysis_id, failure_code, retryable
+            status, result_analysis_id, failure_code, retryable, deleted_at,
+            result_analysis_status
            FROM analysis_attempt_history
            WHERE client_document_id = ?
-           ORDER BY COALESCE(terminal_at, started_at) DESC, started_at DESC''',
+           ORDER BY COALESCE(deleted_at, terminal_at, started_at) DESC,
+             started_at DESC''',
         variables: [Variable<String>(clientDocumentId)],
         readsFrom: {_database.analyses, _database.analysisOperations},
       );
@@ -72,8 +74,12 @@ class LocalAnalysisRepository implements AnalysisRepository {
     clientDocumentId: row.read<String>('client_document_id'),
     startedAt: _dateTime(row.read<int>('started_at')),
     terminalAt: _dateTimeOrNull(row.readNullable<int>('terminal_at')),
+    deletedAt: _dateTimeOrNull(row.readNullable<int>('deleted_at')),
     status: AnalysisAttemptStatus.values.byName(row.read<String>('status')),
     analysisId: row.readNullable<String>('result_analysis_id'),
+    resultAnalysisStatus: _analysisStatusOrNull(
+      row.readNullable<String>('result_analysis_status'),
+    ),
     failureCode: row.readNullable<String>('failure_code'),
     retryable: _boolOrNull(row.readNullable<int>('retryable')),
   );
@@ -557,14 +563,60 @@ class LocalAnalysisRepository implements AnalysisRepository {
         _database.analyses,
       )..where((row) => row.id.equals(analysisId))).getSingleOrNull();
       if (analysis == null) return;
+      final deletedAt = DateTime.now();
+      final matchingAttempt = await _database
+          .customSelect(
+            '''SELECT attempt_id FROM analysis_attempt_history
+               WHERE client_document_id = ? AND result_analysis_id = ?
+               ORDER BY COALESCE(deleted_at, terminal_at, started_at) DESC
+               LIMIT 1''',
+            variables: [
+              Variable<String>(analysis.clientDocumentId),
+              Variable<String>(analysisId),
+            ],
+          )
+          .getSingleOrNull();
+      if (matchingAttempt == null) {
+        // Older persisted Analysis rows may lack attempt history. Reuse their
+        // persisted createdAt as the only available timestamp, as the history
+        // backfill does for legacy analyses.
+        final resultTime = analysis.createdAt.millisecondsSinceEpoch;
+        await _database.customStatement(
+          '''INSERT INTO analysis_attempt_history (
+              attempt_id, client_document_id, started_at, terminal_at, status,
+              result_analysis_id, failure_code, retryable, deleted_at,
+              result_analysis_status
+            ) VALUES (?, ?, ?, ?, 'succeeded', ?, NULL, NULL, ?, ?)
+            ON CONFLICT(attempt_id) DO UPDATE SET
+              result_analysis_id = excluded.result_analysis_id,
+              deleted_at = excluded.deleted_at,
+              result_analysis_status = excluded.result_analysis_status''',
+          [
+            'analysis:$analysisId',
+            analysis.clientDocumentId,
+            resultTime,
+            resultTime,
+            analysisId,
+            deletedAt.millisecondsSinceEpoch,
+            analysis.analysisStatus,
+          ],
+        );
+      } else {
+        await _database.customStatement(
+          '''UPDATE analysis_attempt_history
+             SET deleted_at = ?, result_analysis_status = ?
+             WHERE attempt_id = ?''',
+          [
+            deletedAt.millisecondsSinceEpoch,
+            analysis.analysisStatus,
+            matchingAttempt.read<String>('attempt_id'),
+          ],
+        );
+      }
       await _deleteAnalysisChildren(analysisId);
       await (_database.delete(
         _database.analyses,
       )..where((row) => row.id.equals(analysisId))).go();
-      await _database.customStatement(
-        'DELETE FROM analysis_attempt_history WHERE result_analysis_id = ?',
-        [analysisId],
-      );
       final remaining =
           await (_database.select(_database.analyses)
                 ..where(
@@ -583,10 +635,47 @@ class LocalAnalysisRepository implements AnalysisRepository {
                     ? DocumentStatus.needsReview.name
                     : DocumentStatus.analyzed.name,
               ),
-              updatedAt: Value(DateTime.now()),
+              updatedAt: Value(deletedAt),
             ),
           );
     });
+  }
+
+  @override
+  Future<bool> deleteAnalysisAttempt(String attemptId) async {
+    final deleted = await _database.transaction(() async {
+      final eligibleAttempt = await _database
+          .customSelect(
+            '''SELECT attempt.attempt_id
+                 FROM analysis_attempt_history AS attempt
+                 WHERE attempt.attempt_id = ?
+                   AND attempt.status = 'failed'
+                   AND attempt.deleted_at IS NULL
+                   AND NOT EXISTS (
+                     SELECT 1 FROM analyses AS analysis
+                     WHERE analysis.id = attempt.result_analysis_id
+                   )''',
+            variables: [Variable<String>(attemptId)],
+          )
+          .getSingleOrNull();
+      if (eligibleAttempt == null) return false;
+
+      await _database.customStatement(
+        '''DELETE FROM analysis_attempt_history
+             WHERE attempt_id = ?
+               AND status = 'failed'
+               AND deleted_at IS NULL''',
+        [attemptId],
+      );
+      return true;
+    });
+    if (deleted) {
+      // The browse projection joins this raw-SQL history table, which Drift
+      // cannot observe directly. Notify its declared document dependency after
+      // the transaction commits so watchers recompute from committed state.
+      _database.markTablesUpdated([_database.documents]);
+    }
+    return deleted;
   }
 
   Future<void> _deleteAnalysisChildren(String analysisId) async {
@@ -705,5 +794,7 @@ class LocalAnalysisRepository implements AnalysisRepository {
   DateTime _dateTime(int value) => DateTime.fromMillisecondsSinceEpoch(value);
   DateTime? _dateTimeOrNull(int? value) =>
       value == null ? null : _dateTime(value);
+  AnalysisStatus? _analysisStatusOrNull(String? value) =>
+      value == null ? null : AnalysisStatus.values.byName(value);
   bool? _boolOrNull(int? value) => value == null ? null : value != 0;
 }

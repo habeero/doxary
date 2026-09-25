@@ -15,6 +15,7 @@ import 'package:doxary/features/document_import/domain/document_import.dart';
 import 'package:doxary/features/document_import/presentation/import_page.dart';
 import 'package:doxary/core/errors/result.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_output_language.dart';
+import 'package:doxary/features/document_analysis/application/document_attention.dart';
 import 'package:doxary/features/home/presentation/home_page.dart';
 import 'package:doxary/features/settings/presentation/profile_page.dart';
 import 'package:doxary/features/tasks/application/task_timeframes.dart';
@@ -250,8 +251,12 @@ void main() {
         overrides: [
           documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
+          documentAnalysisBrowseStatesProvider.overrideWithValue(
+            const AsyncValue.data(<String, DocumentAnalysisBrowseState>{}),
+          ),
           activeAnalysisOperationsProvider.overrideWithValue(
             const AsyncValue.data([]),
           ),
@@ -289,8 +294,12 @@ void main() {
         overrides: [
           documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
+          documentAnalysisBrowseStatesProvider.overrideWithValue(
+            const AsyncValue.data(<String, DocumentAnalysisBrowseState>{}),
+          ),
           activeAnalysisOperationsProvider.overrideWithValue(
             const AsyncValue.data([]),
           ),
@@ -311,8 +320,12 @@ void main() {
         overrides: [
           documentRepositoryProvider.overrideWithValue(_EmptyDocuments()),
           taskRepositoryProvider.overrideWithValue(_EmptyTasks()),
+          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
+          documentAnalysisBrowseStatesProvider.overrideWithValue(
+            const AsyncValue.data(<String, DocumentAnalysisBrowseState>{}),
+          ),
           activeAnalysisOperationsProvider.overrideWithValue(
             const AsyncValue.data([]),
           ),

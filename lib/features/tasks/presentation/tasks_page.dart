@@ -136,7 +136,7 @@ class _TaskList extends StatelessWidget {
                     : null,
                 onTap: () =>
                     GoRouter.of(context)
-                        .go('${AppRoutes.tasks}/edit/${task.id}'),
+                        .push('${AppRoutes.tasks}/${task.id}'),
               ),
             );
           },

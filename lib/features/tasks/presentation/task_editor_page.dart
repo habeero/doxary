@@ -22,18 +22,24 @@ class TaskEditorPage extends ConsumerStatefulWidget {
 }
 
 class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
+  static const _pairedControlsMinWidth = 320.0;
+  static const _pairedControlsMaxTextSize = 19.0;
+
   final _formKey = GlobalKey<FormState>();
   final _title = TextEditingController();
   final _note = TextEditingController();
   DateTime? _date;
   TimeOfDay? _time;
   bool _allDay = false;
-  int? _reminderMinutesBefore;
+  // New Tasks default to an explicit at-time reminder. Edit loads the
+  // persisted nullable value and therefore preserves existing intent.
+  int? _reminderMinutesBefore = 0;
   String? _documentId;
   String? _caseId;
   LocalTask? _existing;
   var _loading = false;
   var _saving = false;
+  var _validationAttempted = false;
 
   bool get _editing => widget.taskId != null;
 
@@ -44,6 +50,12 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
       _load();
     } else {
       _applyPrefill(widget.prefill);
+      reminderDebugLog(
+        'task_editor_init',
+        'mode=create prefill=${widget.prefill != null} allDay=$_allDay '
+            'timeEnabled=${!_allDay} timePresent=${_time != null} '
+            'reminder=$_reminderMinutesBefore',
+      );
     }
   }
 
@@ -52,7 +64,9 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
     _title.text = prefill.title;
     _note.text = prefill.note ?? '';
     _date = prefill.dueDate;
-    _allDay = prefill.allDay;
+    // Result drafts can suggest a date/time, but do not carry All Day intent.
+    // Every new Task starts timed; All Day requires an explicit editor action.
+    _allDay = false;
     _time = prefill.dueTimeMinutes == null
         ? null
         : TimeOfDay(
@@ -114,9 +128,9 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
   }
 
   Future<void> _save() async {
+    setState(() => _validationAttempted = true);
     final valid = _formKey.currentState!.validate();
-    if (!valid || _date == null) {
-      setState(() {});
+    if (!valid || _date == null || (!_allDay && _time == null)) {
       return;
     }
     setState(() => _saving = true);
@@ -165,7 +179,10 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
     final reminderOutcome = await ref
         .read(taskReminderReconcilerProvider)
         .reconcile(task);
-    reminderDebugLog('task_save', 'reconciliation outcome=${reminderOutcome.name}');
+    reminderDebugLog(
+      'task_save',
+      'reconciliation outcome=${reminderOutcome.name}',
+    );
     if (task.sourceAnalysisId != null && task.sourceActionKey != null) {
       await ref
           .read(settingsRepositoryProvider)
@@ -181,29 +198,15 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
 
   Future<void> _complete() async {
     await ref
-        .read(taskRepositoryProvider)
-        .updateStatus(
-          _existing!.id,
-          TaskStatus.completed,
-          ref.read(currentTimeProvider),
-        );
-    await ref.read(taskReminderReconcilerProvider).reconcile(
-      _withStatus(_existing!, TaskStatus.completed),
-    );
+        .read(taskLifecycleProvider)
+        .complete(_existing!, ref.read(currentTimeProvider));
     if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _reopen() async {
     await ref
-        .read(taskRepositoryProvider)
-        .updateStatus(
-          _existing!.id,
-          TaskStatus.open,
-          ref.read(currentTimeProvider),
-        );
-    await ref.read(taskReminderReconcilerProvider).reconcile(
-      _withStatus(_existing!, TaskStatus.open),
-    );
+        .read(taskLifecycleProvider)
+        .reopen(_existing!, ref.read(currentTimeProvider));
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -227,10 +230,7 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
       ),
     );
     if (confirmed != true || _existing == null) return;
-    // Attempt platform cleanup first; a platform failure must never block the
-    // user-owned local deletion.
-    await ref.read(taskReminderReconcilerProvider).cancel(_existing!.id);
-    await ref.read(taskRepositoryProvider).delete(_existing!.id);
+    await ref.read(taskLifecycleProvider).delete(_existing!);
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -244,8 +244,144 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
       _ => null,
     };
     if (message != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
+  }
+
+  Widget _buildDateTimeControls(BuildContext context, AppLocalizations l10n) =>
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final useRow = _usesHorizontalControls(context, constraints.maxWidth);
+          final date = _SelectionButton(
+            key: const Key('task-date'),
+            icon: Icons.calendar_today_outlined,
+            label: l10n.date,
+            value: _date == null
+                ? l10n.chooseDate
+                : MaterialLocalizations.of(context).formatMediumDate(_date!),
+            onPressed: _pickDate,
+          );
+          final time = _SelectionButton(
+            key: const Key('task-time'),
+            icon: Icons.schedule_outlined,
+            label: l10n.time,
+            value: _time == null ? l10n.chooseTime : _time!.format(context),
+            onPressed: _allDay ? null : _pickTime,
+          );
+          final dateControl = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              date,
+              if (_validationAttempted && _date == null)
+                _ValidationHint(text: l10n.dateRequired),
+            ],
+          );
+          final timeControl = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              time,
+              if (_validationAttempted && !_allDay && _time == null)
+                _ValidationHint(text: l10n.timeRequired),
+            ],
+          );
+          final controls = useRow
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 11, child: dateControl),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(flex: 9, child: timeControl),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    dateControl,
+                    const SizedBox(height: AppSpacing.sm),
+                    timeControl,
+                  ],
+                );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [controls],
+          );
+        },
+      );
+
+  Widget _buildAllDayReminderControls(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) => LayoutBuilder(
+    builder: (context, constraints) {
+      final useRow = _usesHorizontalControls(context, constraints.maxWidth);
+      final allDay = SwitchListTile.adaptive(
+        key: const Key('task-all-day'),
+        contentPadding: EdgeInsets.zero,
+        dense: true,
+        title: Text(l10n.allDay),
+        value: _allDay,
+        onChanged: (value) => setState(() {
+          _allDay = value;
+          if (value) _time = null;
+        }),
+      );
+      final reminder = DropdownButtonFormField<_ReminderOption>(
+        key: const Key('task-reminder'),
+        initialValue: _ReminderOption.fromMinutes(_reminderMinutesBefore),
+        isExpanded: true,
+        decoration: InputDecoration(labelText: l10n.reminder),
+        items: _ReminderOption.values
+            .map(
+              (option) => DropdownMenuItem<_ReminderOption>(
+                key: Key('task-reminder-option-${option.name}'),
+                value: option,
+                child: _DropdownLabel(option.label(l10n)),
+              ),
+            )
+            .toList(),
+        selectedItemBuilder: (context) => _ReminderOption.values
+            .map((option) => _DropdownLabel(option.label(l10n)))
+            .toList(),
+        onChanged: (option) {
+          if (option == null) return;
+          final reminderMinutesBefore = option.reminderMinutesBefore;
+          reminderDebugLog(
+            'task_editor',
+            'reminder selection changed '
+                'reminderPresent=${reminderMinutesBefore != null} '
+                'reminderMinutesBefore=$reminderMinutesBefore',
+          );
+          setState(() => _reminderMinutesBefore = reminderMinutesBefore);
+        },
+      );
+      return useRow
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Keep enough width for the compact switch and its label.
+                // The reminder field remains slightly wider for localized
+                // option labels and the dropdown affordance.
+                Expanded(flex: 9, child: allDay),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(flex: 11, child: reminder),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                allDay,
+                const SizedBox(height: AppSpacing.sm),
+                reminder,
+              ],
+            );
+    },
+  );
+
+  bool _usesHorizontalControls(BuildContext context, double width) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    return width >= _pairedControlsMinWidth &&
+        textScaler.scale(16) <= _pairedControlsMaxTextSize;
   }
 
   @override
@@ -320,80 +456,16 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
               TextFormField(
                 key: const Key('task-title'),
                 controller: _title,
-                decoration: InputDecoration(labelText: l10n.taskTitle),
+                decoration: InputDecoration(labelText: '${l10n.taskTitle} *'),
                 textInputAction: TextInputAction.next,
                 validator: (value) => value == null || value.trim().isEmpty
                     ? l10n.taskTitleRequired
                     : null,
               ),
               const SizedBox(height: AppSpacing.md),
-              _SelectionButton(
-                key: const Key('task-date'),
-                icon: Icons.calendar_today_outlined,
-                label: l10n.date,
-                value: _date == null
-                    ? l10n.chooseDate
-                    : MaterialLocalizations.of(context)
-                          .formatMediumDate(_date!),
-                onPressed: _pickDate,
-              ),
-              if (_date == null)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(top: AppSpacing.xs),
-                  child: Text(
-                    l10n.chooseDate,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                ),
-              SwitchListTile.adaptive(
-                key: const Key('task-all-day'),
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.allDay),
-                value: _allDay,
-                onChanged: (value) => setState(() {
-                  _allDay = value;
-                  if (value) _time = null;
-                }),
-              ),
-              _SelectionButton(
-                key: const Key('task-time'),
-                icon: Icons.schedule_outlined,
-                label: l10n.time,
-                value: _time == null ? l10n.chooseTime : _time!.format(context),
-                onPressed: _allDay ? null : _pickTime,
-              ),
+              _buildDateTimeControls(context, l10n),
               const SizedBox(height: AppSpacing.md),
-              DropdownButtonFormField<_ReminderOption>(
-                key: const Key('task-reminder'),
-                initialValue: _ReminderOption.fromMinutes(
-                  _reminderMinutesBefore,
-                ),
-                decoration: InputDecoration(labelText: l10n.reminder),
-                items: _ReminderOption.values
-                    .map(
-                      (option) => DropdownMenuItem<_ReminderOption>(
-                        key: Key('task-reminder-option-${option.name}'),
-                        value: option,
-                        child: Text(option.label(l10n)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (option) {
-                  if (option == null) return;
-                  final reminderMinutesBefore = option.reminderMinutesBefore;
-                  reminderDebugLog(
-                    'task_editor',
-                    'reminder selection changed '
-                    'reminderPresent=${reminderMinutesBefore != null} '
-                    'reminderMinutesBefore=$reminderMinutesBefore',
-                  );
-                  setState(
-                    () => _reminderMinutesBefore = reminderMinutesBefore,
-                  );
-                },
-              ),
+              _buildAllDayReminderControls(context, l10n),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String?>(
                 key: ValueKey('task-document-$_documentId'),
@@ -488,8 +560,8 @@ enum _ReminderOption {
 
   final int? reminderMinutesBefore;
 
-  static _ReminderOption fromMinutes(int? value) => _ReminderOption.values
-      .firstWhere(
+  static _ReminderOption fromMinutes(int? value) =>
+      _ReminderOption.values.firstWhere(
         (option) => option.reminderMinutesBefore == value,
         orElse: () => _ReminderOption.none,
       );
@@ -504,24 +576,6 @@ enum _ReminderOption {
     _ReminderOption.oneDay => l10n.reminderOneDayBefore,
   };
 }
-
-LocalTask _withStatus(LocalTask task, TaskStatus status) => LocalTask(
-  id: task.id,
-  title: task.title,
-  status: status,
-  provenance: task.provenance,
-  createdAt: task.createdAt,
-  updatedAt: task.updatedAt,
-  dueAt: task.dueAt,
-  allDay: task.allDay,
-  dueTimeMinutes: task.dueTimeMinutes,
-  reminderMinutesBefore: task.reminderMinutesBefore,
-  note: task.note,
-  clientDocumentId: task.clientDocumentId,
-  caseId: task.caseId,
-  sourceAnalysisId: task.sourceAnalysisId,
-  sourceActionKey: task.sourceActionKey,
-);
 
 String _dropdownItemLabel(DropdownMenuItem<String?> item) =>
     (item.child as _DropdownLabel).label;
@@ -539,6 +593,21 @@ class _DropdownLabel extends StatelessWidget {
   );
 }
 
+class _ValidationHint extends StatelessWidget {
+  const _ValidationHint({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.only(top: AppSpacing.xs),
+    child: Text(
+      text,
+      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    ),
+  );
+}
+
 class _SelectionButton extends StatelessWidget {
   const _SelectionButton({
     super.key,
@@ -552,16 +621,28 @@ class _SelectionButton extends StatelessWidget {
   final String value;
   final VoidCallback? onPressed;
   @override
-  Widget build(BuildContext context) => OutlinedButton.icon(
+  Widget build(BuildContext context) => OutlinedButton(
     onPressed: onPressed,
-    icon: Icon(icon),
-    label: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Text(label), Text(value)],
-    ),
     style: OutlinedButton.styleFrom(
-      minimumSize: const Size.fromHeight(52),
+      minimumSize: const Size.fromHeight(56),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       alignment: AlignmentDirectional.centerStart,
+    ),
+    child: Row(
+      children: [
+        Icon(icon),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(value, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
+      ],
     ),
   );
 }

@@ -8,7 +8,6 @@ import '../../documents/domain/entities/domain_entities.dart';
 class TaskDraftPrefill {
   const TaskDraftPrefill({
     required this.title,
-    required this.allDay,
     this.dueDate,
     this.dueTimeMinutes,
     this.note,
@@ -21,7 +20,6 @@ class TaskDraftPrefill {
   final String title;
   final DateTime? dueDate;
   final int? dueTimeMinutes;
-  final bool allDay;
   final String? note;
   final String? clientDocumentId;
   final String? caseId;
@@ -59,7 +57,6 @@ class TaskDraftPrefill {
       title: title,
       dueDate: dateTime?.date,
       dueTimeMinutes: dateTime?.timeMinutes,
-      allDay: dateTime != null && dateTime.timeMinutes == null,
       note: note,
       clientDocumentId: clientDocumentId,
       caseId: caseId,

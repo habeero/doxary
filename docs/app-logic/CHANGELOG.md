@@ -1,5 +1,18 @@
 # Application-logic changelog
 
+## 2026-09-24
+
+- Added a shared local Document-browse projection for usable Analysis, processing, and latest failed/deleted lifecycle attention; Home, Documents, and Unclassified use the same persisted-state precedence.
+- Clarified deleted Analysis versus failed-attempt lifecycle precedence and added protected deletion of failed attempt-history rows only.
+- Added minimal Document-scoped Analysis deletion history: result payloads remain physically deleted while deletion time and prior result status survive in attempt history; added schema v11 migration without inferring older deletions.
+- Refresh Document-scoped attempt history and Document state after retry errors, and migrate legacy seconds-scale attempt-history timestamps to milliseconds without rewriting existing millisecond values.
+- Defined Task Editor Save validation at the application boundary: nonblank title, due date, and time unless explicitly All Day; No reminder and Document/Case/Note remain optional.
+
+## 2026-09-23
+
+- Defined the new local Task defaults: newly created Tasks are timed and store `reminderMinutesBefore = 0` (At time); existing persisted reminder values remain unchanged until explicitly edited.
+- Corrected Result-derived date-only Task prefills so they retain the timed Create default instead of silently setting All Day; All Day remains an explicit editor choice.
+
 ## 2026-09-22
 
 - Recorded physical-device verification of reminder selection, persistence, reconciliation, contextual Android permission, and future scheduling; notification-tap navigation and full Settings Notifications controls remain undefined/deferred.

@@ -16,6 +16,7 @@ import '../features/document_import/domain/document_import.dart';
 import '../features/document_import/data/file_picker_document_import_gateway.dart';
 import '../features/document_import/data/camera_capture_gateway.dart';
 import '../features/document_analysis/application/analysis_workflow.dart';
+import '../features/document_analysis/application/document_attention.dart';
 import '../features/document_analysis/data/doxary_document_analysis_remote_data_source.dart';
 import '../features/document_analysis/data/local_analysis_repository.dart';
 import '../features/document_analysis/domain/analysis_repository.dart';
@@ -34,6 +35,7 @@ import '../features/settings/domain/settings_repository.dart';
 import '../features/tasks/data/repositories/local_task_repository.dart';
 import '../features/tasks/domain/repositories/task_repository.dart';
 import '../features/tasks/application/task_reminder_reconciler.dart';
+import '../features/tasks/application/task_lifecycle.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final database = AppDatabase();
@@ -114,15 +116,21 @@ final cameraCaptureGatewayProvider = Provider<CameraCaptureGateway>(
   (ref) => DeviceCameraCaptureGateway(),
 );
 final reminderSchedulerProvider = Provider<ReminderScheduler>(
-  (ref) => LocalReminderScheduler(
-    ref.watch(taskNotificationIdentityStoreProvider),
-  ),
+  (ref) =>
+      LocalReminderScheduler(ref.watch(taskNotificationIdentityStoreProvider)),
 );
-final taskNotificationIdentityStoreProvider = Provider<TaskNotificationIdentityStore>(
-  (ref) => LocalTaskNotificationIdentityStore(ref.watch(databaseProvider)),
-);
+final taskNotificationIdentityStoreProvider =
+    Provider<TaskNotificationIdentityStore>(
+      (ref) => LocalTaskNotificationIdentityStore(ref.watch(databaseProvider)),
+    );
 final taskReminderReconcilerProvider = Provider<TaskReminderReconciler>(
   (ref) => TaskReminderReconciler(ref.watch(reminderSchedulerProvider)),
+);
+final taskLifecycleProvider = Provider<TaskLifecycle>(
+  (ref) => TaskLifecycle(
+    ref.watch(taskRepositoryProvider),
+    ref.watch(taskReminderReconcilerProvider),
+  ),
 );
 final entitlementServiceProvider = Provider<EntitlementService>(
   (ref) => DevelopmentEntitlementService(),
@@ -136,6 +144,57 @@ final homeDocumentsProvider = StreamProvider<List<LocalDocument>>(
 final allDocumentsProvider = StreamProvider<List<LocalDocument>>(
   (ref) => ref.watch(documentRepositoryProvider).watchAll(),
 );
+final documentAnalysisBrowseStatesProvider =
+    StreamProvider<Map<String, DocumentAnalysisBrowseState>>((ref) {
+      final database = ref.watch(databaseProvider);
+      final query = database.customSelect(
+        '''SELECT document.client_document_id AS client_document_id,
+                  GROUP_CONCAT(DISTINCT analysis.analysis_status) AS analysis_statuses,
+                  MAX(CASE WHEN attempt.status = 'failed'
+                    THEN COALESCE(attempt.terminal_at, attempt.started_at)
+                    ELSE NULL END) AS latest_failure_at,
+                  MAX(CASE WHEN attempt.deleted_at IS NOT NULL
+                    THEN attempt.deleted_at ELSE NULL END) AS latest_deletion_at,
+                  CASE WHEN document.status = 'processing' OR EXISTS (
+                    SELECT 1 FROM analysis_operations AS operation
+                    WHERE operation.client_document_id = document.client_document_id
+                      AND operation.state IN ('accepted', 'processing')
+                  ) THEN 1 ELSE 0 END AS is_processing
+           FROM documents AS document
+           LEFT JOIN analyses AS analysis
+             ON analysis.client_document_id = document.client_document_id
+           LEFT JOIN analysis_attempt_history AS attempt
+             ON attempt.client_document_id = document.client_document_id
+           WHERE document.status != 'deleted'
+           GROUP BY document.client_document_id, document.status''',
+        readsFrom: {
+          database.documents,
+          database.analyses,
+          database.analysisOperations,
+        },
+      );
+      return query.watch().map((rows) {
+        return {
+          for (final row in rows)
+            row.read<String>(
+              'client_document_id',
+            ): resolveDocumentAnalysisBrowseState(
+              currentAnalysisStatuses:
+                  (row.readNullable<String>('analysis_statuses') ?? '')
+                      .split(',')
+                      .where((status) => status.isNotEmpty)
+                      .map(AnalysisStatus.values.byName),
+              isProcessing: row.read<int>('is_processing') == 1,
+              latestFailureAt: _browseTimeOrNull(
+                row.readNullable<int>('latest_failure_at'),
+              ),
+              latestDeletionAt: _browseTimeOrNull(
+                row.readNullable<int>('latest_deletion_at'),
+              ),
+            ),
+        };
+      });
+    });
 final documentProvider = FutureProvider.family<LocalDocument?, String>(
   (ref, clientDocumentId) =>
       ref.watch(documentRepositoryProvider).getById(clientDocumentId),
@@ -156,12 +215,19 @@ final openTasksProvider = StreamProvider<List<LocalTask>>(
 final completedTasksProvider = StreamProvider<List<LocalTask>>(
   (ref) => ref.watch(taskRepositoryProvider).watchCompleted(),
 );
+final taskProvider = FutureProvider.family<LocalTask?, String>(
+  (ref, taskId) => ref.watch(taskRepositoryProvider).getById(taskId),
+);
 final taskForSourceActionProvider =
     FutureProvider.family<LocalTask?, ({String analysisId, String actionKey})>(
       (ref, source) => ref
           .watch(taskRepositoryProvider)
           .findBySourceAction(source.analysisId, source.actionKey),
     );
+
+DateTime? _browseTimeOrNull(int? milliseconds) => milliseconds == null
+    ? null
+    : DateTime.fromMillisecondsSinceEpoch(milliseconds);
 
 Locale defaultUiLocaleForDevice(Locale deviceLocale) =>
     deviceLocale.languageCode == 'ar' ? const Locale('ar') : const Locale('de');

@@ -32,7 +32,7 @@ Result can open contextual Create Task for a confirmed action-required result. I
 
 ## Documents hierarchy
 
-Documents is the complete local library and browses Organization → Case → Document. Unclassified documents remain in a separate section. An Organization owns its Cases and documents without a Case. A Case is always under an Organization.
+Documents is the complete local library and browses Organization → Case → Document. Unclassified and Needs Attention remain separate special collections; the latter is a focused filtered route under Documents, not a bottom-navigation destination. Home opens that route directly from its count/link. An Organization owns its Cases and documents without a Case. A Case is always under an Organization.
 
 Unclassified and Without Case are distinct UI states: an Unclassified Document has no confirmed Organization; Without Case has a confirmed Organization but no Case. Case is consistently `المعاملة` in Arabic.
 
@@ -41,7 +41,7 @@ Unclassified and Without Case are distinct UI states: an Unclassified Document h
 - **Home** is an actionable overview, not a second Documents library.
 - **Documents** is the complete local library and supports contextual library navigation.
 - **Analyze** is the document-understanding entry point, including camera/file review and explanation-language choice.
-- **Tasks** currently provides Today, Upcoming, Overdue, and Completed bucket views, completion/reopening, and focused Create/Edit Task flows. Reminder delivery remains an outstanding MVP gap.
+- **Tasks** currently provides Today, Upcoming, Overdue, and Completed bucket views, completion/reopening, focused Create/Edit Task flows, and local timed/All Day reminder delivery after save. Notification-tap navigation and full Settings notification controls remain deferred.
 - **Settings** currently provides app-language selection; its remaining approved sections are visible pre-release implementation gaps and are currently unavailable/non-navigating. Before public launch, each visible capability must become functional or be removed through an explicit product decision; the current direction is to implement them.
 
 ## Deferred assistant UI

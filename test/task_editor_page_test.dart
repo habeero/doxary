@@ -28,6 +28,7 @@ void main() {
       createdAt: now,
       updatedAt: now,
       dueAt: now,
+      dueTimeMinutes: 9 * 60,
       clientDocumentId: documentId,
       caseId: caseId,
     );
@@ -100,6 +101,7 @@ void main() {
       Directionality.of(tester.element(find.byType(TaskEditorPage))),
       TextDirection.rtl,
     );
+    expect(tester.takeException(), isNull);
 
     await tester.tap(find.byKey(const Key('task-save')));
     await tester.pumpAndSettle();
@@ -234,7 +236,6 @@ void main() {
               title: 'Pay the invoice',
               dueDate: DateTime(2026, 10, 14),
               dueTimeMinutes: 9 * 60 + 30,
-              allDay: false,
               note: 'Use the reference on the invoice.',
               clientDocumentId: documentId,
               caseId: caseId,
@@ -248,6 +249,15 @@ void main() {
     expect(find.text('Pay the invoice'), findsOneWidget);
     expect(find.text('Betriebskostenabrechnung 2026.pdf'), findsOneWidget);
     expect(find.text('Nebenkosten 2025'), findsOneWidget);
+    expect(find.byKey(const Key('task-date')), findsOneWidget);
+    expect(find.byKey(const Key('task-time')), findsOneWidget);
+    expect(find.text('Zum Zeitpunkt'), findsOneWidget);
+    expect(
+      tester
+          .widget<SwitchListTile>(find.byKey(const Key('task-all-day')))
+          .value,
+      isFalse,
+    );
     expect(find.text(documentId), findsNothing);
     expect(repository.saved, isNull, reason: 'Abandoning creates no task.');
 
@@ -261,6 +271,251 @@ void main() {
     expect(repository.saved?.dueAt, DateTime(2026, 10, 14));
     expect(repository.saved?.dueTimeMinutes, 9 * 60 + 30);
     expect(repository.saved?.allDay, isFalse);
+    expect(repository.saved?.reminderMinutesBefore, 0);
+  });
+
+  testWidgets('New Task defaults to a timed task with At time reminder', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: _TaskRepository(_taskForEditor(now)),
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: const TaskEditorPage.create(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<SwitchListTile>(find.byKey(const Key('task-all-day')))
+          .value,
+      isFalse,
+    );
+    expect(find.text('Zum Zeitpunkt'), findsOneWidget);
+  });
+
+  testWidgets('standalone Create pairs scheduling controls at phone width', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final now = DateTime(2026, 9, 21, 8);
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: _TaskRepository(_taskForEditor(now)),
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: const TaskEditorPage.create(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    _expectPairedRows(tester);
+    expect(
+      tester
+          .widget<SwitchListTile>(find.byKey(const Key('task-all-day')))
+          .value,
+      isFalse,
+    );
+    expect(_timeButton(tester).onPressed, isNotNull);
+    expect(find.text('Zum Zeitpunkt'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Result-derived date-only Create stays timed at phone width', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final now = DateTime(2026, 9, 21, 8);
+    final prefill = TaskDraftPrefill.fromAnalysis(
+      analysis: DocumentAnalysis(
+        id: 'analysis-id',
+        clientDocumentId: 'document-id',
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        createdAt: now,
+        actionRequired: ActionRequirement.yes,
+        suggestedTasks: const [
+          AnalysisSuggestedTask(
+            title: 'Betriebskosten beantworten',
+            confidence: 0.9,
+            dueDate: '2026-10-14',
+            instructions: 'Beleg bereithalten.',
+          ),
+        ],
+      ),
+      clientDocumentId: 'document-id',
+      caseId: null,
+      l10n: AppLocalizations(const Locale('de')),
+    );
+
+    expect(prefill, isNotNull);
+    expect(prefill?.dueTimeMinutes, isNull);
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: _TaskRepository(_taskForEditor(now)),
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: TaskEditorPage.create(prefill: prefill),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    _expectPairedRows(tester);
+    expect(find.text('Betriebskosten beantworten'), findsOneWidget);
+    expect(find.text('Beleg bereithalten.'), findsOneWidget);
+    expect(
+      tester
+          .widget<SwitchListTile>(find.byKey(const Key('task-all-day')))
+          .value,
+      isFalse,
+    );
+    expect(_timeButton(tester).onPressed, isNotNull);
+    expect(find.text('Zum Zeitpunkt'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Result-derived Create preserves an explicit suggested time', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final now = DateTime(2026, 9, 21, 8);
+    final prefill = TaskDraftPrefill.fromAnalysis(
+      analysis: DocumentAnalysis(
+        id: 'analysis-id',
+        clientDocumentId: 'document-id',
+        schemaVersion: 'analysis_result.v1',
+        targetLanguage: 'de',
+        createdAt: now,
+        actionRequired: ActionRequirement.yes,
+        suggestedTasks: const [
+          AnalysisSuggestedTask(
+            title: 'Betriebskosten beantworten',
+            confidence: 0.9,
+            dueDate: '2026-10-14T09:30:00',
+          ),
+        ],
+      ),
+      clientDocumentId: 'document-id',
+      caseId: 'case-id',
+      l10n: AppLocalizations(const Locale('de')),
+    );
+
+    expect(prefill?.dueTimeMinutes, 9 * 60 + 30);
+    final repository = _TaskRepository(_taskForEditor(now));
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: repository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: TaskEditorPage.create(prefill: prefill),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<SwitchListTile>(find.byKey(const Key('task-all-day')))
+          .value,
+      isFalse,
+    );
+    expect(_timeButton(tester).onPressed, isNotNull);
+    final timeTexts = tester
+        .widgetList<Text>(
+          find.descendant(
+            of: find.byKey(const Key('task-time')),
+            matching: find.byType(Text),
+          ),
+        )
+        .map((text) => text.data);
+    expect(timeTexts, contains('09:30'));
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(repository.saved?.allDay, isFalse);
+    expect(repository.saved?.dueTimeMinutes, 9 * 60 + 30);
+  });
+
+  testWidgets('Edit preserves stored All Day and timed states', (tester) async {
+    final now = DateTime(2026, 9, 21, 8);
+    for (final allDay in <bool>[true, false]) {
+      await tester.pumpWidget(
+        _taskEditorApp(
+          repository: _TaskRepository(_taskForEditor(now, allDay: allDay)),
+          scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+          now: now,
+          child: const TaskEditorPage.edit(taskId: 'editor-task'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<SwitchListTile>(find.byKey(const Key('task-all-day')))
+            .value,
+        allDay,
+      );
+      expect(_timeButton(tester).onPressed, allDay ? isNull : isNotNull);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets('Arabic RTL keeps paired controls at normal phone width', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final now = DateTime(2026, 9, 21, 8);
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: _TaskRepository(_taskForEditor(now)),
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        locale: const Locale('ar'),
+        child: const TaskEditorPage.create(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    _expectPairedRows(tester);
+    expect(
+      Directionality.of(tester.element(find.byType(TaskEditorPage))),
+      TextDirection.rtl,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('narrow and large-text layouts stack without overflow', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    for (final configuration in <({Size size, double? textScale})>[
+      (size: const Size(320, 800), textScale: null),
+      (size: const Size(360, 800), textScale: 1.25),
+    ]) {
+      await tester.binding.setSurfaceSize(configuration.size);
+      await tester.pumpWidget(
+        _taskEditorApp(
+          repository: _TaskRepository(_taskForEditor(now)),
+          scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+          now: now,
+          textScale: configuration.textScale,
+          child: const TaskEditorPage.create(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final date = _selectionButtonRect(tester, 'task-date');
+      final time = _selectionButtonRect(tester, 'task-time');
+      expect(time.top, greaterThan(date.bottom - 1));
+      expect(tester.takeException(), isNull);
+    }
+    addTearDown(() => tester.binding.setSurfaceSize(null));
   });
 
   testWidgets('Completed Task reopens only through the explicit action', (
@@ -290,6 +545,12 @@ void main() {
       ProviderScope(
         overrides: [
           taskRepositoryProvider.overrideWithValue(repository),
+          taskReminderReconcilerProvider.overrideWithValue(
+            TaskReminderReconciler(
+              _ReminderScheduler(ReminderScheduleResult.scheduled),
+              now: () => now,
+            ),
+          ),
           allDocumentsProvider.overrideWithValue(
             const AsyncValue.data(<LocalDocument>[]),
           ),
@@ -399,14 +660,13 @@ void main() {
               title: 'Reply',
               dueDate: DateTime(2026, 9, 22),
               dueTimeMinutes: 9 * 60,
-              allDay: false,
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Keine Erinnerung'), findsOneWidget);
+      expect(find.text('Zum Zeitpunkt'), findsOneWidget);
       await _selectReminder(tester, 'atTime');
       expect(find.text('Zum Zeitpunkt'), findsOneWidget);
       await tester.tap(find.byKey(const Key('task-save')));
@@ -435,6 +695,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('Keine Erinnerung'), findsOneWidget);
+    expect(repository.saved, isNull);
     await _selectReminder(tester, 'atTime');
     expect(find.text('Zum Zeitpunkt'), findsOneWidget);
     await tester.tap(find.byKey(const Key('task-save')));
@@ -468,7 +730,6 @@ void main() {
                 title: 'Reply',
                 dueDate: DateTime(2026, 9, 22),
                 dueTimeMinutes: 9 * 60,
-                allDay: false,
               ),
             ),
           ),
@@ -504,7 +765,6 @@ void main() {
               title: 'Reply',
               dueDate: DateTime(2026, 9, 22),
               dueTimeMinutes: 9 * 60,
-              allDay: false,
             ),
           ),
         ),
@@ -584,12 +844,294 @@ void main() {
       expect(find.text('Eine Stunde vorher'), findsOneWidget);
       await tester.tap(find.byKey(const Key('task-all-day')));
       await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.descendant(
+                of: find.byKey(const Key('task-time')),
+                matching: find.byType(OutlinedButton),
+              ),
+            )
+            .onPressed,
+        isNull,
+      );
       await tester.tap(find.byKey(const Key('task-all-day')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('task-time')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('task-save')));
       await tester.pumpAndSettle();
 
       expect(repository.saved?.reminderMinutesBefore, 60);
+      expect(repository.saved?.dueTimeMinutes, isNotNull);
+    },
+  );
+
+  testWidgets('blank and whitespace-only titles block Task Save', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    for (final title in <String>['', '   \t']) {
+      final repository = _TaskRepository(_taskForEditor(now));
+      await tester.pumpWidget(
+        _taskEditorApp(
+          repository: repository,
+          scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+          now: now,
+          child: TaskEditorPage.create(
+            prefill: TaskDraftPrefill(
+              title: title,
+              dueDate: DateTime(2026, 10, 14),
+              dueTimeMinutes: 9 * 60,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Aufgabentitel *'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('task-save')));
+      await tester.pumpAndSettle();
+      expect(find.text('Bitte gib einen Aufgabentitel ein.'), findsOneWidget);
+      expect(repository.saved, isNull);
+    }
+  });
+
+  testWidgets('missing date is quiet until Save, then shows localized error', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    final repository = _TaskRepository(_taskForEditor(now));
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: repository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: TaskEditorPage.create(
+          prefill: const TaskDraftPrefill(title: 'Send reply'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bitte wähle ein Fälligkeitsdatum aus.'), findsNothing);
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bitte wähle ein Fälligkeitsdatum aus.'), findsOneWidget);
+    expect(repository.saved, isNull);
+
+    await tester.tap(find.byKey(const Key('task-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bitte wähle ein Fälligkeitsdatum aus.'), findsNothing);
+  });
+
+  testWidgets('timed Task requires time, selecting it clears the error', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    final repository = _TaskRepository(_taskForEditor(now));
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: repository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: TaskEditorPage.create(
+          prefill: TaskDraftPrefill(
+            title: 'Send reply',
+            dueDate: DateTime(2026, 10, 14),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsOneWidget,
+    );
+    expect(repository.saved, isNull);
+
+    await tester.tap(find.byKey(const Key('task-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(repository.saved?.dueTimeMinutes, isNotNull);
+  });
+
+  testWidgets('All Day permits a null time and clears/restores time error', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    final repository = _TaskRepository(_taskForEditor(now));
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: repository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: TaskEditorPage.create(
+          prefill: TaskDraftPrefill(
+            title: 'Send reply',
+            dueDate: DateTime(2026, 10, 14),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('task-all-day')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(repository.saved?.allDay, isTrue);
+    expect(repository.saved?.dueTimeMinutes, isNull);
+
+    final secondRepository = _TaskRepository(_taskForEditor(now));
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: secondRepository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: TaskEditorPage.create(
+          prefill: TaskDraftPrefill(
+            title: 'Send reply',
+            dueDate: DateTime(2026, 10, 14),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('task-all-day')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const Key('task-all-day')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsOneWidget,
+    );
+    expect(secondRepository.saved, isNull);
+  });
+
+  testWidgets('legacy timed Task without time opens but cannot be re-saved', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    final legacy = LocalTask(
+      id: 'legacy-task',
+      title: 'Send reply',
+      status: TaskStatus.open,
+      provenance: TaskProvenance.user,
+      createdAt: now,
+      updatedAt: now,
+      dueAt: DateTime(2026, 10, 14),
+      allDay: false,
+      dueTimeMinutes: null,
+    );
+    final repository = _TaskRepository(legacy);
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: repository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: const TaskEditorPage.edit(taskId: 'legacy-task'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Send reply'), findsOneWidget);
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bitte wähle eine Uhrzeit oder „Ganztägig“ aus.'),
+      findsOneWidget,
+    );
+    expect(repository.saved, isNull);
+  });
+
+  testWidgets('No reminder and null optional links/note remain valid', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    final repository = _TaskRepository(_taskForEditor(now));
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: repository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+        now: now,
+        child: TaskEditorPage.create(
+          prefill: TaskDraftPrefill(
+            title: 'Send reply',
+            dueDate: DateTime(2026, 10, 14),
+            dueTimeMinutes: 9 * 60,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _selectReminder(tester, 'none');
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+    expect(repository.saved?.reminderMinutesBefore, isNull);
+    expect(repository.saved?.clientDocumentId, isNull);
+    expect(repository.saved?.caseId, isNull);
+    expect(repository.saved?.note, isNull);
+  });
+
+  testWidgets(
+    'required validation messages are localized in Arabic and German',
+    (tester) async {
+      final now = DateTime(2026, 9, 21, 8);
+      for (final locale in <Locale>[const Locale('ar'), const Locale('de')]) {
+        await tester.pumpWidget(
+          _taskEditorApp(
+            repository: _TaskRepository(_taskForEditor(now)),
+            scheduler: _ReminderScheduler(ReminderScheduleResult.scheduled),
+            now: now,
+            locale: locale,
+            child: TaskEditorPage.create(prefill: TaskDraftPrefill(title: '')),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('task-save')));
+        await tester.pumpAndSettle();
+        final l10n = AppLocalizations(locale);
+        expect(find.text(l10n.taskTitleRequired), findsOneWidget);
+        expect(find.text(l10n.dateRequired), findsOneWidget);
+        expect(find.text(l10n.timeRequired), findsOneWidget);
+        expect(
+          Directionality.of(tester.element(find.byType(TaskEditorPage))),
+          locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        );
+      }
     },
   );
 }
@@ -601,25 +1143,54 @@ Future<void> _selectReminder(WidgetTester tester, String optionName) async {
   await tester.pumpAndSettle();
 }
 
-LocalTask _taskForEditor(DateTime now, {int? reminderMinutesBefore}) =>
-    LocalTask(
-      id: 'editor-task',
-      title: 'Reply',
-      status: TaskStatus.open,
-      provenance: TaskProvenance.user,
-      createdAt: now,
-      updatedAt: now,
-      dueAt: DateTime(2026, 9, 22),
-      allDay: false,
-      dueTimeMinutes: 9 * 60,
-      reminderMinutesBefore: reminderMinutesBefore,
+void _expectPairedRows(WidgetTester tester) {
+  final date = _selectionButtonRect(tester, 'task-date');
+  final time = _selectionButtonRect(tester, 'task-time');
+  final allDay = tester.getRect(find.byKey(const Key('task-all-day')));
+  final reminder = tester.getRect(find.byKey(const Key('task-reminder')));
+  expect((date.top - time.top).abs(), lessThan(8));
+  expect((allDay.top - reminder.top).abs(), lessThan(8));
+}
+
+Rect _selectionButtonRect(WidgetTester tester, String key) => tester.getRect(
+  find.descendant(
+    of: find.byKey(Key(key)),
+    matching: find.byType(OutlinedButton),
+  ),
+);
+
+OutlinedButton _timeButton(WidgetTester tester) =>
+    tester.widget<OutlinedButton>(
+      find.descendant(
+        of: find.byKey(const Key('task-time')),
+        matching: find.byType(OutlinedButton),
+      ),
     );
+
+LocalTask _taskForEditor(
+  DateTime now, {
+  int? reminderMinutesBefore,
+  bool allDay = false,
+}) => LocalTask(
+  id: 'editor-task',
+  title: 'Reply',
+  status: TaskStatus.open,
+  provenance: TaskProvenance.user,
+  createdAt: now,
+  updatedAt: now,
+  dueAt: DateTime(2026, 9, 22),
+  allDay: allDay,
+  dueTimeMinutes: allDay ? null : 9 * 60,
+  reminderMinutesBefore: reminderMinutesBefore,
+);
 
 Widget _taskEditorApp({
   required _TaskRepository repository,
   required _ReminderScheduler scheduler,
   required DateTime now,
   required Widget child,
+  Locale locale = const Locale('de'),
+  double? textScale,
 }) => ProviderScope(
   overrides: [
     taskRepositoryProvider.overrideWithValue(repository),
@@ -635,7 +1206,7 @@ Widget _taskEditorApp({
   ],
   child: MaterialApp(
     key: UniqueKey(),
-    locale: const Locale('de'),
+    locale: locale,
     localizationsDelegates: const [
       AppLocalizations.delegate,
       GlobalMaterialLocalizations.delegate,
@@ -644,6 +1215,13 @@ Widget _taskEditorApp({
     ],
     supportedLocales: AppLocalizations.supportedLocales,
     theme: AppTheme.light(),
+    builder: textScale == null
+        ? null
+        : (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
     home: child,
   ),
 );

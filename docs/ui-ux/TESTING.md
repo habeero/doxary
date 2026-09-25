@@ -2,7 +2,7 @@
 
 ## Current regression checks
 
-The following are implemented and have focused regression coverage: primary-root navigation; Tasks Today/Upcoming/Overdue/Completed bucketing, focused Create/Edit behavior, and local reminder reconciliation for timed and All Day Tasks; app-language persistence; Document-route classification correction; the confirmed Result-to-Create-Task handoff; and Unclassified Documents focused browsing, scoped search, document opening, and distinction from Without Case. All Day uses the MVP 09:00 local anchor.
+The following are implemented and have focused regression coverage: primary-root navigation; Tasks Today/Upcoming/Overdue/Completed bucketing, focused Create/Edit behavior (including timed/At-time new-task defaults, explicit No reminder, persisted Edit values, paired scheduling controls, and RTL-safe bounded links), and local reminder reconciliation for timed and All Day Tasks; app-language persistence; Document-route classification correction; the confirmed Result-to-Create-Task handoff; and Unclassified Documents focused browsing, scoped search, document opening, and distinction from Without Case. All Day uses the MVP 09:00 local anchor.
 
 The approved wireframe PNGs for Tasks, Settings, classification, task forms, and Unclassified Documents were visually inspected in the 2026-09-21 audit. Production screens were not runtime-captured, so final pixel, spacing, typography, and visual-fidelity judgments remain manual runtime-review work.
 
@@ -33,7 +33,7 @@ Every approved screen design defines its primary goal, information hierarchy, pr
 
 ## Result, Documents, and Tasks
 
-The confirmed Result-to-Create-Task handoff and local reminder reconciliation for timed and All Day Tasks have focused coverage. Current Task coverage includes bucket views and focused Create/Edit form behavior; the All Day anchor is 09:00 local for MVP, and the Tasks root redesign remains separate work.
+The confirmed Result-to-Create-Task handoff and local reminder reconciliation for timed and All Day Tasks have focused coverage. Current Task coverage includes bucket views and focused Create/Edit form behavior, including responsive Date/Time and All Day/Reminder grouping; the All Day anchor is 09:00 local for MVP, and the Tasks root redesign remains separate work.
 
 - Verify the Result hierarchy: application header, document title, concise summary, required action, applicable primary CTA, meaningful facts, classification, expandable details, and original-document access.
 - Verify original-document access uses localized action/error feedback, does not expose source paths or IDs, and presents ordered image pages without mirroring image content in RTL.

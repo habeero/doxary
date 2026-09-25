@@ -316,7 +316,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -375,6 +375,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 9) {
         await _createTaskNotificationIds();
       }
+      if (from < 10) {
+        await _repairAnalysisAttemptHistoryTimestamps();
+      }
+      if (from >= 8 && from < 11) {
+        await _addAnalysisAttemptDeletionMetadata();
+      }
     },
   );
 
@@ -422,9 +428,35 @@ class AppDatabase extends _$AppDatabase {
       status TEXT NOT NULL,
       result_analysis_id TEXT,
       failure_code TEXT,
-      retryable INTEGER
+      retryable INTEGER,
+      deleted_at INTEGER,
+      result_analysis_status TEXT
     )
   ''');
+
+  Future<void> _addAnalysisAttemptDeletionMetadata() async {
+    await customStatement(
+      'ALTER TABLE analysis_attempt_history ADD COLUMN deleted_at INTEGER',
+    );
+    await customStatement(
+      'ALTER TABLE analysis_attempt_history ADD COLUMN result_analysis_status TEXT',
+    );
+  }
+
+  Future<void> _repairAnalysisAttemptHistoryTimestamps() async {
+    await customStatement('''
+      UPDATE analysis_attempt_history
+      SET started_at = started_at * 1000
+      WHERE started_at > 0 AND started_at < 100000000000
+    ''');
+    await customStatement('''
+      UPDATE analysis_attempt_history
+      SET terminal_at = terminal_at * 1000
+      WHERE terminal_at IS NOT NULL
+        AND terminal_at > 0
+        AND terminal_at < 100000000000
+    ''');
+  }
 
   Future<void> _backfillAnalysisAttemptHistory() async {
     await customStatement('''

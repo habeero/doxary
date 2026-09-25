@@ -17,6 +17,10 @@ abstract interface class AnalysisRepository {
   Future<void> saveCompleted(DocumentAnalysis analysis);
   Future<void> deleteAnalysis(String analysisId);
 
+  /// Removes only a non-tombstoned failed row with no surviving Analysis.
+  /// Returns false when the row is missing or otherwise ineligible.
+  Future<bool> deleteAnalysisAttempt(String attemptId);
+
   /// Removes correlations which claim active work for a Document that has
   /// already reached a local terminal lifecycle state.
   Future<void> clearStalePendingOperations();
@@ -33,7 +37,9 @@ class AnalysisAttempt {
     required this.startedAt,
     required this.status,
     this.terminalAt,
+    this.deletedAt,
     this.analysisId,
+    this.resultAnalysisStatus,
     this.failureCode,
     this.retryable,
   });
@@ -42,8 +48,10 @@ class AnalysisAttempt {
   final String clientDocumentId;
   final DateTime startedAt;
   final DateTime? terminalAt;
+  final DateTime? deletedAt;
   final AnalysisAttemptStatus status;
   final String? analysisId;
+  final AnalysisStatus? resultAnalysisStatus;
   final String? failureCode;
   final bool? retryable;
 }
