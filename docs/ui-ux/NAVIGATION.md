@@ -4,7 +4,7 @@
 
 The primary destinations are **Home**, **Documents**, central **Analyze**, **Tasks**, and **Settings**. Analyze expresses the user’s intent to understand a document; camera capture and file import are steps inside that flow, not a separate primary destination. Settings owns profile/account functionality; Profile is not a separate bottom-navigation destination.
 
-Primary bottom navigation is visible only on those five primary roots. Deep links are reserved for future document, case, task, and notification destinations and must not bypass the app’s normal access and availability checks.
+Primary bottom navigation is visible only on those five primary roots. Public deep links are reserved and must not bypass the app’s normal access and availability checks. A local Task reminder tap is an app-owned intent: an extant Task opens the established `/tasks/:taskId` Task Detail route; a missing Task returns to `/tasks` with one localized informational dialog.
 
 ## Focused and nested flows
 
@@ -41,7 +41,8 @@ Unclassified and Without Case are distinct UI states: an Unclassified Document h
 - **Home** is an actionable overview, not a second Documents library.
 - **Documents** is the complete local library and supports contextual library navigation.
 - **Analyze** is the document-understanding entry point, including camera/file review and explanation-language choice.
-- **Tasks** currently provides Today, Upcoming, Overdue, and Completed bucket views, completion/reopening, focused Create/Edit Task flows, and local timed/All Day reminder delivery after save. Notification-tap navigation and full Settings notification controls remain deferred.
+- **Tasks** currently provides Today, Upcoming, Overdue, and Completed bucket views, completion/reopening, focused Create/Edit Task flows, local timed/All Day reminder delivery after save, and Task reminder taps to the existing Task Detail route. Full Settings notification controls remain deferred.
+- Task reminder responses are retained until the router shell is ready. Cold-start launch details and running/background callbacks enter the same typed local intent flow; duplicate pending intents are coalesced. The local Task repository determines whether to open Task Detail or fall back to Tasks with the unavailable-Task dialog. Completed Tasks remain valid destinations. See [Application Logic](../app-logic/APPLICATION_LOGIC.md#local-task-reminder-scheduling) for response ownership and payload constraints.
 - **Settings** currently provides app-language selection; its remaining approved sections are visible pre-release implementation gaps and are currently unavailable/non-navigating. Before public launch, each visible capability must become functional or be removed through an explicit product decision; the current direction is to implement them.
 
 ## Deferred assistant UI

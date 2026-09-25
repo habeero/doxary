@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../logging/debug_log.dart';
 import 'reminder_scheduler.dart';
+import 'task_notification_payload.dart';
 import 'task_notification_identity_store.dart';
 
 /// Android/iOS implementation of the reminder scheduling port.
@@ -27,6 +28,10 @@ class LocalReminderScheduler implements ReminderScheduler {
   final TaskNotificationIdentityStore _identityStore;
   Future<void>? _initializing;
   bool _permissionGrantedThisSession = false;
+  void Function(String? payload)? _notificationResponseHandler;
+  bool _responseHandlerInstalled = false;
+  bool _collectingStartupResponses = false;
+  final List<String?> _startupResponsePayloads = [];
 
   @override
   Future<ReminderScheduleResult> schedule({
@@ -63,12 +68,15 @@ class LocalReminderScheduler implements ReminderScheduler {
           iOS: DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        payload: taskId,
+        payload: taskReminderPayload(taskId),
       );
       reminderDebugLog('scheduler', 'schedule result=success');
       return ReminderScheduleResult.scheduled;
     } catch (error) {
-      reminderDebugLog('scheduler', 'schedule result=failure (${error.runtimeType})');
+      reminderDebugLog(
+        'scheduler',
+        'schedule result=failure (${error.runtimeType})',
+      );
       return ReminderScheduleResult.platformFailure;
     }
   }
@@ -88,6 +96,79 @@ class LocalReminderScheduler implements ReminderScheduler {
   }
 
   bool get _isSupported => Platform.isAndroid || Platform.isIOS;
+
+  /// Installs the foreground/background response callback and dispatches a
+  /// notification that launched the process, if present.
+  /// Navigation remains owned by the application layer.
+  Future<void> initializeTaskNotificationResponses(
+    void Function(String? payload) onResponse,
+  ) async {
+    if (!_isSupported) return;
+    _notificationResponseHandler = onResponse;
+    _collectingStartupResponses = true;
+    _startupResponsePayloads.clear();
+    var didLaunchFromNotification = false;
+    String? launchPayload;
+    try {
+      await _initialize();
+      if (!_responseHandlerInstalled) {
+        final initialized = await _notifications.initialize(
+          _initializationSettings,
+          onDidReceiveNotificationResponse: _dispatchNotificationResponse,
+        );
+        if (initialized != true) {
+          throw StateError(
+            'Local notification response handler did not initialize.',
+          );
+        }
+        _responseHandlerInstalled = true;
+      }
+      final launchDetails = await _notifications
+          .getNotificationAppLaunchDetails();
+      didLaunchFromNotification =
+          launchDetails?.didNotificationLaunchApp == true;
+      if (didLaunchFromNotification) {
+        launchPayload = launchDetails?.notificationResponse?.payload;
+      }
+    } catch (error) {
+      reminderDebugLog(
+        'response',
+        'notification response initialization failed (${error.runtimeType})',
+      );
+    } finally {
+      _collectingStartupResponses = false;
+      final payloads = <String?>[
+        if (didLaunchFromNotification) launchPayload,
+        ..._startupResponsePayloads,
+      ];
+      _startupResponsePayloads.clear();
+      final uniquePayloads = <String?>[];
+      for (final payload in payloads) {
+        if (!uniquePayloads.contains(payload)) uniquePayloads.add(payload);
+      }
+      for (final payload in uniquePayloads) {
+        _notificationResponseHandler?.call(payload);
+      }
+    }
+  }
+
+  void _dispatchNotificationResponse(NotificationResponse response) {
+    if (_collectingStartupResponses) {
+      _startupResponsePayloads.add(response.payload);
+      return;
+    }
+    _notificationResponseHandler?.call(response.payload);
+  }
+
+  InitializationSettings get _initializationSettings =>
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        ),
+      );
 
   Future<void> _initialize() async {
     final existing = _initializing;
@@ -113,18 +194,15 @@ class LocalReminderScheduler implements ReminderScheduler {
     final deviceZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(deviceZone.identifier));
     final initialized = await _notifications.initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
-        ),
-      ),
+      _initializationSettings,
+      onDidReceiveNotificationResponse: _notificationResponseHandler == null
+          ? null
+          : _dispatchNotificationResponse,
     );
     if (initialized != true) {
       throw StateError('Local notifications did not initialize.');
     }
+    _responseHandlerInstalled = _notificationResponseHandler != null;
     reminderDebugLog('scheduler', 'initialized');
   }
 
@@ -142,7 +220,10 @@ class LocalReminderScheduler implements ReminderScheduler {
             AndroidFlutterLocalNotificationsPlugin
           >();
       if (android == null) {
-        reminderDebugLog('permission', 'Android plugin implementation unavailable');
+        reminderDebugLog(
+          'permission',
+          'Android plugin implementation unavailable',
+        );
         return false;
       }
       reminderDebugLog('permission', 'Android plugin implementation resolved');
@@ -155,7 +236,10 @@ class LocalReminderScheduler implements ReminderScheduler {
         _permissionGrantedThisSession = true;
         return true;
       }
-      reminderDebugLog('permission', 'requesting Android notification permission');
+      reminderDebugLog(
+        'permission',
+        'requesting Android notification permission',
+      );
       final granted = await android.requestNotificationsPermission();
       final accepted = granted == true;
       final result = switch (granted) {
@@ -163,10 +247,7 @@ class LocalReminderScheduler implements ReminderScheduler {
         false => 'denied',
         null => 'unavailable',
       };
-      reminderDebugLog(
-        'permission',
-        'Android permission result=$result',
-      );
+      reminderDebugLog('permission', 'Android permission result=$result');
       _permissionGrantedThisSession = accepted;
       return accepted;
     }

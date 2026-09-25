@@ -19,6 +19,8 @@ Action-required cards are a durable Home-attention surface, not permanent Docume
 
 The recent preview remains concise and bounded; Home must not show the full Documents library. Empty Home explains a useful next action, such as importing a document, and empty is not an error. Local work remains available in the user-visible offline/pending states.
 
+The separate Needs Attention count is an acknowledgement-style Home alert. Tapping it acknowledges the current attention snapshot before opening the existing collection. Its localized, accessible X dismisses only the Home alert and stays on Home; neither action changes underlying Documents or Analysis history. A later failed/deleted attention event can make the alert reappear, while its displayed count remains the total current unresolved count.
+
 ## Analyze / Import
 
 Analyze is the document-understanding destination. The empty state offers camera capture, PDF/image/file selection, supported-format guidance, and explanation-language choice. A selected PDF/file state shows a summary, remove action, language, and Analyze Document. A camera-selected state shows the ordered captured pages, page count, remove-all, and Edit Pages; per-page removal, replacement, and adding pages remain in Camera Review with its 10-page constraint. Camera capture/review remains part of the UI/UX design scope.
@@ -103,7 +105,9 @@ Tasks has separate Today, Upcoming, Overdue, and Completed tabs. Each tab contai
 
 The hierarchy above is visible now. Before public launch, every visible approved capability must have real functional behavior or be removed from the launch UI through an explicit product decision; the current product direction is to implement the visible capabilities.
 
-Settings is a primary destination. Its root hierarchy is Account (Profile, plan/account), Language (app language and default explanation language), Notifications, Appearance, Privacy and data, Legal, and About. Notification behavior follows a three-layer intended model—OS permission, Doxary master preference, then category preferences. Timed local Task delivery currently implements only the contextual OS-permission/platform layer; no Doxary master/category Settings controls are implemented yet.
+During a future Settings design/review session, consider a discoverable entry for historical Analysis activity (for example, “Analysis history” or “Document / Analysis history”), outside the context of one current Result. Its final name, section, destination, and behavior are deliberately undecided; do not add a Settings tile until that product decision is made. Overall navigation information architecture may be revisited during that Settings phase after its actual capabilities are implemented. This note does not reverse the current no-sidebar decision.
+
+Settings is a primary destination. Its root hierarchy is Account (Profile, plan/account), Language (app language and default explanation language), Notifications, Appearance, Privacy and data, Legal, and About. Notification behavior follows a three-layer intended model—OS permission, Doxary master preference, then category preferences. Timed local Task delivery and Task notification taps to Task Detail are implemented at the platform/application layer; no Doxary master/category Settings controls are implemented yet.
 
 ## Cross-screen presentation
 

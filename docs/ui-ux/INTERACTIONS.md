@@ -8,6 +8,10 @@ Action-required Home cards are dismissible attention items. A locally persisted 
 
 Home separately shows one count/link to the Documents Needs Attention collection only when one or more Documents have no usable current Analysis and their latest persisted lifecycle event is a failed attempt or explicit Analysis deletion. Those Documents are excluded from ordinary Recent Documents; the link opens `/documents/needs-attention` directly. Active processing remains in its existing Processing section, and a surviving complete/partial Analysis keeps its Document out of Needs Attention even if a newer retry failed.
 
+The Home Needs Attention count is an acknowledgement-style alert. Tapping it first acknowledges the current attention snapshot, then opens the existing collection; backing out without changing Documents does not restore that same alert. Its X action has an accessible localized dismiss label, acknowledges the same current snapshot, stays on Home, and does not resolve, delete, or otherwise change any Document or history. The displayed number remains the total current unresolved attention-Document count. The alert is visible when that count is nonzero and the latest current failed/deleted attention event is newer than the persisted acknowledgement timestamp. Resolving an acknowledged event alone does not resurrect it; a later failed/deleted event does, with the current total count. Arabic layout follows RTL and German follows LTR.
+
+Task reminder notification taps resolve through the local Task lifecycle and open Task Detail for an existing Task, including completed Tasks. If the Task no longer exists, the user remains on Tasks after one informational dialog with a single OK action. Missing/legacy payloads safely open Tasks without exposing identifiers. Cold-start and running-app delivery use the same pending-intent flow; see [Navigation](NAVIGATION.md#primary-destination-roles) and [Application Logic](../app-logic/APPLICATION_LOGIC.md#local-task-reminder-scheduling).
+
 The Documents root remains the complete local archive and exposes the same filtered collection through a bounded special entry. Unclassified contains only Documents without a confirmed Organization that also have a usable (`complete` or `partial`) Analysis. Needs Attention rows show a localized failed/deleted reason and the corresponding device-local event time, and open the existing Document Detail route; retry/reanalysis is not duplicated in the row. Its empty state is localized.
 
 Submission acceptance may acknowledge “Analysis started” through short-lived feedback local to the current Analyze surface. It is never durable page state, does not survive leaving Analyze, and is cleared when the draft progresses into the Document/Processing lifecycle. Loading and pre-acceptance failure feedback remain distinct; a pre-acceptance failure preserves the selected draft and shows no success acknowledgement.
@@ -99,9 +103,3 @@ Legal must become functional before launch through approved release/legal work. 
 ### About
 
 About must become functional before launch and show real application/version information. Version and build values must come from the actual application metadata rather than hard-coded fake values.
-
-## Deferred product-design follow-ups
-
-### Local reminder notification tap destination
-
-Local Task reminder delivery exists. A future notification-tap implementation will target the focused Task Detail destination, but no deep link, notification-payload navigation, route launch, or notification-center behavior is implemented yet. The remaining product-design decision must define how this target preserves normal app/navigation state and handles deleted or stale Tasks, Arabic/German navigation, and cold-start versus already-running app behavior.

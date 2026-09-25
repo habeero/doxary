@@ -36,6 +36,7 @@ import '../features/tasks/data/repositories/local_task_repository.dart';
 import '../features/tasks/domain/repositories/task_repository.dart';
 import '../features/tasks/application/task_reminder_reconciler.dart';
 import '../features/tasks/application/task_lifecycle.dart';
+import 'routing/task_notification_intent.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final database = AppDatabase();
@@ -119,6 +120,22 @@ final reminderSchedulerProvider = Provider<ReminderScheduler>(
   (ref) =>
       LocalReminderScheduler(ref.watch(taskNotificationIdentityStoreProvider)),
 );
+final taskNotificationIntentProvider =
+    NotifierProvider<
+      TaskNotificationIntentController,
+      PendingTaskNotificationIntent?
+    >(TaskNotificationIntentController.new);
+final taskNotificationResponseStartupProvider = FutureProvider<void>((
+  ref,
+) async {
+  final scheduler = ref.watch(reminderSchedulerProvider);
+  if (scheduler is! LocalReminderScheduler) return;
+  await scheduler.initializeTaskNotificationResponses(
+    (payload) => ref
+        .read(taskNotificationIntentProvider.notifier)
+        .receivePayload(payload),
+  );
+});
 final taskNotificationIdentityStoreProvider =
     Provider<TaskNotificationIdentityStore>(
       (ref) => LocalTaskNotificationIdentityStore(ref.watch(databaseProvider)),

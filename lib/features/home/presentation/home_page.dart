@@ -83,8 +83,9 @@ class HomePage extends ConsumerWidget {
                         ),
                         onOpenDocument: (id) => _openDocument(context, id),
                         onViewAll: () => _openDocuments(context),
-                        onViewNeedsAttention: () =>
-                            _openNeedsAttention(context),
+                        onViewNeedsAttention: () {
+                          if (context.mounted) _openNeedsAttention(context);
+                        },
                         onImport: () => context.go(AppRoutes.importDocument),
                       ),
                     ),
@@ -196,11 +197,15 @@ class _HomeOverview extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (data.needsAttentionDocumentCount > 0) ...[
+            if (data.showNeedsAttention) ...[
               const SizedBox(height: AppSpacing.md),
               _HomeNeedsAttentionItem(
                 count: data.needsAttentionDocumentCount,
-                onTap: onViewNeedsAttention,
+                onTap: () async {
+                  await _acknowledgeNeedsAttention(ref, data, query);
+                  onViewNeedsAttention();
+                },
+                onDismiss: () => _acknowledgeNeedsAttention(ref, data, query),
               ),
             ],
             if (data.actionRequired.isNotEmpty) ...[
@@ -403,10 +408,15 @@ class _ActionFact extends StatelessWidget {
 }
 
 class _HomeNeedsAttentionItem extends StatelessWidget {
-  const _HomeNeedsAttentionItem({required this.count, required this.onTap});
+  const _HomeNeedsAttentionItem({
+    required this.count,
+    required this.onTap,
+    required this.onDismiss,
+  });
 
   final int count;
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
+  final Future<void> Function() onDismiss;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -419,8 +429,19 @@ class _HomeNeedsAttentionItem extends StatelessWidget {
         color: Theme.of(context).colorScheme.onErrorContainer,
       ),
       title: Text(context.l10n.documentsNeedAttention(count)),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.chevron_right),
+          IconButton(
+            key: const Key('home-needs-attention-dismiss'),
+            tooltip: context.l10n.dismiss,
+            onPressed: () => onDismiss(),
+            icon: const Icon(Icons.close),
+          ),
+        ],
+      ),
+      onTap: () => onTap(),
     ),
   );
 }
@@ -644,12 +665,25 @@ class _HomeOverviewData {
     this.handledTaskAttentionIds,
     this.analysisBrowseStates,
     this.needsAttentionDocumentCount,
+    this.latestNeedsAttentionAt,
+    this.acknowledgedNeedsAttentionAtMilliseconds,
   );
   final List<_HomeDocumentEntry> entries;
   final Set<String> activeDocumentIds;
   final Set<String> handledTaskAttentionIds;
   final Map<String, DocumentAnalysisBrowseState> analysisBrowseStates;
   final int needsAttentionDocumentCount;
+  final DateTime? latestNeedsAttentionAt;
+  final int? acknowledgedNeedsAttentionAtMilliseconds;
+
+  bool get showNeedsAttention {
+    if (needsAttentionDocumentCount == 0) return false;
+    final latest = latestNeedsAttentionAt;
+    final acknowledged = acknowledgedNeedsAttentionAtMilliseconds;
+    return latest == null
+        ? acknowledged == null
+        : acknowledged == null || latest.millisecondsSinceEpoch > acknowledged;
+  }
 
   bool _hasUnresolvedAttention(_HomeDocumentEntry entry) =>
       entry.analysis?.actionRequired == ActionRequirement.yes &&
@@ -746,6 +780,26 @@ final _homeOverviewProvider = FutureProvider.autoDispose
           );
         }),
       );
+      final attentionEvents = query.documents
+          .map(
+            (document) => query
+                .analysisBrowseStates[document.clientDocumentId]
+                ?.attention
+                ?.occurredAt,
+          )
+          .whereType<DateTime>()
+          .toList();
+      final latestNeedsAttentionAt = attentionEvents.isEmpty
+          ? null
+          : attentionEvents.reduce(
+              (latest, current) => current.isAfter(latest) ? current : latest,
+            );
+      final acknowledgedNeedsAttentionAtMilliseconds = int.tryParse(
+        await ref
+                .read(settingsRepositoryProvider)
+                .read(_homeNeedsAttentionAcknowledgedSettingKey) ??
+            '',
+      );
       return _HomeOverviewData(
         entries,
         query.activeDocumentIds,
@@ -760,8 +814,29 @@ final _homeOverviewProvider = FutureProvider.autoDispose
                   null,
             )
             .length,
+        latestNeedsAttentionAt,
+        acknowledgedNeedsAttentionAtMilliseconds,
       );
     });
+
+const _homeNeedsAttentionAcknowledgedSettingKey =
+    'home_needs_attention_acknowledged_at_ms';
+
+Future<void> _acknowledgeNeedsAttention(
+  WidgetRef ref,
+  _HomeOverviewData data,
+  _HomeOverviewQuery query,
+) async {
+  final latest = data.latestNeedsAttentionAt;
+  if (latest == null) return;
+  await ref
+      .read(settingsRepositoryProvider)
+      .write(
+        _homeNeedsAttentionAcknowledgedSettingKey,
+        latest.millisecondsSinceEpoch.toString(),
+      );
+  ref.invalidate(_homeOverviewProvider(query));
+}
 
 String? _firstMeaningful(List<String> values) {
   for (final value in values) {

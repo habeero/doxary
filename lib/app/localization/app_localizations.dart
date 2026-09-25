@@ -121,6 +121,8 @@ class AppLocalizations {
   String get taskStatus => _value('taskStatus');
   String get taskOpen => _value('taskOpen');
   String get taskUnavailable => _value('taskUnavailable');
+  String get taskNoLongerAvailable => _value('taskNoLongerAvailable');
+  String get ok => _value('ok');
   String get notSpecified => _value('notSpecified');
   String get taskTitle => _value('taskTitle');
   String get taskTitleRequired => _value('taskTitleRequired');
@@ -736,6 +738,8 @@ const _extraStrings = <String, Map<String, String>>{
     'taskStatus': '\u0627\u0644\u062d\u0627\u0644\u0629',
     'taskOpen': '\u0645\u0641\u062a\u0648\u062d\u0629',
     'taskUnavailable': '\u0627\u0644\u0645\u0647\u0645\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629',
+    'taskNoLongerAvailable': '\u0647\u0630\u0647 \u0627\u0644\u0645\u0647\u0645\u0629 \u0644\u0645 \u062a\u0639\u062f \u0645\u062a\u0627\u062d\u0629. \u0631\u0628\u0645\u0627 \u062a\u0645 \u062d\u0630\u0641\u0647\u0627.',
+    'ok': '\u062d\u0633\u0646\u064b\u0627',
     'notSpecified': '\u063a\u064a\u0631 \u0645\u062d\u062f\u062f',
     'taskTitle':
         '\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0647\u0645\u0629',
@@ -844,6 +848,8 @@ const _strings = <String, Map<String, String>>{
     'taskStatus': 'Status',
     'taskOpen': 'Offen',
     'taskUnavailable': 'Aufgabe nicht verf\u00fcgbar',
+    'taskNoLongerAvailable': 'Diese Aufgabe ist nicht mehr verf\u00fcgbar. M\u00f6glicherweise wurde sie gel\u00f6scht.',
+    'ok': 'OK',
     'notSpecified': 'Nicht angegeben',
     'taskTitle': 'Aufgabentitel',
     'taskTitleRequired': 'Bitte gib einen Aufgabentitel ein.',

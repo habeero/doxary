@@ -1,5 +1,10 @@
 # UI/UX changelog
 
+## 2026-09-25
+
+- Added Home Needs Attention tap/X acknowledgement behavior with a persistent current-snapshot marker, localized accessible dismiss control, and reappearance for later attention events.
+- Clarified Task reminder notification routing to Task Detail and recorded the undecided future Settings entry for discoverable Analysis history.
+
 ## 2026-09-24
 
 - Added the Documents Needs Attention collection and Home count/link; attention-only Documents are excluded from Home Recent and Unclassified while remaining in the complete Organization/Case archive.

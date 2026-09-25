@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../localization/app_localizations.dart';
+import 'task_notification_intent_handler.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({
@@ -23,7 +24,7 @@ class AppShell extends StatelessWidget {
       final hasFocusedBranchRoute =
           focusedBranchRoutes[navigationShell.currentIndex].value;
       return Scaffold(
-        body: navigationShell,
+        body: TaskNotificationIntentHandler(child: navigationShell),
         bottomNavigationBar: showBottomNavigation && !hasFocusedBranchRoute
             ? NavigationBar(
                 selectedIndex: navigationShell.currentIndex,

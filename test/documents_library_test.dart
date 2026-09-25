@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
 import 'package:doxary/features/cases/presentation/case_page.dart';
@@ -28,6 +30,7 @@ void main() {
           ),
           openTasksProvider.overrideWithValue(const AsyncValue.data([])),
           completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
           _browseStatesOverride({
             for (final document in documents)
               document.clientDocumentId: _browseState(usable: true),
@@ -67,6 +70,7 @@ void main() {
             ),
             openTasksProvider.overrideWithValue(const AsyncValue.data([])),
             completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+            settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
             _browseStatesOverride({'stale-processing': _browseState()}),
             ..._documentOverrides(document.clientDocumentId),
           ],
@@ -99,6 +103,7 @@ void main() {
           ),
           openTasksProvider.overrideWithValue(const AsyncValue.data([])),
           completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
           _browseStatesOverride({
             'active-processing': _browseState(processing: true),
           }),
@@ -124,6 +129,7 @@ void main() {
   ) async {
     final failed = _document('failed-home', status: DocumentStatus.needsReview);
     final usable = _document('usable-home');
+    final settings = _MemorySettings();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -138,7 +144,7 @@ void main() {
           ),
           openTasksProvider.overrideWithValue(const AsyncValue.data([])),
           completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
-          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
+          settingsRepositoryProvider.overrideWithValue(settings),
           organizationsProvider.overrideWithValue(const AsyncValue.data([])),
           casesProvider.overrideWithValue(const AsyncValue.data([])),
           documentProvider('failed-home')
@@ -190,6 +196,10 @@ void main() {
 
     await tester.tap(find.byKey(const Key('home-needs-attention')));
     await _pumpNavigationTransition(tester);
+    expect(
+      settings.values['home_needs_attention_acknowledged_at_ms'],
+      DateTime(2026, 9, 20, 10).millisecondsSinceEpoch.toString(),
+    );
     expect(find.byType(NeedsAttentionDocumentsPage), findsOneWidget);
     expect(
       find.byKey(const Key('needs-attention-document-failed-home')),
@@ -205,6 +215,253 @@ void main() {
     );
     await _pumpNavigationTransition(tester);
     expect(find.byType(DocumentDetailPage), findsOneWidget);
+    Navigator.of(tester.element(find.byType(DocumentDetailPage))).pop();
+    await _pumpNavigationTransition(tester);
+    Navigator.of(tester.element(find.byType(NeedsAttentionDocumentsPage)))
+        .pop();
+    await _pumpNavigationTransition(tester);
+    expect(find.byType(HomePage), findsOneWidget);
+    expect(find.byKey(const Key('home-needs-attention')), findsNothing);
+  });
+
+  testWidgets(
+    'Home dismiss acknowledges only its alert and survives provider recreation',
+    (tester) async {
+      final first = _document('attention-failed');
+      final second = _document('attention-deleted');
+      final settings = _MemorySettings();
+      final states = {
+        'attention-failed': _browseState(
+          reason: DocumentAttentionReason.failed,
+          at: DateTime(2026, 9, 20, 10),
+        ),
+        'attention-deleted': _browseState(
+          reason: DocumentAttentionReason.deleted,
+          at: DateTime(2026, 9, 20, 10, 5),
+        ),
+      };
+      var container = _attentionHomeContainer(
+        settings: settings,
+        documents: [first, second],
+        states: states,
+      );
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        container.dispose();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: _app(Scaffold(body: HomePage())),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          AppLocalizations(const Locale('de')).documentsNeedAttention(2),
+        ),
+        findsOneWidget,
+      );
+      final dismissButton = tester.widget<IconButton>(
+        find.byKey(const Key('home-needs-attention-dismiss')),
+      );
+      expect(dismissButton.tooltip, 'Ausblenden');
+      expect(
+        Directionality.of(
+          tester.element(find.byKey(const Key('home-needs-attention'))),
+        ),
+        TextDirection.ltr,
+      );
+
+      await tester.tap(find.byKey(const Key('home-needs-attention-dismiss')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home-needs-attention')), findsNothing);
+      expect(find.byType(NeedsAttentionDocumentsPage), findsNothing);
+      expect(
+        settings.values['home_needs_attention_acknowledged_at_ms'],
+        DateTime(2026, 9, 20, 10, 5).millisecondsSinceEpoch.toString(),
+      );
+      expect(
+        container.read(documentAnalysisBrowseStatesProvider).value?.length,
+        2,
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      container.dispose();
+      container = _attentionHomeContainer(
+        settings: settings,
+        documents: [first, second],
+        states: states,
+      );
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: _app(Scaffold(body: HomePage())),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home-needs-attention')), findsNothing);
+      expect(
+        container.read(documentAnalysisBrowseStatesProvider).value?.length,
+        2,
+      );
+    },
+  );
+
+  testWidgets(
+    'Home attention returns only for a newer event and keeps the total count',
+    (tester) async {
+      final first = _document('attention-first');
+      final second = _document('attention-second');
+      final settings = _MemorySettings();
+      final events =
+          StreamController<Map<String, DocumentAnalysisBrowseState>>();
+      final container = ProviderContainer(
+        overrides: [
+          homeDocumentsProvider.overrideWithValue(
+            AsyncValue.data([first, second]),
+          ),
+          activeAnalysisOperationsProvider.overrideWithValue(
+            const AsyncValue.data([]),
+          ),
+          openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          settingsRepositoryProvider.overrideWithValue(settings),
+          documentAnalysisBrowseStatesProvider.overrideWith(
+            (ref) => events.stream,
+          ),
+          ..._documentOverrides(first.clientDocumentId),
+          ..._documentOverrides(second.clientDocumentId),
+        ],
+      );
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        container.dispose();
+        await events.close();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: _app(Scaffold(body: HomePage())),
+        ),
+      );
+      events.add({
+        'attention-first': _browseState(
+          reason: DocumentAttentionReason.failed,
+          at: DateTime(2026, 9, 20, 10),
+        ),
+        'attention-second': _browseState(
+          reason: DocumentAttentionReason.deleted,
+          at: DateTime(2026, 9, 20, 10, 5),
+        ),
+      });
+      await tester.pump();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('home-needs-attention-dismiss')));
+      await tester.pumpAndSettle();
+
+      events.add({
+        'attention-first': _browseState(usable: true),
+        'attention-second': _browseState(
+          reason: DocumentAttentionReason.deleted,
+          at: DateTime(2026, 9, 20, 10, 5),
+        ),
+      });
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home-needs-attention')), findsNothing);
+
+      events.add({
+        'attention-first': _browseState(
+          reason: DocumentAttentionReason.failed,
+          at: DateTime(2026, 9, 20, 11),
+        ),
+        'attention-second': _browseState(
+          reason: DocumentAttentionReason.deleted,
+          at: DateTime(2026, 9, 20, 10, 5),
+        ),
+      });
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          AppLocalizations(const Locale('de')).documentsNeedAttention(2),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('home-needs-attention-dismiss')));
+      await tester.pumpAndSettle();
+      events.add({
+        'attention-first': _browseState(
+          reason: DocumentAttentionReason.failed,
+          at: DateTime(2026, 9, 20, 11),
+        ),
+        'attention-second': _browseState(
+          reason: DocumentAttentionReason.deleted,
+          at: DateTime(2026, 9, 20, 12),
+        ),
+      });
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          AppLocalizations(const Locale('de')).documentsNeedAttention(2),
+        ),
+        findsOneWidget,
+      );
+
+      events.add({
+        'attention-first': _browseState(usable: true),
+        'attention-second': _browseState(usable: true),
+      });
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home-needs-attention')), findsNothing);
+    },
+  );
+
+  testWidgets('Home attention dismiss label is localized in Arabic RTL', (
+    tester,
+  ) async {
+    final document = _document('arabic-attention');
+    final container = _attentionHomeContainer(
+      settings: _MemorySettings(),
+      documents: [document],
+      states: {
+        document.clientDocumentId: _browseState(
+          reason: DocumentAttentionReason.failed,
+          at: DateTime(2026, 9, 20),
+        ),
+      },
+    );
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+    });
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: _app(Scaffold(body: HomePage()), locale: const Locale('ar')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dismissButton = tester.widget<IconButton>(
+      find.byKey(const Key('home-needs-attention-dismiss')),
+    );
+    expect(dismissButton.tooltip, AppLocalizations(const Locale('ar')).dismiss);
+    expect(
+      Directionality.of(
+        tester.element(find.byKey(const Key('home-needs-attention'))),
+      ),
+      TextDirection.rtl,
+    );
   });
 
   testWidgets('Home hides the Needs Attention affordance when count is zero', (
@@ -220,6 +477,7 @@ void main() {
           ),
           openTasksProvider.overrideWithValue(const AsyncValue.data([])),
           completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+          settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
           _browseStatesOverride({'ordinary-home': _browseState(usable: true)}),
           ..._documentOverrides('ordinary-home'),
         ],
@@ -964,6 +1222,25 @@ _browseStatesOverride(Map<String, DocumentAnalysisBrowseState> states) =>
       AsyncValue.data(states),
     );
 
+ProviderContainer _attentionHomeContainer({
+  required SettingsRepository settings,
+  required List<LocalDocument> documents,
+  required Map<String, DocumentAnalysisBrowseState> states,
+}) => ProviderContainer(
+  overrides: [
+    homeDocumentsProvider.overrideWithValue(AsyncValue.data(documents)),
+    activeAnalysisOperationsProvider.overrideWithValue(
+      const AsyncValue.data([]),
+    ),
+    openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+    completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+    settingsRepositoryProvider.overrideWithValue(settings),
+    _browseStatesOverride(states),
+    for (final document in documents)
+      ..._documentOverrides(document.clientDocumentId),
+  ],
+);
+
 DocumentFile _file(String documentId, String filename) => DocumentFile(
   id: 'file-$documentId',
   clientDocumentId: documentId,
@@ -1012,13 +1289,16 @@ Future<void> _pumpNavigationTransition(WidgetTester tester) async {
 }
 
 class _MemorySettings implements SettingsRepository {
-  final Map<String, String> _values = {};
+  _MemorySettings([Map<String, String>? initialValues])
+    : values = initialValues ?? {};
+
+  final Map<String, String> values;
 
   @override
-  Future<String?> read(String key) async => _values[key];
+  Future<String?> read(String key) async => values[key];
 
   @override
   Future<void> write(String key, String value) async {
-    _values[key] = value;
+    values[key] = value;
   }
 }
