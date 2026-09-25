@@ -1106,6 +1106,37 @@ void main() {
     expect(repository.saved?.note, isNull);
   });
 
+  testWidgets('Reminder remains editable while global Task reminders are off', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 21, 8);
+    final repository = _TaskRepository(
+      _taskForEditor(now, reminderMinutesBefore: 30),
+    );
+    await tester.pumpWidget(
+      _taskEditorApp(
+        repository: repository,
+        scheduler: _ReminderScheduler(ReminderScheduleResult.cancelled),
+        now: now,
+        taskRemindersEnabled: false,
+        child: const TaskEditorPage.edit(taskId: 'editor-task'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final reminder = find.byKey(const Key('task-reminder'));
+    await tester.ensureVisible(reminder);
+    await tester.tap(reminder);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('task-reminder-option-fiveMinutes')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('task-save')));
+    await tester.tap(find.byKey(const Key('task-save')));
+    await tester.pumpAndSettle();
+
+    expect(repository.saved?.reminderMinutesBefore, 5);
+  });
+
   testWidgets(
     'required validation messages are localized in Arabic and German',
     (tester) async {
@@ -1191,12 +1222,17 @@ Widget _taskEditorApp({
   required Widget child,
   Locale locale = const Locale('de'),
   double? textScale,
+  bool taskRemindersEnabled = true,
 }) => ProviderScope(
   overrides: [
     taskRepositoryProvider.overrideWithValue(repository),
     reminderSchedulerProvider.overrideWithValue(scheduler),
     taskReminderReconcilerProvider.overrideWithValue(
-      TaskReminderReconciler(scheduler, now: () => now),
+      TaskReminderReconciler(
+        scheduler,
+        now: () => now,
+        remindersEnabled: () async => taskRemindersEnabled,
+      ),
     ),
     currentTimeProvider.overrideWithValue(now),
     allDocumentsProvider.overrideWithValue(
@@ -1282,6 +1318,7 @@ class _ReminderScheduler implements ReminderScheduler {
     required String taskId,
     required DateTime at,
     required String taskTitle,
+    bool requestPermission = true,
   }) async {
     scheduled.add((taskId: taskId, at: at));
     return result;

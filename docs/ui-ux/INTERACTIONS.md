@@ -94,7 +94,7 @@ The current handwritten localization structure is sufficient for German and Arab
 
 ### Notifications
 
-Notifications must become real before launch, including the intended notification model and local reminder scheduling/delivery. Push infrastructure is not required for the MVP unless separately approved. Intended controls have three layers: OS permission, a Doxary master preference, and category preferences. Turning off the master hides or disables categories; denying OS permission is explained as a device-setting restriction. Permission is requested contextually only after its value is clear, not as an unexplained first-launch prompt.
+Task reminder controls are functional: the "Tasks and appointments" Settings switch uses the persisted Doxary preference `task_reminders_enabled`, default ON. Turning it OFF cancels scheduled Task notifications without clearing each Task's reminder intent; turning it ON reconciles eligible open Tasks whose reminder instant is still future. This preference is separate from Android/iOS notification permission. Settings shows a read-only localized OS permission status when the platform adapter can read it; changing the Doxary switch does not open system Settings or request OS permission. Reconciliation from this switch does not prompt, while existing contextual permission behavior for explicit Task saves remains. Analysis-completed notifications remain deferred and visibly unavailable; push infrastructure and category preferences are not implemented.
 
 ### Appearance
 

@@ -2,7 +2,7 @@
 
 ## Current regression checks
 
-The following are implemented and have focused regression coverage: primary-root navigation; Tasks Today/Upcoming/Overdue/Completed bucketing, focused Create/Edit behavior (including timed/At-time new-task defaults, explicit No reminder, persisted Edit values, paired scheduling controls, and RTL-safe bounded links), and local reminder reconciliation for timed and All Day Tasks; app-language persistence; Document-route classification correction; the confirmed Result-to-Create-Task handoff; and Unclassified Documents focused browsing, scoped search, document opening, and distinction from Without Case. All Day uses the MVP 09:00 local anchor.
+The following are implemented and have focused regression coverage: primary-root navigation; Tasks Today/Upcoming/Overdue/Completed bucketing, focused Create/Edit behavior (including timed/At-time new-task defaults, explicit No reminder, persisted Edit values, paired scheduling controls, and RTL-safe bounded links), local reminder reconciliation for timed and All Day Tasks, and the Task reminders Settings preference (default/restored state, persistence, cancellation/reconciliation, permission separation, and German/Arabic switch behavior); app-language persistence; Document-route classification correction; the confirmed Result-to-Create-Task handoff; and Unclassified Documents focused browsing, scoped search, document opening, and distinction from Without Case. All Day uses the MVP 09:00 local anchor.
 
 The approved wireframe PNGs for Tasks, Settings, classification, task forms, and Unclassified Documents were visually inspected in the 2026-09-21 audit. Production screens were not runtime-captured, so final pixel, spacing, typography, and visual-fidelity judgments remain manual runtime-review work.
 
@@ -49,6 +49,8 @@ The confirmed Result-to-Create-Task handoff and local reminder reconciliation fo
 - Verify the visible Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About capabilities have real behavior before public launch, or that each removed launch row has an explicit product decision.
 - Verify Settings exposes the approved default explanation-language control independently from UI language and does not rewrite prior analysis content.
 - Verify About reads version/build from runtime metadata, handles metadata/share failures with localized safe states, shares through the native UI without a fabricated URL, and keeps Rate disabled until a real store listing is configured.
+- Verify Task reminders defaults ON, persists the Doxary preference, cancels scheduled Task notifications when OFF without clearing reminder intent, keeps the Task Editor Reminder selector editable while OFF, and restores only eligible future open reminders when ON. Verify OS permission denial leaves the Doxary switch ON and Analysis-completed remains unavailable.
+- Verify the Task reminder switch and localized OS permission status remain distinct, accessible, and correctly laid out in German LTR and Arabic RTL; Settings reconciliation must not request OS permission.
 - Verify local reminder scheduling/delivery, privacy/data lifecycle behavior, approved legal disclosures, and real application/version information before launch.
 - Verify no visible permanent unavailable placeholder Settings rows remain in a public release.
 

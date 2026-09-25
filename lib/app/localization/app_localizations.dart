@@ -169,6 +169,18 @@ class AppLocalizations {
   String get notifications => _value('notifications');
   String get analysisNotifications => _value('analysisNotifications');
   String get taskNotifications => _value('taskNotifications');
+  String get taskReminderPermissionAllowed => locale.languageCode == 'ar'
+      ? 'الإشعارات مسموح بها'
+      : 'Benachrichtigungen erlaubt';
+  String get taskReminderPermissionNotAllowed => locale.languageCode == 'ar'
+      ? 'الإشعارات غير مسموح بها'
+      : 'Benachrichtigungen nicht erlaubt';
+  String get taskReminderUpdateIncomplete => locale.languageCode == 'ar'
+      ? 'تعذّر تحديث تذكيرات المهام بالكامل.'
+      : 'Task-Erinnerungen konnten nicht vollständig aktualisiert werden.';
+  String get taskReminderPreferenceSaveFailed => locale.languageCode == 'ar'
+      ? 'تعذّر حفظ إعداد تذكيرات المهام.'
+      : 'Die Einstellung für Task-Erinnerungen konnte nicht gespeichert werden.';
   String get appearance => _value('appearance');
   String get darkAppearance => _value('darkAppearance');
   String get appearanceSystem => _value('appearanceSystem');

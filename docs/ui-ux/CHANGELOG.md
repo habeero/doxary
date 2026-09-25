@@ -2,6 +2,7 @@
 
 ## 2026-09-25
 
+- Completed the Tasks and appointments Settings switch with enabled-by-default persisted preference, cancellation/reconciliation behavior, read-only OS permission status, and visibly deferred Analysis-completed notifications.
 - Completed Settings About version/build display from runtime metadata and native localized sharing; Rate remains disabled until a canonical store listing exists.
 - Kept deferred Settings-row status text bounded on narrow layouts.
 - Updated Home backgrounds, action/status emphasis, Processing, and Recent Documents to use the active theme's semantic colors; the brand mark retains its intentional fixed teal treatment.

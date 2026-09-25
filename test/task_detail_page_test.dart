@@ -158,7 +158,8 @@ void main() {
       ProviderScope(
         overrides: [
           ..._overrides(repository),
-          documentProvider('doc').overrideWithValue(const AsyncValue.data(null)),
+          documentProvider('doc')
+              .overrideWithValue(const AsyncValue.data(null)),
           latestAnalysisProvider('doc')
               .overrideWithValue(AsyncValue.data(analysis)),
           taskForSourceActionProvider((
@@ -189,7 +190,9 @@ void main() {
     expect(find.byType(TaskEditorPage), findsNothing);
   });
 
-  testWidgets('saving an edit returns to refreshed Task Detail', (tester) async {
+  testWidgets('saving an edit returns to refreshed Task Detail', (
+    tester,
+  ) async {
     final repository = _TaskRepository(task());
     final router = _router(initialLocation: '/tasks/task-id');
     await tester.binding.setSurfaceSize(const Size(800, 1600));
@@ -315,7 +318,9 @@ List<dynamic> _overrides(_TaskRepository repository) {
   return [
     taskRepositoryProvider.overrideWithValue(repository),
     taskReminderReconcilerProvider.overrideWithValue(reconciler),
-    taskLifecycleProvider.overrideWithValue(TaskLifecycle(repository, reconciler)),
+    taskLifecycleProvider.overrideWithValue(
+      TaskLifecycle(repository, reconciler),
+    ),
     currentTimeProvider.overrideWithValue(DateTime(2026, 9, 25)),
     allDocumentsProvider.overrideWithValue(
       AsyncValue.data([
@@ -363,10 +368,7 @@ GoRouter _router({String initialLocation = '/tasks'}) => GoRouter(
       path: '/tasks',
       builder: (_, _) => const TasksPage(),
       routes: [
-        GoRoute(
-          path: 'create',
-          builder: (_, _) => const SizedBox(),
-        ),
+        GoRoute(path: 'create', builder: (_, _) => const SizedBox()),
         GoRoute(
           path: 'edit/:taskId',
           builder: (_, state) =>
@@ -417,9 +419,8 @@ class _TaskRepository implements TaskRepository {
   ) async => null;
 
   @override
-  Future<LocalTask?> getById(String taskId) async => task?.id == taskId
-      ? task
-      : null;
+  Future<LocalTask?> getById(String taskId) async =>
+      task?.id == taskId ? task : null;
 
   @override
   Future<void> save(LocalTask value) async => task = value;
@@ -472,5 +473,6 @@ class _ReminderScheduler implements ReminderScheduler {
     required String taskId,
     required DateTime at,
     required String taskTitle,
+    bool requestPermission = true,
   }) async => ReminderScheduleResult.scheduled;
 }

@@ -241,6 +241,7 @@ class _TaskEditorPageState extends ConsumerState<TaskEditorPage> {
       TaskReminderOutcome.unavailable => l10n.reminderUnavailable,
       TaskReminderOutcome.platformFailure => l10n.reminderNotScheduled,
       TaskReminderOutcome.reminderTimePassed => l10n.reminderTimePassed,
+      TaskReminderOutcome.globallyDisabled => null,
       _ => null,
     };
     if (message != null) {

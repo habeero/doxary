@@ -7,11 +7,18 @@ enum ReminderScheduleResult {
   platformFailure,
 }
 
+enum ReminderPermissionStatus { allowed, notAllowed, unavailable }
+
+abstract interface class ReminderPermissionReader {
+  Future<ReminderPermissionStatus> readPermissionStatus();
+}
+
 abstract interface class ReminderScheduler {
   Future<ReminderScheduleResult> schedule({
     required String taskId,
     required DateTime at,
     required String taskTitle,
+    bool requestPermission = true,
   });
   Future<ReminderScheduleResult> cancel(String taskId);
 }
@@ -25,5 +32,6 @@ class UnavailableReminderScheduler implements ReminderScheduler {
     required String taskId,
     required DateTime at,
     required String taskTitle,
+    bool requestPermission = true,
   }) async => ReminderScheduleResult.unavailable;
 }

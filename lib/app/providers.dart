@@ -142,8 +142,27 @@ final taskNotificationIdentityStoreProvider =
       (ref) => LocalTaskNotificationIdentityStore(ref.watch(databaseProvider)),
     );
 final taskReminderReconcilerProvider = Provider<TaskReminderReconciler>(
-  (ref) => TaskReminderReconciler(ref.watch(reminderSchedulerProvider)),
+  (ref) => TaskReminderReconciler(
+    ref.watch(reminderSchedulerProvider),
+    remindersEnabled: () async {
+      final preference = ref.read(taskRemindersEnabledProvider);
+      return preference.asData?.value ??
+          await ref.read(taskRemindersEnabledProvider.future);
+    },
+  ),
 );
+final taskReminderPermissionStatusProvider =
+    FutureProvider<ReminderPermissionStatus>((ref) async {
+      final scheduler = ref.watch(reminderSchedulerProvider);
+      if (scheduler is! ReminderPermissionReader) {
+        return ReminderPermissionStatus.unavailable;
+      }
+      return (scheduler as ReminderPermissionReader).readPermissionStatus();
+    });
+final taskRemindersEnabledProvider =
+    AsyncNotifierProvider<TaskRemindersEnabledController, bool>(
+      TaskRemindersEnabledController.new,
+    );
 final taskLifecycleProvider = Provider<TaskLifecycle>(
   (ref) => TaskLifecycle(
     ref.watch(taskRepositoryProvider),
@@ -367,3 +386,66 @@ final analysisLanguageProvider =
     NotifierProvider<AnalysisLanguageController, AnalysisOutputLanguage>(
       AnalysisLanguageController.new,
     );
+
+const taskRemindersEnabledSettingKey = 'task_reminders_enabled';
+
+class TaskRemindersEnabledController extends AsyncNotifier<bool> {
+  Future<void> _settingsWriteQueue = Future<void>.value();
+  int _updateGeneration = 0;
+
+  @override
+  Future<bool> build() async {
+    final stored = await ref
+        .read(settingsRepositoryProvider)
+        .read(taskRemindersEnabledSettingKey);
+    return switch (stored) {
+      'true' => true,
+      'false' => false,
+      _ => true,
+    };
+  }
+
+  Future<bool> setEnabled(bool enabled) async {
+    final previous = state.requireValue;
+    if (previous == enabled) return true;
+    final generation = ++_updateGeneration;
+
+    // Keep the control responsive; persistence failure rolls the value back.
+    // Platform reconciliation is best effort and reports incomplete work.
+    state = AsyncData(enabled);
+    final write = _settingsWriteQueue.then<void>((_) async {
+      await ref
+          .read(settingsRepositoryProvider)
+          .write(taskRemindersEnabledSettingKey, enabled ? 'true' : 'false');
+    });
+    _settingsWriteQueue = write.catchError((Object _) {});
+    try {
+      await write;
+    } catch (_) {
+      if (generation == _updateGeneration) state = AsyncData(previous);
+      rethrow;
+    }
+    if (generation != _updateGeneration) return true;
+
+    try {
+      final repository = ref.read(taskRepositoryProvider);
+      final openTasks = await repository.watchOpen().first;
+      final tasks = <LocalTask>[...openTasks];
+      if (!enabled) tasks.addAll(await repository.watchCompleted().first);
+      final reconciler = ref.read(taskReminderReconcilerProvider);
+      for (final task in tasks) {
+        final outcome = await reconciler.reconcile(
+          task,
+          requestPermission: false,
+        );
+        if (outcome == TaskReminderOutcome.platformFailure ||
+            outcome == TaskReminderOutcome.unavailable) {
+          return false;
+        }
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+}

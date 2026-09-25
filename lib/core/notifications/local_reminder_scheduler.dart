@@ -15,7 +15,8 @@ import 'task_notification_identity_store.dart';
 /// The platform notification contains only the application identity and the
 /// Task's own title. Document, analysis, and linked-record content never cross
 /// this boundary.
-class LocalReminderScheduler implements ReminderScheduler {
+class LocalReminderScheduler
+    implements ReminderScheduler, ReminderPermissionReader {
   LocalReminderScheduler(
     this._identityStore, {
     FlutterLocalNotificationsPlugin? notifications,
@@ -38,6 +39,7 @@ class LocalReminderScheduler implements ReminderScheduler {
     required String taskId,
     required DateTime at,
     required String taskTitle,
+    bool requestPermission = true,
   }) async {
     if (!_isSupported) {
       reminderDebugLog('scheduler', 'unsupported platform');
@@ -46,9 +48,12 @@ class LocalReminderScheduler implements ReminderScheduler {
     try {
       reminderDebugLog('scheduler', 'schedule entered');
       await _initialize();
-      if (!await _requestPermissionContextually()) {
-        reminderDebugLog('scheduler', 'permission denied or unavailable');
-        return ReminderScheduleResult.permissionDenied;
+      final permissionFailure = await _permissionFailure(
+        requestPermission: requestPermission,
+      );
+      if (permissionFailure != null) {
+        reminderDebugLog('scheduler', 'permission ${permissionFailure.name}');
+        return permissionFailure;
       }
       final notificationId = await _identityStore.resolve(taskId);
       reminderDebugLog('scheduler', 'scheduling future reminder');
@@ -96,6 +101,36 @@ class LocalReminderScheduler implements ReminderScheduler {
   }
 
   bool get _isSupported => Platform.isAndroid || Platform.isIOS;
+
+  @override
+  Future<ReminderPermissionStatus> readPermissionStatus() async {
+    if (!_isSupported) return ReminderPermissionStatus.unavailable;
+    try {
+      if (Platform.isAndroid) {
+        final android = _notifications
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+        final enabled = await android?.areNotificationsEnabled();
+        return switch (enabled) {
+          true => ReminderPermissionStatus.allowed,
+          false => ReminderPermissionStatus.notAllowed,
+          null => ReminderPermissionStatus.unavailable,
+        };
+      }
+      final ios = _notifications
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      final settings = await ios?.checkPermissions();
+      if (settings == null) return ReminderPermissionStatus.unavailable;
+      return settings.isEnabled || settings.isProvisionalEnabled
+          ? ReminderPermissionStatus.allowed
+          : ReminderPermissionStatus.notAllowed;
+    } catch (_) {
+      return ReminderPermissionStatus.unavailable;
+    }
+  }
 
   /// Installs the foreground/background response callback and dispatches a
   /// notification that launched the process, if present.
@@ -206,13 +241,24 @@ class LocalReminderScheduler implements ReminderScheduler {
     reminderDebugLog('scheduler', 'initialized');
   }
 
-  Future<bool> _requestPermissionContextually() async {
-    // The adapter is called only after an explicit Task save with a reminder.
-    // A granted result is cached. A denied or unavailable request is not
-    // cached: another explicit user save must be able to reach Android again.
-    if (_permissionGrantedThisSession) {
+  Future<ReminderScheduleResult?> _permissionFailure({
+    required bool requestPermission,
+  }) async {
+    // Normal scheduling follows the existing contextual request policy. Bulk
+    // reconciliation from Settings reads permission and never prompts.
+    if (requestPermission && _permissionGrantedThisSession) {
       reminderDebugLog('permission', 'using granted session permission');
-      return true;
+      return null;
+    }
+    final status = await readPermissionStatus();
+    if (status == ReminderPermissionStatus.allowed) {
+      _permissionGrantedThisSession = true;
+      return null;
+    }
+    if (!requestPermission) {
+      return status == ReminderPermissionStatus.notAllowed
+          ? ReminderScheduleResult.permissionDenied
+          : ReminderScheduleResult.unavailable;
     }
     if (Platform.isAndroid) {
       final android = _notifications
@@ -224,18 +270,9 @@ class LocalReminderScheduler implements ReminderScheduler {
           'permission',
           'Android plugin implementation unavailable',
         );
-        return false;
+        return ReminderScheduleResult.unavailable;
       }
       reminderDebugLog('permission', 'Android plugin implementation resolved');
-      final enabled = await android.areNotificationsEnabled();
-      reminderDebugLog(
-        'permission',
-        'Android notification state=${enabled == true ? 'granted' : 'notGranted'}',
-      );
-      if (enabled == true) {
-        _permissionGrantedThisSession = true;
-        return true;
-      }
       reminderDebugLog(
         'permission',
         'requesting Android notification permission',
@@ -249,20 +286,21 @@ class LocalReminderScheduler implements ReminderScheduler {
       };
       reminderDebugLog('permission', 'Android permission result=$result');
       _permissionGrantedThisSession = accepted;
-      return accepted;
+      return accepted ? null : ReminderScheduleResult.permissionDenied;
     }
     final ios = _notifications
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
         >();
+    if (ios == null) return ReminderScheduleResult.unavailable;
     final granted =
-        await ios?.requestPermissions(alert: true, badge: true, sound: true) ??
+        await ios.requestPermissions(alert: true, badge: true, sound: true) ??
         false;
     _permissionGrantedThisSession = granted;
     reminderDebugLog(
       'permission',
       'iOS permission result=${granted ? 'granted' : 'denied'}',
     );
-    return granted;
+    return granted ? null : ReminderScheduleResult.permissionDenied;
   }
 }

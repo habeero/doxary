@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/notifications/reminder_scheduler.dart';
 import '../../document_analysis/domain/analysis_output_language.dart';
 import '../application/about_services.dart';
 
@@ -80,15 +81,12 @@ class ProfilePage extends ConsumerWidget {
                     title: l10n.notifications,
                     children: [
                       _SettingsSelectionRow(
+                        rowKey: const Key('settings-analysis-notifications'),
                         label: l10n.analysisNotifications,
                         icon: Icons.analytics_outlined,
                         deferred: true,
                       ),
-                      _SettingsSelectionRow(
-                        label: l10n.taskNotifications,
-                        icon: Icons.notifications_outlined,
-                        deferred: true,
-                      ),
+                      const _TaskRemindersSettingRow(),
                     ],
                   ),
                   _SettingsSection(
@@ -240,6 +238,63 @@ class _SettingsHeader extends StatelessWidget {
   }
 }
 
+class _TaskRemindersSettingRow extends ConsumerWidget {
+  const _TaskRemindersSettingRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final preference = ref.watch(taskRemindersEnabledProvider);
+    final permission = ref.watch(taskReminderPermissionStatusProvider);
+    final enabled = preference.asData?.value ?? true;
+    final permissionLabel = switch (permission.asData?.value) {
+      ReminderPermissionStatus.allowed => l10n.taskReminderPermissionAllowed,
+      ReminderPermissionStatus.notAllowed =>
+        l10n.taskReminderPermissionNotAllowed,
+      _ => null,
+    };
+
+    return SwitchListTile(
+      key: const Key('settings-task-reminders'),
+      contentPadding: EdgeInsets.zero,
+      secondary: const Icon(Icons.notifications_outlined),
+      title: Text(
+        l10n.taskNotifications,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: permissionLabel == null
+          ? null
+          : Text(permissionLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
+      value: enabled,
+      onChanged: preference.asData == null
+          ? null
+          : (value) => _setEnabled(context, ref, value),
+    );
+  }
+
+  Future<void> _setEnabled(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    try {
+      final reconciliationHadNoPlatformFailures = await ref
+          .read(taskRemindersEnabledProvider.notifier)
+          .setEnabled(enabled);
+      if (!context.mounted || reconciliationHadNoPlatformFailures) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.taskReminderUpdateIncomplete)),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.taskReminderPreferenceSaveFailed)),
+      );
+    }
+  }
+}
+
 class _SettingsSelectionRow extends StatelessWidget {
   const _SettingsSelectionRow({
     this.rowKey,
@@ -344,11 +399,13 @@ Future<void> _shareApp(
     height: 1,
   );
   try {
-    await ref.read(aboutShareServiceProvider).share(
-      text: '${l10n.productName}\n${l10n.shareAppMessage}',
-      title: l10n.shareApp,
-      sharePositionOrigin: origin,
-    );
+    await ref
+        .read(aboutShareServiceProvider)
+        .share(
+          text: '${l10n.productName}\n${l10n.shareAppMessage}',
+          title: l10n.shareApp,
+          sharePositionOrigin: origin,
+        );
   } catch (_) {
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.maybeOf(context);

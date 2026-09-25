@@ -3,9 +3,12 @@ import 'dart:ui' show Rect;
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
 import 'package:doxary/app/theme/app_theme.dart';
+import 'package:doxary/core/notifications/reminder_scheduler.dart';
+import 'package:doxary/features/documents/domain/entities/domain_entities.dart';
 import 'package:doxary/features/settings/application/about_services.dart';
 import 'package:doxary/features/settings/domain/settings_repository.dart';
 import 'package:doxary/features/settings/presentation/profile_page.dart';
+import 'package:doxary/features/tasks/domain/repositories/task_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,9 +44,131 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.byType(Switch), findsNothing);
+    expect(find.byType(Switch), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Datenschutz und Daten'), 200);
     expect(find.text('Datenschutz und Daten'), findsOneWidget);
+  });
+
+  testWidgets('Task reminder switch defaults on and persists immediately', (
+    tester,
+  ) async {
+    final settings = _MemorySettings();
+    await _pump(tester, const Locale('de'), settings: settings);
+    final row = find.byKey(const Key('settings-task-reminders'));
+    await tester.scrollUntilVisible(row, 200);
+    final reminderSwitch = find.descendant(
+      of: row,
+      matching: find.byType(Switch),
+    );
+
+    expect(tester.widget<Switch>(reminderSwitch).value, isTrue);
+    await tester.tap(reminderSwitch);
+    await tester.pumpAndSettle();
+
+    expect(settings.values[taskRemindersEnabledSettingKey], 'false');
+    expect(tester.widget<Switch>(reminderSwitch).value, isFalse);
+  });
+
+  testWidgets('Task reminder switch restores persisted disabled state', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const Locale('de'),
+      settings: _MemorySettings({taskRemindersEnabledSettingKey: 'false'}),
+    );
+    final row = find.byKey(const Key('settings-task-reminders'));
+    await tester.scrollUntilVisible(row, 200);
+
+    expect(
+      tester
+          .widget<Switch>(
+            find.descendant(of: row, matching: find.byType(Switch)),
+          )
+          .value,
+      isFalse,
+    );
+  });
+
+  testWidgets(
+    'OS permission status is localized and separate from the switch',
+    (tester) async {
+      await _pump(
+        tester,
+        const Locale('de'),
+        settings: _MemorySettings({taskRemindersEnabledSettingKey: 'true'}),
+        permissionStatus: ReminderPermissionStatus.notAllowed,
+      );
+      final row = find.byKey(const Key('settings-task-reminders'));
+      await tester.scrollUntilVisible(row, 200);
+
+      expect(find.text('Benachrichtigungen nicht erlaubt'), findsOneWidget);
+      expect(
+        tester
+            .widget<Switch>(
+              find.descendant(of: row, matching: find.byType(Switch)),
+            )
+            .value,
+        isTrue,
+      );
+    },
+  );
+
+  testWidgets('OS permission status is localized in Arabic RTL', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const Locale('ar'),
+      settings: _MemorySettings({taskRemindersEnabledSettingKey: 'true'}),
+      permissionStatus: ReminderPermissionStatus.allowed,
+    );
+    final row = find.byKey(const Key('settings-task-reminders'));
+    await tester.scrollUntilVisible(row, 200);
+
+    expect(find.text('الإشعارات مسموح بها'), findsOneWidget);
+    expect(Directionality.of(tester.element(row)), TextDirection.rtl);
+  });
+
+  testWidgets('Analysis notifications remain visibly unavailable', (
+    tester,
+  ) async {
+    await _pump(tester, const Locale('de'));
+    final row = find.byKey(const Key('settings-analysis-notifications'));
+    await tester.scrollUntilVisible(row, 200);
+
+    expect(
+      find.descendant(
+        of: row,
+        matching: find.text(
+          AppLocalizations(const Locale('de')).notAvailableYet,
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: row, matching: find.byType(Switch)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('Task reminder switch keeps Arabic RTL and German LTR', (
+    tester,
+  ) async {
+    for (final locale in [const Locale('de'), const Locale('ar')]) {
+      await _pump(tester, locale, scopeKey: ValueKey(locale.languageCode));
+      final row = find.byKey(const Key('settings-task-reminders'));
+      await tester.scrollUntilVisible(row, 200);
+      expect(
+        Directionality.of(tester.element(row)),
+        locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+      );
+      expect(
+        find.descendant(of: row, matching: find.byType(Switch)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('Explanation language row is enabled and opens its selector', (
@@ -542,11 +667,7 @@ void main() {
     tester,
   ) async {
     final shareService = _FakeAboutShareService();
-    await _pump(
-      tester,
-      const Locale('de'),
-      shareService: shareService,
-    );
+    await _pump(tester, const Locale('de'), shareService: shareService);
     final rateRow = find.byKey(const Key('settings-rate-app'));
     await tester.scrollUntilVisible(rateRow, 200);
     await tester.ensureVisible(rateRow);
@@ -565,10 +686,7 @@ void main() {
     );
     expect(semantics.properties.enabled, isFalse);
     expect(
-      find.descendant(
-        of: rateRow,
-        matching: find.byIcon(Icons.chevron_right),
-      ),
+      find.descendant(of: rateRow, matching: find.byIcon(Icons.chevron_right)),
       findsNothing,
     );
     await tester.tap(rateRow);
@@ -593,10 +711,7 @@ void main() {
       final l10n = AppLocalizations(locale);
       expect(shareService.calls, 1);
       expect(shareService.title, l10n.shareApp);
-      expect(
-        shareService.text,
-        '${l10n.productName}\n${l10n.shareAppMessage}',
-      );
+      expect(shareService.text, '${l10n.productName}\n${l10n.shareAppMessage}');
       expect(shareService.text, isNot(contains('http://')));
       expect(shareService.text, isNot(contains('https://')));
       expect(shareService.sharePositionOrigin?.width, greaterThan(0));
@@ -610,11 +725,7 @@ void main() {
     final shareService = _FakeAboutShareService(
       failure: StateError('private error'),
     );
-    await _pump(
-      tester,
-      const Locale('ar'),
-      shareService: shareService,
-    );
+    await _pump(tester, const Locale('ar'), shareService: shareService);
     final shareRow = find.byKey(const Key('settings-share-app'));
     await tester.scrollUntilVisible(shareRow, 200);
     await tester.ensureVisible(shareRow);
@@ -630,45 +741,48 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('About rows remain bounded in German and Arabic at narrow width', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(280, 800);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'About rows remain bounded in German and Arabic at narrow width',
+    (tester) async {
+      tester.view.physicalSize = const Size(280, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    for (final locale in [const Locale('de'), const Locale('ar')]) {
-      await _pump(
-        tester,
-        locale,
-        metadataReader: const _FakeMetadataReader(
-          metadata: AppMetadata(
-            version: '2026.09.25-development-build',
-            buildNumber: 'long-build-metadata-value',
-          ),
-        ),
-      );
-      final versionRow = find.byKey(const Key('settings-app-version'));
-      await tester.scrollUntilVisible(versionRow, 200);
-      expect(
-        Directionality.of(tester.element(versionRow)),
-        locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
-      );
-      expect(
-        tester.widget<Text>(
-          find.descendant(
-            of: versionRow,
-            matching: find.text(
-              '2026.09.25-development-build (long-build-metadata-value)',
+      for (final locale in [const Locale('de'), const Locale('ar')]) {
+        await _pump(
+          tester,
+          locale,
+          metadataReader: const _FakeMetadataReader(
+            metadata: AppMetadata(
+              version: '2026.09.25-development-build',
+              buildNumber: 'long-build-metadata-value',
             ),
           ),
-        ).overflow,
-        TextOverflow.ellipsis,
-      );
-      expect(tester.takeException(), isNull);
-    }
-  });
+        );
+        final versionRow = find.byKey(const Key('settings-app-version'));
+        await tester.scrollUntilVisible(versionRow, 200);
+        expect(
+          Directionality.of(tester.element(versionRow)),
+          locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        );
+        expect(
+          tester
+              .widget<Text>(
+                find.descendant(
+                  of: versionRow,
+                  matching: find.text(
+                    '2026.09.25-development-build (long-build-metadata-value)',
+                  ),
+                ),
+              )
+              .overflow,
+          TextOverflow.ellipsis,
+        );
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
 }
 
 Future<void> _pump(
@@ -678,6 +792,7 @@ Future<void> _pump(
   Key? scopeKey,
   AppMetadataReader? metadataReader,
   AboutShareService? shareService,
+  ReminderPermissionStatus? permissionStatus,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -687,15 +802,24 @@ Future<void> _pump(
         settingsRepositoryProvider.overrideWithValue(
           settings ?? _MemorySettings(),
         ),
+        taskRepositoryProvider.overrideWithValue(_EmptyTaskRepository()),
+        reminderSchedulerProvider.overrideWithValue(_NoopReminderScheduler()),
         appMetadataReaderProvider.overrideWithValue(
           metadataReader ??
               _FakeMetadataReader(
-                metadata: const AppMetadata(version: '2.4.1', buildNumber: '17'),
+                metadata: const AppMetadata(
+                  version: '2.4.1',
+                  buildNumber: '17',
+                ),
               ),
         ),
         aboutShareServiceProvider.overrideWithValue(
           shareService ?? _FakeAboutShareService(),
         ),
+        if (permissionStatus != null)
+          taskReminderPermissionStatusProvider.overrideWith(
+            (ref) async => permissionStatus!,
+          ),
       ],
       child: const _SettingsTestApp(),
     ),
@@ -744,6 +868,55 @@ class _MemorySettings implements SettingsRepository {
   }
 }
 
+class _EmptyTaskRepository implements TaskRepository {
+  @override
+  Stream<List<LocalTask>> watchOpen() => Stream.value(const []);
+
+  @override
+  Stream<List<LocalTask>> watchCompleted() => Stream.value(const []);
+
+  @override
+  Future<LocalTask?> getById(String taskId) async => null;
+
+  @override
+  Future<LocalTask?> findBySourceAction(
+    String sourceAnalysisId,
+    String sourceActionKey,
+  ) async => null;
+
+  @override
+  Future<void> save(LocalTask task) async {}
+
+  @override
+  Future<void> updateStatus(
+    String taskId,
+    TaskStatus status,
+    DateTime updatedAt,
+  ) async {}
+
+  @override
+  Future<void> delete(String taskId) async {}
+}
+
+class _NoopReminderScheduler
+    implements ReminderScheduler, ReminderPermissionReader {
+  @override
+  Future<ReminderPermissionStatus> readPermissionStatus() async =>
+      ReminderPermissionStatus.unavailable;
+
+  @override
+  Future<ReminderScheduleResult> schedule({
+    required String taskId,
+    required DateTime at,
+    required String taskTitle,
+    bool requestPermission = true,
+  }) async => ReminderScheduleResult.unavailable;
+
+  @override
+  Future<ReminderScheduleResult> cancel(String taskId) async =>
+      ReminderScheduleResult.cancelled;
+}
+
 class _FakeMetadataReader implements AppMetadataReader {
   const _FakeMetadataReader({this.metadata, this.failure});
 
@@ -754,8 +927,7 @@ class _FakeMetadataReader implements AppMetadataReader {
   Future<AppMetadata> read() async {
     final error = failure;
     if (error != null) throw error;
-    return metadata ??
-        const AppMetadata(version: '2.4.1', buildNumber: '17');
+    return metadata ?? const AppMetadata(version: '2.4.1', buildNumber: '17');
   }
 }
 

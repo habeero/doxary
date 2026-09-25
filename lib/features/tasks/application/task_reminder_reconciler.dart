@@ -9,6 +9,7 @@ import '../../documents/domain/entities/domain_entities.dart';
 enum TaskReminderOutcome {
   scheduled,
   cancelled,
+  globallyDisabled,
   noReminder,
   reminderTimePassed,
   permissionDenied,
@@ -21,13 +22,21 @@ class TaskReminderReconciler {
   /// preference may supply this policy without changing Task persistence.
   static const allDayAnchorMinutes = 9 * 60;
 
-  TaskReminderReconciler(this._scheduler, {DateTime Function()? now})
-    : _now = now ?? DateTime.now;
+  TaskReminderReconciler(
+    this._scheduler, {
+    DateTime Function()? now,
+    Future<bool> Function()? remindersEnabled,
+  }) : _now = now ?? DateTime.now,
+       _remindersEnabled = remindersEnabled;
 
   final ReminderScheduler _scheduler;
   final DateTime Function() _now;
+  final Future<bool> Function()? _remindersEnabled;
 
-  Future<TaskReminderOutcome> reconcile(LocalTask task) async {
+  Future<TaskReminderOutcome> reconcile(
+    LocalTask task, {
+    bool requestPermission = true,
+  }) async {
     reminderTaskStateDebugLog(
       'reconciler',
       event: 'entered',
@@ -36,25 +45,54 @@ class TaskReminderReconciler {
       timePresent: task.dueTimeMinutes != null,
       status: task.status.name,
     );
+    final enabledReader = _remindersEnabled;
+    if (enabledReader != null) {
+      bool enabled;
+      try {
+        enabled = await enabledReader();
+      } catch (error) {
+        reminderDebugLog(
+          'reconciler',
+          'preference read failed (${error.runtimeType})',
+        );
+        await _cancelPlatform(task.id);
+        return TaskReminderOutcome.platformFailure;
+      }
+      if (!enabled) {
+        final result = await _cancelPlatform(task.id);
+        if (result == ReminderScheduleResult.cancelled ||
+            result == ReminderScheduleResult.scheduled) {
+          return TaskReminderOutcome.globallyDisabled;
+        }
+        return _fromSchedule(result);
+      }
+    }
     if (task.status != TaskStatus.open || task.reminderMinutesBefore == null) {
       reminderDebugLog(
         'reconciler',
         'no active reminder; cancelling '
-        'statusOpen=${task.status == TaskStatus.open} '
-        'reminderPresent=${task.reminderMinutesBefore != null}',
+            'statusOpen=${task.status == TaskStatus.open} '
+            'reminderPresent=${task.reminderMinutesBefore != null}',
       );
       return _cancel(task.id, noReminder: task.reminderMinutesBefore == null);
     }
 
     final reminderAt = reminderInstant(task);
     if (reminderAt == null || !reminderAt.isAfter(_now())) {
-      reminderDebugLog('reconciler', 'reminder time unavailable or passed; cancelling');
+      reminderDebugLog(
+        'reconciler',
+        'reminder time unavailable or passed; cancelling',
+      );
       await _cancelPlatform(task.id);
       return TaskReminderOutcome.reminderTimePassed;
     }
 
     reminderDebugLog('reconciler', 'future reminder; scheduling requested');
-    final result = await _schedulePlatform(task, reminderAt);
+    final result = await _schedulePlatform(
+      task,
+      reminderAt,
+      requestPermission: requestPermission,
+    );
     reminderDebugLog('reconciler', 'scheduler result=${result.name}');
     return _fromSchedule(result);
   }
@@ -78,7 +116,10 @@ class TaskReminderReconciler {
     return localDue.subtract(Duration(minutes: lead));
   }
 
-  Future<TaskReminderOutcome> _cancel(String taskId, {bool noReminder = false}) async {
+  Future<TaskReminderOutcome> _cancel(
+    String taskId, {
+    bool noReminder = false,
+  }) async {
     final result = await _cancelPlatform(taskId);
     if (noReminder) return TaskReminderOutcome.noReminder;
     if (result == ReminderScheduleResult.cancelled ||
@@ -90,13 +131,15 @@ class TaskReminderReconciler {
 
   Future<ReminderScheduleResult> _schedulePlatform(
     LocalTask task,
-    DateTime reminderAt,
-  ) async {
+    DateTime reminderAt, {
+    required bool requestPermission,
+  }) async {
     try {
       return await _scheduler.schedule(
         taskId: task.id,
         at: reminderAt,
         taskTitle: task.title,
+        requestPermission: requestPermission,
       );
     } catch (error) {
       reminderDebugLog('reconciler', 'scheduler threw ${error.runtimeType}');
@@ -113,11 +156,14 @@ class TaskReminderReconciler {
     }
   }
 
-  TaskReminderOutcome _fromSchedule(ReminderScheduleResult result) => switch (result) {
-    ReminderScheduleResult.scheduled => TaskReminderOutcome.scheduled,
-    ReminderScheduleResult.cancelled => TaskReminderOutcome.cancelled,
-    ReminderScheduleResult.permissionDenied => TaskReminderOutcome.permissionDenied,
-    ReminderScheduleResult.unavailable => TaskReminderOutcome.unavailable,
-    ReminderScheduleResult.platformFailure => TaskReminderOutcome.platformFailure,
-  };
+  TaskReminderOutcome _fromSchedule(ReminderScheduleResult result) =>
+      switch (result) {
+        ReminderScheduleResult.scheduled => TaskReminderOutcome.scheduled,
+        ReminderScheduleResult.cancelled => TaskReminderOutcome.cancelled,
+        ReminderScheduleResult.permissionDenied =>
+          TaskReminderOutcome.permissionDenied,
+        ReminderScheduleResult.unavailable => TaskReminderOutcome.unavailable,
+        ReminderScheduleResult.platformFailure =>
+          TaskReminderOutcome.platformFailure,
+      };
 }
