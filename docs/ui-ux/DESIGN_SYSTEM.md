@@ -4,7 +4,7 @@
 
 Doxary uses a calm, trustworthy, low-noise, mobile-first visual direction. It should feel professional and reassuring without resembling a bank, hospital, or government portal. Typography and layout support German and Arabic equally well, including scalable text, comfortable line height, and RTL-aware alignment and mirroring.
 
-The approved Figma references are Light-theme references. Light mode is the current visual implementation baseline, the main app background is `#F8FAFC`, and current UI/UX visual validation is performed against Light mode. Dark mode is deferred for a later dedicated design pass; there is currently no approved production dark palette.
+The approved Figma references are Light-theme references. Light mode remains the visual baseline with `#F8FAFC` as the main app background. System, Light, and Dark appearance modes are implemented; Dark uses the semantic palette below. Dark is not yet visually verified across individual feature screens, so real-device review remains necessary before claiming full-app dark-mode readiness.
 
 The `Doxary` text shown in wireframes represents the application logo/brand. It belongs in the application header and is not a large page title inside scrollable content. Primary root screens use a consistent app-header brand treatment. Focused or nested flows may instead use contextual Back/Close headers.
 
@@ -27,6 +27,15 @@ Use semantic tokens rather than screen-specific colors:
 | `warning` | `#D97706` | Review-needed or warning state |
 | `error` | `#B91C1C` | Failure and destructive actions |
 | `info` | `#2563EB` | Neutral informational state |
+| `darkBackground` | `#0B1220` | Main Dark-mode app background |
+| `darkSurface` | `#111827` | Dark-mode sheets, dialogs, and functional surfaces |
+| `darkSurfaceAlt` | `#1F2937` | Dark-mode inputs and low-emphasis grouped surfaces |
+| `darkTextPrimary` | `#F8FAFC` | Primary text in Dark mode |
+| `darkTextSecondary` | `#CBD5E1` | Secondary text and metadata in Dark mode |
+| `darkPrimary` | `#2DD4BF` | Primary actions and selected states in Dark mode |
+| `darkSuccess` | `#4ADE80` | Positive or success state in Dark mode |
+| `darkWarning` | `#F59E0B` | Review-needed or warning state in Dark mode |
+| `darkError` | `#F87171` | Failure and destructive actions in Dark mode |
 
 Status colors are never used as decoration or communicated by color alone. Pair status with a label, icon, or both.
 

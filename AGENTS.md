@@ -70,13 +70,42 @@ Do not run by default:
 - emulator/device/debug operations
 - full generators
 
-Allowed by default:
+Allowed by default only when fast and bounded:
 - inspect/edit files
-- `dart format` on touched Dart files
+- `dart format` on explicitly touched Dart files
 - `git diff --check`
 - lightweight targeted inspection
 
 Report the exact heavier validation commands the user should run manually when needed.
+
+### Command execution limits
+
+Keep agent-side command execution fast and bounded.
+
+If a command is expected to take noticeable time, require Flutter startup,
+scan a large part of the repository, or may block unpredictably, do not run it.
+Report the exact command for the user to run manually instead.
+
+If any command:
+- hangs;
+- exceeds a short interactive wait;
+- fails because of environment/tooling/permission issues;
+
+stop after the first attempt.
+
+Do not retry the same command or an equivalent heavier command unless the user
+explicitly asks for a retry.
+
+This applies even to commands otherwise allowed by default.
+
+For `dart format`:
+- run it only on explicitly touched Dart files;
+- if it does not complete promptly, stop immediately;
+- do not retry;
+- report the exact formatting command for the user to run manually.
+
+Prefer completing the code change and reporting pending manual validation over
+spending time troubleshooting local tooling.
 
 ## General repository safety
 

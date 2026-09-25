@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
+import 'package:doxary/app/theme/app_theme.dart';
 import 'package:doxary/features/cases/presentation/case_page.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_repository.dart';
 import 'package:doxary/features/document_analysis/domain/analysis_submission.dart';
@@ -12,6 +13,7 @@ import 'package:doxary/features/documents/presentation/documents_page.dart';
 import 'package:doxary/features/home/presentation/home_page.dart';
 import 'package:doxary/features/organizations/presentation/organization_page.dart';
 import 'package:doxary/features/settings/domain/settings_repository.dart';
+import 'package:doxary/shared/design_system/app_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,6 +52,188 @@ void main() {
       find.byKey(const Key('home-recent-document-recent-5')),
       findsNothing,
     );
+  });
+
+  testWidgets('Home surfaces follow Light and Dark theme semantics', (
+    tester,
+  ) async {
+    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+      await _pumpThemedHome(tester, themeMode: mode);
+
+      final home = find.byType(HomePage);
+      final theme = Theme.of(tester.element(home));
+      final colors = theme.colorScheme;
+      final rootSurface = find
+          .descendant(of: home, matching: find.byType(Material))
+          .first;
+      expect(
+        tester.widget<Material>(rootSurface).color,
+        theme.scaffoldBackgroundColor,
+      );
+
+      final action = find.byKey(const Key('home-action-required-theme-action'));
+      final actionSurface = find
+          .descendant(of: action, matching: find.byType(Material))
+          .first;
+      expect(
+        tester.widget<Material>(actionSurface).color,
+        colors.primaryContainer,
+      );
+      final actionTitle = find
+          .descendant(of: action, matching: find.byType(Text))
+          .first;
+      expect(
+        tester.widget<Text>(actionTitle).style?.color,
+        colors.onPrimaryContainer,
+      );
+
+      final attention = find.byKey(const Key('home-needs-attention'));
+      final attentionSurface = find
+          .ancestor(of: attention, matching: find.byType(Material))
+          .first;
+      expect(
+        tester.widget<Material>(attentionSurface).color,
+        colors.errorContainer,
+      );
+      final attentionTile = tester.widget<ListTile>(attention);
+      expect(attentionTile.textColor, colors.onErrorContainer);
+      expect(attentionTile.iconColor, colors.onErrorContainer);
+
+      final processing = find.byKey(
+        const Key('home-processing-document-theme-processing'),
+      );
+      final processingSurface = find
+          .descendant(of: processing, matching: find.byType(Material))
+          .first;
+      expect(tester.widget<Material>(processingSurface).color, colors.surface);
+      expect(
+        tester
+            .widget<CircularProgressIndicator>(
+              find.descendant(
+                of: processing,
+                matching: find.byType(CircularProgressIndicator),
+              ),
+            )
+            .color,
+        colors.primary,
+      );
+      final processingTitle = find
+          .descendant(of: processing, matching: find.byType(Text))
+          .first;
+      expect(
+        tester.widget<Text>(processingTitle).style?.color,
+        colors.onSurface,
+      );
+
+      final recent = find.byKey(
+        const Key('home-recent-document-theme-recent-1'),
+      );
+      final recentTitle = find
+          .descendant(of: recent, matching: find.byType(Text))
+          .first;
+      expect(tester.widget<Text>(recentTitle).style?.color, colors.onSurface);
+      final recentIcon = find
+          .descendant(of: recent, matching: find.byType(Icon))
+          .first;
+      expect(tester.widget<Icon>(recentIcon).color, colors.onSurfaceVariant);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets('Home preserves RTL/LTR and fits narrow widths', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.physicalSize = const Size(280, 820);
+    tester.view.devicePixelRatio = 1;
+
+    for (final locale in [const Locale('de'), const Locale('ar')]) {
+      await _pumpThemedHome(tester, themeMode: ThemeMode.dark, locale: locale);
+      expect(
+        Directionality.of(tester.element(find.byType(HomePage))),
+        locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+      );
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets('Home empty, loading, and error states use the Dark theme', (
+    tester,
+  ) async {
+    final states =
+        <
+          ({
+            AsyncValue<List<LocalDocument>> documents,
+            String? expectedMessage,
+            bool expectEmpty,
+            bool expectLoading,
+          })
+        >[
+          (
+            documents: const AsyncValue<List<LocalDocument>>.loading(),
+            expectedMessage: null,
+            expectEmpty: false,
+            expectLoading: true,
+          ),
+          (
+            documents: AsyncValue.error(
+              StateError('private'),
+              StackTrace.current,
+            ),
+            expectedMessage: AppLocalizations(const Locale('de'))
+                .localDataUnavailable,
+            expectEmpty: false,
+            expectLoading: false,
+          ),
+          (
+            documents: const AsyncValue<List<LocalDocument>>.data([]),
+            expectedMessage: null,
+            expectEmpty: true,
+            expectLoading: false,
+          ),
+        ];
+
+    for (final state in states) {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [
+            homeDocumentsProvider.overrideWithValue(state.documents),
+            activeAnalysisOperationsProvider.overrideWithValue(
+              const AsyncValue.data([]),
+            ),
+            openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+            completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+            settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
+            _browseStatesOverride({}),
+          ],
+          child: _app(
+            const Scaffold(body: HomePage()),
+            themeMode: ThemeMode.dark,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      final theme = Theme.of(tester.element(find.byType(HomePage)));
+      final rootSurface = find
+          .descendant(
+            of: find.byType(HomePage),
+            matching: find.byType(Material),
+          )
+          .first;
+      expect(
+        tester.widget<Material>(rootSurface).color,
+        theme.scaffoldBackgroundColor,
+      );
+      if (state.expectLoading) {
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      }
+      final message = state.expectedMessage;
+      if (message != null) expect(find.text(message), findsOneWidget);
+      if (state.expectEmpty) expect(find.byType(AppEmptyState), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets(
@@ -1259,7 +1443,105 @@ List _documentOverrides(
   documentFilesProvider(id).overrideWithValue(AsyncValue.data(files)),
 ];
 
-Widget _app(Widget home, {Locale locale = const Locale('de')}) => MaterialApp(
+Future<void> _pumpThemedHome(
+  WidgetTester tester, {
+  required ThemeMode themeMode,
+  Locale locale = const Locale('de'),
+}) async {
+  final action = _document('theme-action');
+  final attention = _document(
+    'theme-attention',
+    status: DocumentStatus.needsReview,
+  );
+  final processing = _document(
+    'theme-processing',
+    status: DocumentStatus.processing,
+  );
+  final recentOne = _document('theme-recent-1');
+  final recentTwo = _document('theme-recent-2');
+
+  await tester.pumpWidget(
+    ProviderScope(
+      key: ValueKey('home-$themeMode-${locale.languageCode}'),
+      overrides: [
+        homeDocumentsProvider.overrideWithValue(
+          AsyncValue.data([action, attention, processing, recentOne, recentTwo]),
+        ),
+        activeAnalysisOperationsProvider.overrideWithValue(
+          const AsyncValue.data([
+            PendingAnalysisOperation(
+              operationId: 'theme-processing-operation',
+              clientDocumentId: 'theme-processing',
+              state: AnalysisLifecycleState.processing,
+            ),
+          ]),
+        ),
+        openTasksProvider.overrideWithValue(const AsyncValue.data([])),
+        completedTasksProvider.overrideWithValue(const AsyncValue.data([])),
+        settingsRepositoryProvider.overrideWithValue(_MemorySettings()),
+        _browseStatesOverride({
+          'theme-action': _browseState(usable: true),
+          'theme-attention': _browseState(
+            reason: DocumentAttentionReason.failed,
+            at: DateTime(2026, 9, 20, 10),
+          ),
+          'theme-processing': _browseState(processing: true),
+          'theme-recent-1': _browseState(usable: true),
+          'theme-recent-2': _browseState(usable: true),
+        }),
+        ..._documentOverrides(
+          'theme-action',
+          analysis: DocumentAnalysis(
+            id: 'analysis-theme-action',
+            clientDocumentId: 'theme-action',
+            schemaVersion: 'analysis_result.v1',
+            targetLanguage: 'de',
+            createdAt: DateTime(2026),
+            actionRequired: ActionRequirement.yes,
+            nextActions: const [
+              'Review the deadline and respond with the requested information.',
+            ],
+            deadlines: const [
+              AnalysisDeadline(
+                label: 'response',
+                dateOrRange: 'within ten days',
+                confidence: 1,
+              ),
+            ],
+          ),
+        ),
+        ..._documentOverrides('theme-attention'),
+        ..._documentOverrides('theme-processing'),
+        ..._documentOverrides(
+          'theme-recent-1',
+          analysis: _analysisFor('theme-recent-1', 'Recent document'),
+          files: [_file('theme-recent-1', 'Recent document.pdf')],
+        ),
+        ..._documentOverrides(
+          'theme-recent-2',
+          analysis: _analysisFor('theme-recent-2', 'Older document'),
+          files: [_file('theme-recent-2', 'Older document.pdf')],
+        ),
+      ],
+      child: _app(
+        const Scaffold(body: HomePage()),
+        locale: locale,
+        themeMode: themeMode,
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 50));
+}
+
+Widget _app(
+  Widget home, {
+  Locale locale = const Locale('de'),
+  ThemeMode? themeMode,
+}) => MaterialApp(
+  theme: themeMode == null ? null : AppTheme.light(),
+  darkTheme: themeMode == null ? null : AppTheme.dark(),
+  themeMode: themeMode ?? ThemeMode.system,
   locale: locale,
   supportedLocales: AppLocalizations.supportedLocales,
   localizationsDelegates: const [

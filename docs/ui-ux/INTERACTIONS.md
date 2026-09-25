@@ -76,7 +76,7 @@ Create/Edit Task uses a calm hierarchy: the full-width title comes first, Date a
 
 ## Settings and notifications
 
-**Current implementation status:** Settings is a bottom-navigation root with Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About sections. Its app-language value row opens a focused sheet, applies the existing persisted locale preference immediately, and closes without changing state when dismissed. Default explanation-language persistence exists elsewhere but has no Settings control; profile/account, plan/account, notifications, appearance, privacy/data, legal, and about are visible but currently unavailable and non-navigating. These are pre-release implementation gaps, not permanent post-MVP placeholders.
+**Current implementation status:** Settings is a bottom-navigation root with Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About sections. Its App language, Explanation language, and Appearance value rows open focused sheets, apply their independent persisted preferences immediately, and close without changing state when dismissed. Explanation language uses the existing `analysisLanguageProvider` and `analysis_language` preference; changing it does not change UI language, and future Analyze/retry flows observe the same provider value. Appearance uses System, Light, or Dark, persists locally, and defaults to System when no valid preference exists. Profile/account, plan/account, notifications, privacy/data, legal, and about remain visible pre-release implementation gaps, not permanent post-MVP placeholders.
 
 The remaining Settings and notification behavior below is approved intended behavior and required pre-release work, not current implementation.
 
@@ -88,7 +88,9 @@ Account behavior requires a deliberate product design consistent with the final 
 
 ### Language
 
-App-language behavior is implemented. Settings must eventually expose the approved default explanation-language control while preserving the existing independent UI-language and analysis-output-language preferences, current persisted behavior, and the rule that changing a preference never silently rewrites prior analysis content.
+App-language and explanation-language behavior are implemented in Settings. App language persists through `ui_language`; Explanation language reuses `analysisLanguageProvider` and persists through `analysis_language`. They remain independent preferences: changing either one does not overwrite the other, and changing Explanation language does not silently rewrite prior analysis content. Future Analyze and Document retry flows use the selected explanation-language provider value.
+
+The current handwritten localization structure is sufficient for German and Arabic, so it does not block completion of the current two-language Settings work. Before adding a third UI language, review and refactor the localization architecture. Evaluate Flutter `gen_l10n` with per-locale ARB catalogs as the preferred candidate for generated typed accessors, placeholders, plural/select messages, and translation-completeness checks; this is a candidate for future evaluation, not a committed migration. Future language selectors should use data-driven supported-language options rather than another dedicated branch per language.
 
 ### Notifications
 
@@ -96,7 +98,7 @@ Notifications must become real before launch, including the intended notificatio
 
 ### Appearance
 
-Appearance must have real behavior before launch if it remains in the launch UI. Light mode and `#F8FAFC` remain the current visual baseline. Dark mode has no approved production palette, so it requires a dedicated design and implementation task rather than being represented as already supported.
+Appearance is functional. Its focused selector offers System, Light, and Dark; a new or invalid preference resolves to System. The selected `ThemeMode` is stored locally under `theme_mode` using stable `system`, `light`, or `dark` values, never translated labels. Selection updates the application immediately, while System mode delegates platform-brightness behavior to Flutter. Settings surfaces and header follow the active theme. Other feature screens have not been comprehensively audited for hardcoded light colors and still require physical review in both theme modes.
 
 ### Privacy & Data
 

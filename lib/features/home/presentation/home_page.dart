@@ -38,7 +38,7 @@ class HomePage extends ConsumerWidget {
     };
 
     return Material(
-      color: AppColors.background,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
         child: Column(
           children: [
@@ -115,8 +115,14 @@ class _HomeAppHeader extends StatelessWidget {
         AppSpacing.lg,
         AppSpacing.sm,
       ),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xffE2E8F0))),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color:
+                Theme.of(context).dividerTheme.color ??
+                Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
       ),
       child: Row(
         children: [
@@ -138,7 +144,7 @@ class _HomeAppHeader extends StatelessWidget {
           Text(
             context.l10n.productName,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -262,7 +268,6 @@ class _HomeOverview extends ConsumerWidget {
               alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 onPressed: onViewAll,
-                style: TextButton.styleFrom(foregroundColor: AppColors.primary),
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(l10n.viewAllDocuments),
               ),
@@ -282,7 +287,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Text(
     title,
     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-      color: AppColors.textPrimary,
+      color: Theme.of(context).colorScheme.onSurface,
       fontSize: 17,
       fontWeight: FontWeight.w600,
       height: 1.2,
@@ -304,7 +309,8 @@ class _ActionRequiredItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final analysis = entry.analysis!;
-    const primary = AppColors.primary;
+    final colors = Theme.of(context).colorScheme;
+    final foreground = colors.onPrimaryContainer;
     final detail =
         _firstMeaningful(analysis.nextActions) ?? l10n.actionRequiredBody;
     final deadline = _firstDeadline(analysis);
@@ -314,75 +320,81 @@ class _ActionRequiredItem extends StatelessWidget {
     return Semantics(
       button: true,
       label: '${l10n.actionRequired}: ${entry.title(l10n)}',
+      key: Key('home-action-required-${entry.document.clientDocumentId}'),
       child: Material(
-        color: AppColors.primaryLight,
+        color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+          child: DefaultTextStyle.merge(
+            style: TextStyle(color: foreground),
+            child: IconTheme.merge(
+              data: IconThemeData(color: foreground),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.priority_high_outlined, color: primary),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        entry.title(l10n),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
+                    Row(
+                      children: [
+                        Icon(Icons.priority_high_outlined, color: foreground),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            entry.title(l10n),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: foreground,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                        IconButton(
+                          key: Key(
+                            'home-action-dismiss-${entry.document.clientDocumentId}',
+                          ),
+                          tooltip: l10n.dismiss,
+                          onPressed: () => onDismiss(),
+                          icon: Icon(Icons.close, size: 20, color: foreground),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      key: Key(
-                        'home-action-dismiss-${entry.document.clientDocumentId}',
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(detail),
+                    if (deadline != null || amount != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Wrap(
+                        spacing: AppSpacing.md,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          if (deadline != null)
+                            _ActionFact(
+                              icon: Icons.event_outlined,
+                              label: '${l10n.deadline}: $deadline',
+                            ),
+                          if (amount != null)
+                            _ActionFact(
+                              icon: Icons.payments_outlined,
+                              label: '${l10n.amount}: $amount',
+                            ),
+                        ],
                       ),
-                      tooltip: l10n.dismiss,
-                      onPressed: () => onDismiss(),
-                      icon: const Icon(Icons.close, size: 20),
+                    ],
+                    const SizedBox(height: AppSpacing.sm),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        onPressed: onTap,
+                        style: TextButton.styleFrom(
+                          foregroundColor: foreground,
+                        ),
+                        child: Text(l10n.openDocument),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  detail,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                ),
-                if (deadline != null || amount != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Wrap(
-                    spacing: AppSpacing.md,
-                    runSpacing: AppSpacing.xs,
-                    children: [
-                      if (deadline != null)
-                        _ActionFact(
-                          icon: Icons.event_outlined,
-                          label: '${l10n.deadline}: $deadline',
-                        ),
-                      if (amount != null)
-                        _ActionFact(
-                          icon: Icons.payments_outlined,
-                          label: '${l10n.amount}: $amount',
-                        ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.sm),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton(
-                    onPressed: onTap,
-                    style: TextButton.styleFrom(foregroundColor: primary),
-                    child: Text(l10n.openDocument),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -419,31 +431,33 @@ class _HomeNeedsAttentionItem extends StatelessWidget {
   final Future<void> Function() onDismiss;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.errorContainer,
-    borderRadius: BorderRadius.circular(10),
-    child: ListTile(
-      key: const Key('home-needs-attention'),
-      leading: Icon(
-        Icons.error_outline,
-        color: Theme.of(context).colorScheme.onErrorContainer,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.errorContainer,
+      borderRadius: BorderRadius.circular(10),
+      child: ListTile(
+        key: const Key('home-needs-attention'),
+        textColor: colors.onErrorContainer,
+        iconColor: colors.onErrorContainer,
+        leading: Icon(Icons.error_outline, color: colors.onErrorContainer),
+        title: Text(context.l10n.documentsNeedAttention(count)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.chevron_right, color: colors.onErrorContainer),
+            IconButton(
+              key: const Key('home-needs-attention-dismiss'),
+              tooltip: context.l10n.dismiss,
+              onPressed: () => onDismiss(),
+              icon: Icon(Icons.close, color: colors.onErrorContainer),
+            ),
+          ],
+        ),
+        onTap: () => onTap(),
       ),
-      title: Text(context.l10n.documentsNeedAttention(count)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.chevron_right),
-          IconButton(
-            key: const Key('home-needs-attention-dismiss'),
-            tooltip: context.l10n.dismiss,
-            onPressed: () => onDismiss(),
-            icon: const Icon(Icons.close),
-          ),
-        ],
-      ),
-      onTap: () => onTap(),
-    ),
-  );
+    );
+  }
 }
 
 class _ProcessingItem extends StatelessWidget {
@@ -454,12 +468,13 @@ class _ProcessingItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colors = Theme.of(context).colorScheme;
     return Semantics(
       key: Key('home-processing-document-${entry.document.clientDocumentId}'),
       button: true,
       label: '${l10n.processingDocuments}: ${entry.title(l10n)}',
       child: Material(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
@@ -471,12 +486,12 @@ class _ProcessingItem extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.primary,
+                    color: colors.primary,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -487,21 +502,21 @@ class _ProcessingItem extends StatelessWidget {
                       Text(
                         entry.title(l10n),
                         style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(color: AppColors.textPrimary),
+                            ?.copyWith(color: colors.onSurface),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         l10n.analysisInProgress,
                         style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: AppColors.textSecondary),
+                            ?.copyWith(color: colors.onSurfaceVariant),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right,
                   size: 20,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
               ],
             ),
@@ -520,6 +535,7 @@ class _RecentDocumentItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colors = Theme.of(context).colorScheme;
     final date = entry.document.documentDate ?? entry.document.createdAt;
     return Semantics(
       button: true,
@@ -532,10 +548,10 @@ class _RecentDocumentItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.description_outlined,
                 size: 20,
-                color: AppColors.secondary,
+                color: colors.onSurfaceVariant,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -545,7 +561,7 @@ class _RecentDocumentItem extends StatelessWidget {
                     Text(
                       entry.title(l10n),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.textPrimary,
+                        color: colors.onSurface,
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
                         height: 1.2,
@@ -555,7 +571,7 @@ class _RecentDocumentItem extends StatelessWidget {
                     Text(
                       MaterialLocalizations.of(context).formatMediumDate(date),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                         fontSize: 13,
                         height: 1.2,
                       ),
@@ -563,10 +579,10 @@ class _RecentDocumentItem extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 size: 20,
-                color: AppColors.textSecondary,
+                color: colors.onSurfaceVariant,
               ),
             ],
           ),

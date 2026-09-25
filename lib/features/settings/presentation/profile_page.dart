@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../document_analysis/domain/analysis_output_language.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -15,8 +16,15 @@ class ProfilePage extends ConsumerWidget {
     final currentLanguage = locale.languageCode == 'ar'
         ? l10n.arabic
         : l10n.german;
+    final explanationLanguage = ref.watch(analysisLanguageProvider);
+    final currentExplanationLanguage = _explanationLanguageLabel(
+      l10n,
+      explanationLanguage,
+    );
+    final themeMode = ref.watch(themeModeProvider);
+    final currentAppearance = _appearanceThemeLabel(l10n, themeMode);
     return Material(
-      color: AppColors.background,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
         child: Column(
           children: [
@@ -55,6 +63,13 @@ class ProfilePage extends ConsumerWidget {
                         value: currentLanguage,
                         onTap: () => _showLanguageSelection(context),
                       ),
+                      _SettingsSelectionRow(
+                        rowKey: const Key('settings-explanation-language'),
+                        icon: Icons.translate_outlined,
+                        label: l10n.analysisLanguageLabel,
+                        value: currentExplanationLanguage,
+                        onTap: () => _showExplanationLanguageSelection(context),
+                      ),
                     ],
                   ),
                   _SettingsSection(
@@ -76,9 +91,11 @@ class ProfilePage extends ConsumerWidget {
                     title: l10n.appearance,
                     children: [
                       _SettingsSelectionRow(
-                        label: l10n.darkAppearance,
+                        rowKey: const Key('settings-appearance'),
+                        label: l10n.appearance,
                         icon: Icons.dark_mode_outlined,
-                        deferred: true,
+                        value: currentAppearance,
+                        onTap: () => _showAppearanceSelection(context),
                       ),
                     ],
                   ),
@@ -148,6 +165,7 @@ class _SettingsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
     return Semantics(
       header: true,
       label: l10n.settings,
@@ -159,8 +177,13 @@ class _SettingsHeader extends StatelessWidget {
           AppSpacing.lg,
           AppSpacing.md,
         ),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Color(0xffE2E8F0))),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color:
+                  theme.dividerTheme.color ?? theme.colorScheme.outlineVariant,
+            ),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,13 +194,13 @@ class _SettingsHeader extends StatelessWidget {
                   width: 28,
                   height: 28,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.description_outlined,
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                     size: 17,
                   ),
                 ),
@@ -318,6 +341,22 @@ Future<void> _showLanguageSelection(BuildContext context) =>
       builder: (_) => const _LanguageSelectionSheet(),
     );
 
+Future<void> _showAppearanceSelection(BuildContext context) =>
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _AppearanceSelectionSheet(),
+    );
+
+Future<void> _showExplanationLanguageSelection(BuildContext context) =>
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _ExplanationLanguageSelectionSheet(),
+    );
+
 class _LanguageSelectionSheet extends ConsumerWidget {
   const _LanguageSelectionSheet();
 
@@ -366,18 +405,169 @@ class _LanguageSelectionSheet extends ConsumerWidget {
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.md),
-            _LanguageOption(
+            _SettingsOption(
               optionKey: const Key('settings-language-de'),
               label: l10n.german,
               selected: current.languageCode == 'de',
               onTap: () => _selectLanguage(context, ref, const Locale('de')),
             ),
             const Divider(),
-            _LanguageOption(
+            _SettingsOption(
               optionKey: const Key('settings-language-ar'),
               label: l10n.arabic,
               selected: current.languageCode == 'ar',
               onTap: () => _selectLanguage(context, ref, const Locale('ar')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppearanceSelectionSheet extends ConsumerWidget {
+  const _AppearanceSelectionSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final current = ref.watch(themeModeProvider);
+    return Material(
+      key: const Key('settings-appearance-modal'),
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.productName,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: const Key('settings-appearance-close'),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.appearance,
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _SettingsOption(
+              optionKey: const Key('settings-theme-system'),
+              label: l10n.appearanceSystem,
+              selected: current == ThemeMode.system,
+              onTap: () => _selectThemeMode(context, ref, ThemeMode.system),
+            ),
+            const Divider(),
+            _SettingsOption(
+              optionKey: const Key('settings-theme-light'),
+              label: l10n.appearanceLight,
+              selected: current == ThemeMode.light,
+              onTap: () => _selectThemeMode(context, ref, ThemeMode.light),
+            ),
+            const Divider(),
+            _SettingsOption(
+              optionKey: const Key('settings-theme-dark'),
+              label: l10n.appearanceDark,
+              selected: current == ThemeMode.dark,
+              onTap: () => _selectThemeMode(context, ref, ThemeMode.dark),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExplanationLanguageSelectionSheet extends ConsumerWidget {
+  const _ExplanationLanguageSelectionSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final current = ref.watch(analysisLanguageProvider);
+    return Material(
+      key: const Key('settings-explanation-language-modal'),
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.productName,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: const Key('settings-explanation-language-close'),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.analysisLanguageLabel,
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _SettingsOption(
+              optionKey: const Key('settings-explanation-language-ar'),
+              label: l10n.analysisLanguageArabic,
+              selected: current == AnalysisOutputLanguage.arabic,
+              onTap: () => _selectExplanationLanguage(
+                context,
+                ref,
+                AnalysisOutputLanguage.arabic,
+              ),
+            ),
+            const Divider(),
+            _SettingsOption(
+              optionKey: const Key('settings-explanation-language-de'),
+              label: l10n.analysisLanguageSimpleGerman,
+              selected: current == AnalysisOutputLanguage.simpleGerman,
+              onTap: () => _selectExplanationLanguage(
+                context,
+                ref,
+                AnalysisOutputLanguage.simpleGerman,
+              ),
             ),
           ],
         ),
@@ -397,8 +587,45 @@ Future<void> _selectLanguage(
   navigator.pop();
 }
 
-class _LanguageOption extends StatelessWidget {
-  const _LanguageOption({
+Future<void> _selectThemeMode(
+  BuildContext context,
+  WidgetRef ref,
+  ThemeMode mode,
+) async {
+  final navigator = Navigator.of(context);
+  await ref.read(themeModeProvider.notifier).setThemeMode(mode);
+  if (!context.mounted) return;
+  navigator.pop();
+}
+
+Future<void> _selectExplanationLanguage(
+  BuildContext context,
+  WidgetRef ref,
+  AnalysisOutputLanguage language,
+) async {
+  final navigator = Navigator.of(context);
+  await ref.read(analysisLanguageProvider.notifier).setLanguage(language);
+  if (!context.mounted) return;
+  navigator.pop();
+}
+
+String _explanationLanguageLabel(
+  AppLocalizations l10n,
+  AnalysisOutputLanguage language,
+) => switch (language) {
+  AnalysisOutputLanguage.arabic => l10n.analysisLanguageArabic,
+  AnalysisOutputLanguage.simpleGerman => l10n.analysisLanguageSimpleGerman,
+};
+
+String _appearanceThemeLabel(AppLocalizations l10n, ThemeMode mode) =>
+    switch (mode) {
+      ThemeMode.system => l10n.appearanceSystem,
+      ThemeMode.light => l10n.appearanceLight,
+      ThemeMode.dark => l10n.appearanceDark,
+    };
+
+class _SettingsOption extends StatelessWidget {
+  const _SettingsOption({
     required this.optionKey,
     required this.label,
     required this.selected,
@@ -411,13 +638,20 @@ class _LanguageOption extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-    key: optionKey,
-    contentPadding: EdgeInsets.zero,
-    title: Text(label),
-    trailing: selected
-        ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-        : null,
-    onTap: onTap,
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    button: true,
+    selected: selected,
+    label: label,
+    child: ListTile(
+      key: optionKey,
+      contentPadding: EdgeInsets.zero,
+      selected: selected,
+      title: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      trailing: selected
+          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+          : null,
+      onTap: onTap,
+    ),
   );
 }

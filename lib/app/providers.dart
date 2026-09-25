@@ -1,5 +1,6 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/widgets.dart';
 
 import '../core/database/app_database.dart'
     hide Case, DocumentFile, Organization;
@@ -277,6 +278,50 @@ class LanguageController extends Notifier<Locale> {
 
 final languageProvider = NotifierProvider<LanguageController, Locale>(
   LanguageController.new,
+);
+
+const _themeModeSettingKey = 'theme_mode';
+
+ThemeMode _themeModeFromSetting(String? value) => switch (value) {
+  'light' => ThemeMode.light,
+  'dark' => ThemeMode.dark,
+  'system' => ThemeMode.system,
+  _ => ThemeMode.system,
+};
+
+String _themeModeSettingValue(ThemeMode mode) => switch (mode) {
+  ThemeMode.system => 'system',
+  ThemeMode.light => 'light',
+  ThemeMode.dark => 'dark',
+};
+
+class ThemeModeController extends Notifier<ThemeMode> {
+  bool _explicitlySelected = false;
+
+  @override
+  ThemeMode build() {
+    _restore();
+    return ThemeMode.system;
+  }
+
+  Future<void> _restore() async {
+    final value = await ref
+        .read(settingsRepositoryProvider)
+        .read(_themeModeSettingKey);
+    if (!_explicitlySelected) state = _themeModeFromSetting(value);
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _explicitlySelected = true;
+    state = mode;
+    await ref
+        .read(settingsRepositoryProvider)
+        .write(_themeModeSettingKey, _themeModeSettingValue(mode));
+  }
+}
+
+final themeModeProvider = NotifierProvider<ThemeModeController, ThemeMode>(
+  ThemeModeController.new,
 );
 
 class AnalysisLanguageController extends Notifier<AnalysisOutputLanguage> {

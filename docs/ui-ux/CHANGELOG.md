@@ -2,6 +2,10 @@
 
 ## 2026-09-25
 
+- Updated Home backgrounds, action/status emphasis, Processing, and Recent Documents to use the active theme's semantic colors; the brand mark retains its intentional fixed teal treatment.
+- Completed Settings Appearance with persisted System/Light/Dark selection, System default, immediate theme updates, and theme-aware Settings surfaces.
+- Recorded the decision to review/refactor localization before a third UI language, evaluate `gen_l10n` + ARB without committing to it now, and make future language selectors data-driven.
+- Completed the Settings Language section with independent App language and Explanation language selectors backed by the existing `ui_language` and `analysis_language` preferences.
 - Recorded deferred review of Home Analysis-attention terminology/counting, a dedicated location for failed/deleted Analysis activity, Settings history-entry consideration, and a post-Settings navigation/back/exit audit.
 - Added Home Needs Attention tap/X acknowledgement behavior with a persistent current-snapshot marker, localized accessible dismiss control, and reappearance for later attention events.
 - Clarified Task reminder notification routing to Task Detail and recorded the undecided future Settings entry for discoverable Analysis history.

@@ -56,7 +56,7 @@ The confirmed Result-to-Create-Task handoff and local reminder reconciliation fo
 - Verify Arabic device-locale bootstrap, explicit UI-language persistence, and independent explanation-language choice.
 - Verify directional padding/alignment, mixed Arabic/German names, dates, amounts, identifiers, filenames, and the Arabic Case term `المعاملة`.
 - Verify screen-reader labels, focus order, contrast, minimum touch targets, dynamic text scaling, and reduced-motion expectations.
-- Review the approved Light-theme references on a real device. Light mode and `#F8FAFC` are the current visual baseline; dark mode requires a dedicated design pass and has no approved production palette. Any visible Appearance capability still requires real pre-release behavior.
+- Review System, Light, and Dark appearance on a real device, including platform-following behavior, Settings contrast, and narrow layouts. This focused Appearance change does not audit individual feature screens for hardcoded light colors; validate those screens physically before treating dark mode as fully visually verified.
 - Use visual/manual checks for hierarchy, spacing, restrained card usage, and application-header/brand treatment without relying on wireframe pixel coordinates.
 - Do not mark approved wireframe visual alignment as verified until the production Flutter screen has been runtime-captured or manually inspected alongside its referenced PNG.
 

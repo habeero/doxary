@@ -171,6 +171,9 @@ class AppLocalizations {
   String get taskNotifications => _value('taskNotifications');
   String get appearance => _value('appearance');
   String get darkAppearance => _value('darkAppearance');
+  String get appearanceSystem => _value('appearanceSystem');
+  String get appearanceLight => _value('appearanceLight');
+  String get appearanceDark => _value('appearanceDark');
   String get privacyAndData => _value('privacyAndData');
   String get localDocuments => _value('localDocuments');
   String get dataManagement => _value('dataManagement');
@@ -891,8 +894,11 @@ const _strings = <String, Map<String, String>>{
     'notifications': 'Benachrichtigungen',
     'analysisNotifications': 'Analyse abgeschlossen',
     'taskNotifications': 'Aufgaben und Termine',
-    'appearance': 'Darstellung',
+    'appearance': 'Erscheinungsbild',
     'darkAppearance': 'Dunkles Erscheinungsbild',
+    'appearanceSystem': 'System',
+    'appearanceLight': 'Hell',
+    'appearanceDark': 'Dunkel',
     'privacyAndData': 'Datenschutz und Daten',
     'localDocuments': 'Lokale Dokumente',
     'dataManagement': 'Daten verwalten',
@@ -1012,6 +1018,9 @@ const _strings = <String, Map<String, String>>{
     'taskNotifications': 'المهام والمواعيد',
     'appearance': 'المظهر',
     'darkAppearance': 'المظهر الداكن',
+    'appearanceSystem': 'النظام',
+    'appearanceLight': 'فاتح',
+    'appearanceDark': 'داكن',
     'privacyAndData': 'الخصوصية والبيانات',
     'localDocuments': 'المستندات المحلية',
     'dataManagement': 'إدارة البيانات',
