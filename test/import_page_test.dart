@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:drift/native.dart';
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
+import 'package:doxary/app/theme/app_theme.dart';
 import 'package:doxary/core/database/app_database.dart';
 import 'package:doxary/core/errors/app_error.dart';
 import 'package:doxary/core/errors/result.dart';
@@ -314,6 +315,130 @@ void main() {
       expect(find.text('Analyse gestartet'), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
+    },
+  );
+
+  testWidgets(
+    'Processing modal follows active theme in German and Arabic',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      addTearDown(
+        () => tester.platformDispatcher.clearPlatformBrightnessTestValue(),
+      );
+
+      for (final themeMode in [
+        ThemeMode.light,
+        ThemeMode.dark,
+        ThemeMode.system,
+      ]) {
+        for (final locale in [const Locale('de'), const Locale('ar')]) {
+          final expectedBrightness =
+              themeMode == ThemeMode.dark ||
+                  (themeMode == ThemeMode.system && locale.languageCode == 'ar')
+              ? Brightness.dark
+              : Brightness.light;
+          tester.platformDispatcher.platformBrightnessTestValue =
+              expectedBrightness;
+          final database = AppDatabase(NativeDatabase.memory());
+          addTearDown(database.close);
+          final remote = _AcceptedProcessingRemote();
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                databaseProvider.overrideWithValue(database),
+                idGeneratorProvider.overrideWithValue(_SequenceIdGenerator()),
+                importGatewayProvider.overrideWithValue(_SelectionGateway()),
+                analysisRemoteDataSourceProvider.overrideWithValue(remote),
+                activeAnalysisOperationsProvider.overrideWithValue(
+                  const AsyncValue.data([]),
+                ),
+              ],
+              child: _themedApp(locale, themeMode),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.byKey(const Key('choose-file-image-action')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('import-choose-image')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('analyze-draft-action')));
+          await tester.pumpAndSettle();
+
+          final overlay = find.byKey(const Key('processing-overlay'));
+          expect(overlay, findsOneWidget);
+          final context = tester.element(overlay);
+          final l10n = AppLocalizations.of(context);
+          final colorScheme =
+              (expectedBrightness == Brightness.dark
+                      ? AppTheme.dark()
+                      : AppTheme.light())
+                  .colorScheme;
+          final expectedDirection = locale.languageCode == 'ar'
+              ? TextDirection.rtl
+              : TextDirection.ltr;
+
+          expect(Directionality.of(context), expectedDirection);
+          expect(
+            tester.widget<Dialog>(overlay).backgroundColor,
+            colorScheme.surface,
+          );
+
+          final stagesSurface = tester.widget<Container>(
+            find.byKey(const Key('processing-stages-surface')),
+          );
+          expect(
+            (stagesSurface.decoration! as BoxDecoration).color,
+            colorScheme.surfaceContainer,
+          );
+
+          expect(
+            tester.widget<Text>(find.text(l10n.processingTitle)).style?.color,
+            colorScheme.onSurface,
+          );
+          expect(
+            tester
+                .widget<Text>(find.text(l10n.processingDescription))
+                .style
+                ?.color,
+            colorScheme.onSurfaceVariant,
+          );
+          expect(
+            tester
+                .widget<Text>(find.text(l10n.cancellationUnavailable))
+                .style
+                ?.color,
+            colorScheme.onSurfaceVariant,
+          );
+          expect(
+            tester.widget<Text>(find.text(l10n.processingWaiting)).style?.color,
+            colorScheme.onSurface,
+          );
+          final documentIcon = find.descendant(
+            of: overlay,
+            matching: find.byIcon(Icons.document_scanner_outlined),
+          );
+          expect(documentIcon, findsOneWidget);
+          expect(
+            tester.widget<Icon>(documentIcon).color,
+            colorScheme.primary,
+          );
+          final stageIndicator = find.descendant(
+            of: overlay,
+            matching: find.byIcon(Icons.schedule),
+          );
+          expect(stageIndicator, findsOneWidget);
+          expect(
+            tester.widget<Icon>(stageIndicator).color,
+            colorScheme.primary,
+          );
+          expect(tester.takeException(), isNull);
+
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump();
+        }
+      }
     },
   );
 
@@ -1704,6 +1829,21 @@ Widget _appWithHome(Widget home, [Locale locale = const Locale('de')]) =>
       ],
       home: home,
     );
+
+Widget _themedApp(Locale locale, ThemeMode themeMode) => MaterialApp(
+  locale: locale,
+  supportedLocales: AppLocalizations.supportedLocales,
+  localizationsDelegates: const [
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  theme: AppTheme.light(),
+  darkTheme: AppTheme.dark(),
+  themeMode: themeMode,
+  home: const ImportPage(),
+);
 
 class _FakeCameraCaptureGateway implements CameraCaptureGateway {
   _FakeCameraCaptureGateway({

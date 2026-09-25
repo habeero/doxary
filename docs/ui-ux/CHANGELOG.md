@@ -2,6 +2,9 @@
 
 ## 2026-09-25
 
+- Closed the active Settings implementation scope for currently decided capabilities, distinguishing physically validated behavior, Processing-dialog release visual review, and dependency-tracked deferrals; Settings is not release-complete.
+- Corrected Settings deferral ownership: Privacy & Data depends on unresolved local lifecycle semantics; Legal and Account/Plan retain their distinct future dependencies.
+- Updated the Analysis Processing dialog to use active theme surface and text roles, with focused Light/Dark German/Arabic coverage; documented Analysis-completed notification and Privacy & Data deferrals.
 - Completed the Tasks and appointments Settings switch with enabled-by-default persisted preference, cancellation/reconciliation behavior, read-only OS permission status, and visibly deferred Analysis-completed notifications.
 - Completed Settings About version/build display from runtime metadata and native localized sharing; Rate remains disabled until a canonical store listing exists.
 - Kept deferred Settings-row status text bounded on narrow layouts.

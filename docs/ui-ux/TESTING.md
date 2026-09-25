@@ -29,6 +29,7 @@ Every approved screen design defines its primary goal, information hierarchy, pr
 - Verify repeated Analyze actions do not create duplicate visible or logical results.
 - Verify selected input becomes safely locked or cleared after Analyze begins and existing local work remains available.
 - Verify active versus completed semantic processing labels, no invented percentage/sub-stage, leaving without cancellation, Documents visibility while processing, and completion-to-Result navigation.
+- Verify the Processing `Dialog` follows the active System/Light/Dark `ColorScheme`, keeps primary and secondary content readable, renders its stage indicator in both themes, and has no overflow in narrow German LTR and Arabic RTL layouts.
 - Verify technical failure and unreadable/insufficient input are distinct recovery experiences.
 
 ## Result, Documents, and Tasks
@@ -50,6 +51,8 @@ The confirmed Result-to-Create-Task handoff and local reminder reconciliation fo
 - Verify Settings exposes the approved default explanation-language control independently from UI language and does not rewrite prior analysis content.
 - Verify About reads version/build from runtime metadata, handles metadata/share failures with localized safe states, shares through the native UI without a fabricated URL, and keeps Rate disabled until a real store listing is configured.
 - Verify Task reminders defaults ON, persists the Doxary preference, cancels scheduled Task notifications when OFF without clearing reminder intent, keeps the Task Editor Reminder selector editable while OFF, and restores only eligible future open reminders when ON. Verify OS permission denial leaves the Doxary switch ON and Analysis-completed remains unavailable.
+- Verify the Analysis-completed notification row remains truthfully deferred/unavailable until a pre-release product decision determines whether it belongs in MVP; do not treat it as a required MVP capability before that decision.
+- Verify Privacy & Data remains truthfully unavailable while its local lifecycle semantics are unresolved; this is independent of Legal's deferred public pages and store-release content.
 - Verify the Task reminder switch and localized OS permission status remain distinct, accessible, and correctly laid out in German LTR and Arabic RTL; Settings reconciliation must not request OS permission.
 - Verify local reminder scheduling/delivery, privacy/data lifecycle behavior, approved legal disclosures, and real application/version information before launch.
 - Verify no visible permanent unavailable placeholder Settings rows remain in a public release.

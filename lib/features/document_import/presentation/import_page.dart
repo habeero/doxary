@@ -665,6 +665,7 @@ class _ProcessingOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
     final activeOperations = ref.watch(activeAnalysisOperationsProvider);
     final state = activeOperations.when(
       data: (operations) {
@@ -683,7 +684,7 @@ class _ProcessingOverlay extends ConsumerWidget {
     return Dialog(
       key: const Key('processing-overlay'),
       insetPadding: const EdgeInsets.all(AppSpacing.lg),
-      backgroundColor: AppColors.surface,
+      backgroundColor: colorScheme.surface,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: Padding(
@@ -716,7 +717,7 @@ class _ProcessingOverlay extends ConsumerWidget {
                 l10n.processingTitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -725,7 +726,7 @@ class _ProcessingOverlay extends ConsumerWidget {
                 l10n.processingDescription,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: AppColors.textSecondary),
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: AppSpacing.lg),
               _ProcessingStages(analysisInProgress: analysisInProgress),
@@ -734,7 +735,7 @@ class _ProcessingOverlay extends ConsumerWidget {
                 l10n.cancellationUnavailable,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: AppColors.textSecondary),
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: AppSpacing.sm),
               OutlinedButton.icon(
@@ -766,10 +767,12 @@ class _ProcessingStages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
+      key: const Key('processing-stages-surface'),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
+        color: colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -800,23 +803,28 @@ class _ProcessingStage extends StatelessWidget {
   final bool active;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Icon(
-        complete ? Icons.check_circle : Icons.schedule,
-        color: complete || active ? AppColors.primary : AppColors.textSecondary,
-        size: 20,
-      ),
-      const SizedBox(width: AppSpacing.sm),
-      Expanded(
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(
+          complete ? Icons.check_circle : Icons.schedule,
+          color: complete || active
+              ? colorScheme.primary
+              : colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+            ),
           ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }

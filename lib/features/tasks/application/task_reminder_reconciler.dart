@@ -23,11 +23,16 @@ class TaskReminderReconciler {
   static const allDayAnchorMinutes = 9 * 60;
 
   TaskReminderReconciler(
-    this._scheduler, {
+    ReminderScheduler scheduler, {
     DateTime Function()? now,
     Future<bool> Function()? remindersEnabled,
-  }) : _now = now ?? DateTime.now,
-       _remindersEnabled = remindersEnabled;
+  }) : this._(scheduler, remindersEnabled, now: now);
+
+  TaskReminderReconciler._(
+    this._scheduler,
+    this._remindersEnabled, {
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
 
   final ReminderScheduler _scheduler;
   final DateTime Function() _now;

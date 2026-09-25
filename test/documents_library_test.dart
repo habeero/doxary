@@ -17,6 +17,7 @@ import 'package:doxary/shared/design_system/app_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -1401,10 +1402,11 @@ DocumentAnalysisBrowseState _browseState({
   latestDeletionAt: reason == DocumentAttentionReason.deleted ? at : null,
 );
 
-_browseStatesOverride(Map<String, DocumentAnalysisBrowseState> states) =>
-    documentAnalysisBrowseStatesProvider.overrideWithValue(
-      AsyncValue.data(states),
-    );
+Override _browseStatesOverride(
+  Map<String, DocumentAnalysisBrowseState> states,
+) => documentAnalysisBrowseStatesProvider.overrideWithValue(
+  AsyncValue.data(states),
+);
 
 ProviderContainer _attentionHomeContainer({
   required SettingsRepository settings,
@@ -1465,7 +1467,13 @@ Future<void> _pumpThemedHome(
       key: ValueKey('home-$themeMode-${locale.languageCode}'),
       overrides: [
         homeDocumentsProvider.overrideWithValue(
-          AsyncValue.data([action, attention, processing, recentOne, recentTwo]),
+          AsyncValue.data([
+            action,
+            attention,
+            processing,
+            recentOne,
+            recentTwo,
+          ]),
         ),
         activeAnalysisOperationsProvider.overrideWithValue(
           const AsyncValue.data([

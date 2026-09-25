@@ -1,5 +1,3 @@
-import 'dart:ui' show Rect;
-
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
 import 'package:doxary/app/theme/app_theme.dart';
@@ -818,7 +816,7 @@ Future<void> _pump(
         ),
         if (permissionStatus != null)
           taskReminderPermissionStatusProvider.overrideWith(
-            (ref) async => permissionStatus!,
+            (ref) async => permissionStatus,
           ),
       ],
       child: const _SettingsTestApp(),
