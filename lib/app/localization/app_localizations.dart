@@ -183,7 +183,12 @@ class AppLocalizations {
   String get about => _value('about');
   String get rateApp => _value('rateApp');
   String get shareApp => _value('shareApp');
+  String get shareAppMessage => _value('shareAppMessage');
+  String get shareUnavailable => _value('shareUnavailable');
   String get appVersion => _value('appVersion');
+  String get versionLoading => _value('versionLoading');
+  String get versionUnavailable => _value('versionUnavailable');
+  String get rateAppUnavailable => _value('rateAppUnavailable');
   String get notAvailableYet => _value('notAvailableYet');
   String get german => _value('german');
   String get arabic => _value('arabic');
@@ -908,7 +913,12 @@ const _strings = <String, Map<String, String>>{
     'about': 'Über die App',
     'rateApp': 'App bewerten',
     'shareApp': 'App teilen',
+    'shareAppMessage': 'Eine einfache App, um Dokumente zu organisieren.',
+    'shareUnavailable': 'Teilen ist derzeit nicht verfügbar.',
     'appVersion': 'Version',
+    'versionLoading': 'Version wird geladen …',
+    'versionUnavailable': 'Version nicht verfügbar',
+    'rateAppUnavailable': 'Noch kein Store-Eintrag',
     'notAvailableYet': 'Noch nicht verfügbar',
     'german': 'Deutsch',
     'arabic': 'Arabisch',
@@ -1030,7 +1040,12 @@ const _strings = <String, Map<String, String>>{
     'about': 'حول التطبيق',
     'rateApp': 'تقييم التطبيق',
     'shareApp': 'مشاركة التطبيق',
+    'shareAppMessage': 'تطبيق بسيط لتنظيم المستندات.',
+    'shareUnavailable': 'المشاركة غير متاحة حاليًا.',
     'appVersion': 'الإصدار',
+    'versionLoading': 'جارٍ تحميل الإصدار…',
+    'versionUnavailable': 'الإصدار غير متاح',
+    'rateAppUnavailable': 'لا توجد صفحة متجر بعد',
     'notAvailableYet': 'غير متاح بعد',
     'german': 'الألمانية',
     'arabic': 'العربية',

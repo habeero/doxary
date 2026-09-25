@@ -1,3 +1,5 @@
+import 'dart:ui' show Offset, Rect;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +7,7 @@ import '../../../app/localization/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../document_analysis/domain/analysis_output_language.dart';
+import '../application/about_services.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -23,6 +26,7 @@ class ProfilePage extends ConsumerWidget {
     );
     final themeMode = ref.watch(themeModeProvider);
     final currentAppearance = _appearanceThemeLabel(l10n, themeMode);
+    final appVersion = ref.watch(appVersionProvider);
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
@@ -133,19 +137,30 @@ class ProfilePage extends ConsumerWidget {
                     title: l10n.about,
                     children: [
                       _SettingsSelectionRow(
+                        rowKey: const Key('settings-rate-app'),
                         label: l10n.rateApp,
                         icon: Icons.star_outline,
                         deferred: true,
+                        value: l10n.rateAppUnavailable,
+                        showChevron: false,
                       ),
                       _SettingsSelectionRow(
+                        rowKey: const Key('settings-share-app'),
                         label: l10n.shareApp,
                         icon: Icons.share_outlined,
-                        deferred: true,
+                        onTap: () => _shareApp(context, ref, l10n),
                       ),
                       _SettingsSelectionRow(
+                        rowKey: const Key('settings-app-version'),
                         label: l10n.appVersion,
                         icon: Icons.info_outline,
-                        deferred: true,
+                        value: appVersion.when(
+                          data: (value) => value,
+                          loading: () => l10n.versionLoading,
+                          error: (_, _) => l10n.versionUnavailable,
+                        ),
+                        isButton: false,
+                        showChevron: false,
                       ),
                     ],
                   ),
@@ -233,6 +248,8 @@ class _SettingsSelectionRow extends StatelessWidget {
     this.value,
     this.onTap,
     this.deferred = false,
+    this.isButton = true,
+    this.showChevron = true,
   });
 
   final Key? rowKey;
@@ -241,11 +258,13 @@ class _SettingsSelectionRow extends StatelessWidget {
   final String? value;
   final VoidCallback? onTap;
   final bool deferred;
+  final bool isButton;
+  final bool showChevron;
 
   @override
   Widget build(BuildContext context) => Semantics(
-    button: true,
-    enabled: !deferred,
+    button: isButton,
+    enabled: isButton ? !deferred : null,
     label: value == null ? label : '$label: $value',
     child: Material(
       color: Theme.of(context).colorScheme.surface
@@ -291,20 +310,52 @@ class _SettingsSelectionRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
-                const Icon(Icons.chevron_right),
-              ] else if (deferred)
-                Text(
-                  context.l10n.notAvailableYet,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                if (showChevron) const Icon(Icons.chevron_right),
+              ] else if (deferred) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Flexible(
+                  child: Text(
+                    context.l10n.notAvailableYet,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
+              ],
             ],
           ),
         ),
       ),
     ),
   );
+}
+
+Future<void> _shareApp(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations l10n,
+) async {
+  final screenSize = MediaQuery.sizeOf(context);
+  final origin = Rect.fromCenter(
+    center: Offset(screenSize.width / 2, screenSize.height / 2),
+    width: 1,
+    height: 1,
+  );
+  try {
+    await ref.read(aboutShareServiceProvider).share(
+      text: '${l10n.productName}\n${l10n.shareAppMessage}',
+      title: l10n.shareApp,
+      sharePositionOrigin: origin,
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger != null && Scaffold.maybeOf(context) != null) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.shareUnavailable)));
+    }
+  }
 }
 
 class _SettingsSection extends StatelessWidget {

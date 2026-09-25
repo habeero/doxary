@@ -1,6 +1,9 @@
+import 'dart:ui' show Rect;
+
 import 'package:doxary/app/localization/app_localizations.dart';
 import 'package:doxary/app/providers.dart';
 import 'package:doxary/app/theme/app_theme.dart';
+import 'package:doxary/features/settings/application/about_services.dart';
 import 'package:doxary/features/settings/domain/settings_repository.dart';
 import 'package:doxary/features/settings/presentation/profile_page.dart';
 import 'package:flutter/material.dart';
@@ -481,6 +484,191 @@ void main() {
     expect(optionTitle, findsOneWidget);
     expect(tester.widget<Text>(optionTitle).overflow, TextOverflow.ellipsis);
   });
+
+  testWidgets('About displays the injected runtime version and build', (
+    tester,
+  ) async {
+    const metadata = AppMetadata(version: '7.8.9', buildNumber: '2042');
+    await _pump(
+      tester,
+      const Locale('de'),
+      metadataReader: _FakeMetadataReader(metadata: metadata),
+    );
+
+    final versionRow = find.byKey(const Key('settings-app-version'));
+    await tester.scrollUntilVisible(versionRow, 200);
+    expect(
+      find.descendant(of: versionRow, matching: find.text('7.8.9 (2042)')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: versionRow,
+        matching: find.byIcon(Icons.chevron_right),
+      ),
+      findsNothing,
+    );
+    final semantics = tester.widget<Semantics>(
+      find.ancestor(of: versionRow, matching: find.byType(Semantics)).first,
+    );
+    expect(semantics.properties.button, isFalse);
+    expect(semantics.properties.label, 'Version: 7.8.9 (2042)');
+  });
+
+  testWidgets('Unavailable version metadata uses localized fallback', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const Locale('ar'),
+      metadataReader: _FakeMetadataReader(failure: StateError('private error')),
+    );
+    final l10n = AppLocalizations(const Locale('ar'));
+    final versionRow = find.byKey(const Key('settings-app-version'));
+    await tester.scrollUntilVisible(versionRow, 200);
+
+    expect(
+      find.descendant(
+        of: versionRow,
+        matching: find.text(l10n.versionUnavailable),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('private error'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Rate stays disabled until a real store listing exists', (
+    tester,
+  ) async {
+    final shareService = _FakeAboutShareService();
+    await _pump(
+      tester,
+      const Locale('de'),
+      shareService: shareService,
+    );
+    final rateRow = find.byKey(const Key('settings-rate-app'));
+    await tester.scrollUntilVisible(rateRow, 200);
+    await tester.ensureVisible(rateRow);
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations(const Locale('de'));
+
+    expect(
+      find.descendant(
+        of: rateRow,
+        matching: find.text(l10n.rateAppUnavailable),
+      ),
+      findsOneWidget,
+    );
+    final semantics = tester.widget<Semantics>(
+      find.ancestor(of: rateRow, matching: find.byType(Semantics)).first,
+    );
+    expect(semantics.properties.enabled, isFalse);
+    expect(
+      find.descendant(
+        of: rateRow,
+        matching: find.byIcon(Icons.chevron_right),
+      ),
+      findsNothing,
+    );
+    await tester.tap(rateRow);
+    await tester.pumpAndSettle();
+    expect(shareService.calls, 0);
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('Share sends localized app text through the injected service', (
+    tester,
+  ) async {
+    for (final locale in [const Locale('de'), const Locale('ar')]) {
+      final shareService = _FakeAboutShareService();
+      await _pump(tester, locale, shareService: shareService);
+      final shareRow = find.byKey(const Key('settings-share-app'));
+      await tester.scrollUntilVisible(shareRow, 200);
+      await tester.ensureVisible(shareRow);
+      await tester.pumpAndSettle();
+      await tester.tap(shareRow);
+      await tester.pumpAndSettle();
+
+      final l10n = AppLocalizations(locale);
+      expect(shareService.calls, 1);
+      expect(shareService.title, l10n.shareApp);
+      expect(
+        shareService.text,
+        '${l10n.productName}\n${l10n.shareAppMessage}',
+      );
+      expect(shareService.text, isNot(contains('http://')));
+      expect(shareService.text, isNot(contains('https://')));
+      expect(shareService.sharePositionOrigin?.width, greaterThan(0));
+      expect(shareService.sharePositionOrigin?.height, greaterThan(0));
+    }
+  });
+
+  testWidgets('Share failure is handled with localized safe feedback', (
+    tester,
+  ) async {
+    final shareService = _FakeAboutShareService(
+      failure: StateError('private error'),
+    );
+    await _pump(
+      tester,
+      const Locale('ar'),
+      shareService: shareService,
+    );
+    final shareRow = find.byKey(const Key('settings-share-app'));
+    await tester.scrollUntilVisible(shareRow, 200);
+    await tester.ensureVisible(shareRow);
+    await tester.pumpAndSettle();
+    await tester.tap(shareRow);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(AppLocalizations(const Locale('ar')).shareUnavailable),
+      findsOneWidget,
+    );
+    expect(find.text('private error'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('About rows remain bounded in German and Arabic at narrow width', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final locale in [const Locale('de'), const Locale('ar')]) {
+      await _pump(
+        tester,
+        locale,
+        metadataReader: const _FakeMetadataReader(
+          metadata: AppMetadata(
+            version: '2026.09.25-development-build',
+            buildNumber: 'long-build-metadata-value',
+          ),
+        ),
+      );
+      final versionRow = find.byKey(const Key('settings-app-version'));
+      await tester.scrollUntilVisible(versionRow, 200);
+      expect(
+        Directionality.of(tester.element(versionRow)),
+        locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+      );
+      expect(
+        tester.widget<Text>(
+          find.descendant(
+            of: versionRow,
+            matching: find.text(
+              '2026.09.25-development-build (long-build-metadata-value)',
+            ),
+          ),
+        ).overflow,
+        TextOverflow.ellipsis,
+      );
+      expect(tester.takeException(), isNull);
+    }
+  });
 }
 
 Future<void> _pump(
@@ -488,6 +676,8 @@ Future<void> _pump(
   Locale locale, {
   _MemorySettings? settings,
   Key? scopeKey,
+  AppMetadataReader? metadataReader,
+  AboutShareService? shareService,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -496,6 +686,15 @@ Future<void> _pump(
         deviceLocaleProvider.overrideWithValue(locale),
         settingsRepositoryProvider.overrideWithValue(
           settings ?? _MemorySettings(),
+        ),
+        appMetadataReaderProvider.overrideWithValue(
+          metadataReader ??
+              _FakeMetadataReader(
+                metadata: const AppMetadata(version: '2.4.1', buildNumber: '17'),
+              ),
+        ),
+        aboutShareServiceProvider.overrideWithValue(
+          shareService ?? _FakeAboutShareService(),
         ),
       ],
       child: const _SettingsTestApp(),
@@ -527,7 +726,7 @@ class _SettingsTestApp extends ConsumerWidget {
     theme: AppTheme.light(),
     darkTheme: AppTheme.dark(),
     themeMode: ref.watch(themeModeProvider),
-    home: const ProfilePage(),
+    home: const Scaffold(body: ProfilePage()),
   );
 }
 
@@ -542,5 +741,44 @@ class _MemorySettings implements SettingsRepository {
   @override
   Future<void> write(String key, String value) async {
     values[key] = value;
+  }
+}
+
+class _FakeMetadataReader implements AppMetadataReader {
+  const _FakeMetadataReader({this.metadata, this.failure});
+
+  final AppMetadata? metadata;
+  final Object? failure;
+
+  @override
+  Future<AppMetadata> read() async {
+    final error = failure;
+    if (error != null) throw error;
+    return metadata ??
+        const AppMetadata(version: '2.4.1', buildNumber: '17');
+  }
+}
+
+class _FakeAboutShareService implements AboutShareService {
+  _FakeAboutShareService({this.failure});
+
+  final Object? failure;
+  int calls = 0;
+  String? text;
+  String? title;
+  Rect? sharePositionOrigin;
+
+  @override
+  Future<void> share({
+    required String text,
+    required String title,
+    required Rect sharePositionOrigin,
+  }) async {
+    calls++;
+    this.text = text;
+    this.title = title;
+    this.sharePositionOrigin = sharePositionOrigin;
+    final error = failure;
+    if (error != null) throw error;
   }
 }

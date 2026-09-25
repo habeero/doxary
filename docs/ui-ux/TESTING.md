@@ -48,6 +48,7 @@ The confirmed Result-to-Create-Task handoff and local reminder reconciliation fo
 
 - Verify the visible Account, Language, Notifications, Appearance, Privacy & Data, Legal, and About capabilities have real behavior before public launch, or that each removed launch row has an explicit product decision.
 - Verify Settings exposes the approved default explanation-language control independently from UI language and does not rewrite prior analysis content.
+- Verify About reads version/build from runtime metadata, handles metadata/share failures with localized safe states, shares through the native UI without a fabricated URL, and keeps Rate disabled until a real store listing is configured.
 - Verify local reminder scheduling/delivery, privacy/data lifecycle behavior, approved legal disclosures, and real application/version information before launch.
 - Verify no visible permanent unavailable placeholder Settings rows remain in a public release.
 

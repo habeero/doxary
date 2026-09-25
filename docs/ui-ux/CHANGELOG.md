@@ -2,6 +2,8 @@
 
 ## 2026-09-25
 
+- Completed Settings About version/build display from runtime metadata and native localized sharing; Rate remains disabled until a canonical store listing exists.
+- Kept deferred Settings-row status text bounded on narrow layouts.
 - Updated Home backgrounds, action/status emphasis, Processing, and Recent Documents to use the active theme's semantic colors; the brand mark retains its intentional fixed teal treatment.
 - Completed Settings Appearance with persisted System/Light/Dark selection, System default, immediate theme updates, and theme-aware Settings surfaces.
 - Recorded the decision to review/refactor localization before a third UI language, evaluate `gen_l10n` + ARB without committing to it now, and make future language selectors data-driven.
