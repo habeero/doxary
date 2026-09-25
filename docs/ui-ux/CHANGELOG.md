@@ -2,6 +2,7 @@
 
 ## 2026-09-25
 
+- Recorded deferred review of Home Analysis-attention terminology/counting, a dedicated location for failed/deleted Analysis activity, Settings history-entry consideration, and a post-Settings navigation/back/exit audit.
 - Added Home Needs Attention tap/X acknowledgement behavior with a persistent current-snapshot marker, localized accessible dismiss control, and reappearance for later attention events.
 - Clarified Task reminder notification routing to Task Detail and recorded the undecided future Settings entry for discoverable Analysis history.
 

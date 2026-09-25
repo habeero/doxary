@@ -2,6 +2,7 @@
 
 ## 2026-09-25
 
+- Clarified the deferred permanent removal gap for failed Analysis attempts and deleted-Analysis tombstones, distinct from deleting a Document or source.
 - Implemented app-owned Task reminder response handling for cold-start and running/background taps, repository-based Task resolution, and safe Tasks fallback for missing or legacy payloads.
 - Added durable timestamp-based Home Needs Attention acknowledgement using the existing settings store; later failed/deleted events can resurface the alert without mutating Documents or history.
 

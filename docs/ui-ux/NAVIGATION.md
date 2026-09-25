@@ -30,6 +30,16 @@ Analyze enters capture/import review. Review enters Processing only after the us
 
 Result can open contextual Create Task for a confirmed action-required result. It appears only for meaningful action, deadline, appointment, suggested-task, or next-action context, retains the linked Document, derives Organization/Case context when available, and creates a Task only after explicit Save. Reminder delivery remains an outstanding MVP gap.
 
+## Deferred navigation and back-stack audit
+
+Physical-device validation found that Android system Back can close Doxary from an Analysis/Document-related surface instead of returning to the expected in-app destination. This is a deferred navigation/back-stack gap; do not mask it with an exit prompt before route history is audited.
+
+After the Settings phase, audit the complete navigation flow and verify that Back returns to a logical in-app destination across Home, Documents, Document Detail, Analysis Result/related surfaces, Needs Attention, Tasks, Task Detail, Create/Edit Task, Analyze/import, Settings, nested focused routes, notification-origin and cold-start navigation, bottom-navigation roots, app-bar Back, Android system Back, and pushed/deep routes. Fix route-history semantics where required.
+
+When Android system Back would genuinely leave the application from a root, evaluate a localized exit confirmation. Show it only when no valid in-app destination remains; never use it instead of fixing broken route history or show it during ordinary in-app Back navigation.
+
+Intended sequencing: NOW proceed with Settings work. DURING its information-architecture review, decide whether and where to expose Analysis History/Activity. AFTER Settings, perform the global navigation/back-stack audit and correct Android Back behavior. Only after route history is correct, decide whether to implement root exit confirmation. Permanent failed/deleted Analysis-history removal follows once its lifecycle and privacy consequences are finalized; see [Application Logic](../app-logic/APPLICATION_LOGIC.md#document-lifecycle).
+
 ## Documents hierarchy
 
 Documents is the complete local library and browses Organization → Case → Document. Unclassified and Needs Attention remain separate special collections; the latter is a focused filtered route under Documents, not a bottom-navigation destination. Home opens that route directly from its count/link. An Organization owns its Cases and documents without a Case. A Case is always under an Organization.
